@@ -17,7 +17,6 @@ void wait_for_netif_is_up();
 void dhcpd_init();
 void service_traffic();
 
-
 #ifdef __cplusplus
  }
 #endif

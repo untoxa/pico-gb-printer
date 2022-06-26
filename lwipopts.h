@@ -51,13 +51,24 @@
 #define ETHARP_SUPPORT_STATIC_ENTRIES   1
 
 #define LWIP_HTTPD_CGI                  1
+//#define LWIP_HTTPD_CGI_SSI              1
+//#define LWIP_HTTPD_FILE_STATE           1
+
+#define LWIP_HTTPD_CUSTOM_FILES         1
+#define LWIP_HTTPD_FILE_EXTENSION       1
+#define LWIP_HTTPD_DYNAMIC_HEADERS      1
+
 #ifndef LWIP_HTTPD_SSI
-#define LWIP_HTTPD_SSI                  0
+#define LWIP_HTTPD_SSI                  1
 #define LWIP_HTTPD_SSI_INCLUDE_TAG      0
+#define LWIP_HTTPD_MAX_TAG_INSERT_LEN   192
+#define LWIP_HTTPD_SSI_MULTIPART        0
 #endif
-#define HTTPD_USE_CUSTOM_FSDATA         1
+#define HTTPD_USE_CUSTOM_FSDATA         0
 #define HTTPD_FSDATA_FILE               "../../../../fsdata.c"
 
 #define LWIP_SINGLE_NETIF               1
+
+#define HTTPD_ADDITIONAL_CONTENT_TYPES {"bin", HTTP_CONTENT_TYPE("application/binary")}
 
 #endif /* __LWIPOPTS_H__ */

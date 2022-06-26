@@ -1,0 +1,90 @@
+<html lang="en">
+  <head>
+    <title>Pico GameBoy Printer</title>
+  </head>
+  <body>
+
+    <center>
+      <h1>Pico GameBoy Printer</h1><br>
+      Start printing on your GameBoy, then press the "Get Image" button, when the led stops blinking.<br>
+      <br>
+      <canvas id="canvas" width="160" height="1"></canvas>
+      <br><br>
+      <button id="get_image_btn">Get image...</button>
+      <button id="download_image_btn" disabled>Download image...</button>
+      <br>
+      <!--#RESET-->
+</center>
+
+    <script>
+      const imageBinPath = "/download";
+
+      const canvas = document.getElementById("canvas");
+      const getImageBtn = document.getElementById("get_image_btn");
+      const downloadImageBtn = document.getElementById("download_image_btn");
+
+      async function getCameraImage(canvas, binPath) {
+        const res = await fetch(imageBinPath);
+        const resBody = await res.blob();
+        const resBuf = await resBody.arrayBuffer();
+        const resData = new Uint8Array(resBuf);
+        const data_size = resBody.size;
+        const image_width = 160;
+        const image_height = (data_size / (16 * 20)) * 8;
+
+        if (image_height == 0) {
+          canvas.width = canvas.height = 1;
+          return;
+        } else {
+          canvas.width = image_width;
+          canvas.height = Math.max(image_height, 1);
+        }
+
+        const ctx = canvas.getContext("2d");
+        const imageData = ctx.getImageData(0, 0, image_width, image_height);
+        const writeData = imageData.data;
+
+        for (let y = 0; y < image_height; ++y) {
+          for (let x = 0; x < image_width; ++x) {
+
+            let tile_addr = (((y / 8) >> 0) * 20  + ((x / 8) >> 0)) * 16 + (y % 8) * 2            
+            let color_index = ((resData[tile_addr] >> (7 - (x % 8))) & 1) + ((resData[tile_addr + 1] >> (7 - (x % 8))) & 1)
+
+            const i = 4 * (y * image_width + x);
+            writeData[i] = writeData[i + 1] = writeData[i + 2] = (color_index == 0) ? 0xff : (color_index == 1) ? 0x80 : (color_index == 2) ? 0x40 : 0;  
+            writeData[i + 3] = 0xff;
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      }
+
+      function downloadCanvasAsImage(canvas) {
+        const canvasImage = canvas.toDataURL("image/png");
+        const xhr = new XMLHttpRequest();
+        xhr.responseType = "blob";
+        xhr.onload = function () {
+          const a = document.createElement("a");
+          a.href = window.URL.createObjectURL(xhr.response);
+          a.download = "download.png";
+          a.style.display = "none";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        };
+        xhr.open("GET", canvasImage); // This is to download the canvas Image
+        xhr.send();
+      }
+
+      getImageBtn.addEventListener("click", async function () {
+        await getCameraImage(canvas, imageBinPath);
+        if (canvas.height > 1) {
+          downloadImageBtn.disabled = false;
+        }
+      });
+
+      downloadImageBtn.addEventListener("click", function () {
+        downloadCanvasAsImage(canvas);
+      });
+    </script>
+  </body>
+</html>
