@@ -59,9 +59,9 @@ static const dhcp_config_t dhcp_config =
     .router = IPADDR4_INIT_BYTES(0, 0, 0, 0),  /* router address (if any) */
     .port = 67,                                /* listen port */
     .dns = IPADDR4_INIT_BYTES(0, 0, 0, 0),     /* dns server (if any) */
-    "",                                        /* dns suffix */
-    TU_ARRAY_SIZE(entries),                    /* num entry */
-    entries                                    /* entries */
+    .domain = "picoprinter",                   /* dns suffix */
+    .num_entry = TU_ARRAY_SIZE(entries),       /* num entry */
+    .entries = entries                         /* entries */
 };
 
 static err_t linkoutput_fn(struct netif *netif, struct pbuf *p)
