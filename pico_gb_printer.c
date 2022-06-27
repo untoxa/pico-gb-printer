@@ -73,7 +73,7 @@ uint16_t receive_byte_counter = 0;
 uint16_t packet_data_length = 0, printer_checksum = 0;
 
 uint32_t last_picture_pointer = 0;
-uint16_t receive_data_pointer = 0;
+uint32_t receive_data_pointer = 0;
 uint8_t last_picture[PRINTER_BUFFER_SIZE * 128];    // paper length is 256 tiles
 
 uint32_t sys_now();                                 // defined in tusb_lwip_glue.c 
@@ -93,7 +93,7 @@ void gpio_callback(uint gpio, uint32_t events) {
         if (recv_data == 0x88) {
             printer_state = PRN_STATE_WAIT_FOR_SYNC_1, receive_data_pointer = 0;
             synchronized = true; 
-        }else return;
+        } else return;
     }
     recv_bits = 0;    
 
@@ -173,8 +173,8 @@ void gpio_callback(uint gpio, uint32_t events) {
 }
 
 // let our webserver do some dynamic handling
-#define ROOT_PAGE     "/index.shtml"
-#define IMAGE_FILE    "/image.bin" 
+#define ROOT_PAGE   "/index.shtml"
+#define IMAGE_FILE  "/image.bin" 
 
 static u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
     size_t printed;
@@ -194,7 +194,7 @@ static u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
 }
 
 static const char * ssi_tags[] = {
-  "RESET"
+    "RESET"
 };
 
 static const char *cgi_toggle_led(int iIndex, int iNumParams, char *pcParam[], char *pcValue[])
