@@ -286,7 +286,7 @@ int main()
             last_watchdog = now;
             watchdog_reset = false;
         } else {
-            if ((now - last_watchdog) > 500) {
+            if ((now - last_watchdog) > 1000) {
                 PRINTER_RESET;
                 LED_OFF;
                 last_watchdog = now;
