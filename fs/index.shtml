@@ -17,6 +17,10 @@
 </center>
 
     <script>
+      const COMMAND_INIT  = 0x01;
+      const COMMAND_PRINT = 0x02;
+      const COMMAND_DATA  = 0x04;
+
       const imageBinPath = "/download";
 
       const canvas = document.getElementById("canvas");
@@ -29,8 +33,49 @@
         const resBuf = await resBody.arrayBuffer();
         const resData = new Uint8Array(resBuf);
         const data_size = resBody.size;
+
+        processed_data = new Uint8Array(data_size);
+
+        let buffer_start = 0;
+        let ptr = 0;
+        let idx = 0;
+        let len = 0;
+        while (idx < data_size) {
+          const command = resData[idx++]; 
+          switch(command) {
+            case COMMAND_INIT:
+              ptr = 0;
+              buffer_start = 0;
+              break;
+            case COMMAND_PRINT:
+              len = resData[idx] | (resData[idx + 1] << 8);
+              idx += 2;
+              
+              idx += len;
+              buffer_start = ptr;
+              break;
+            case COMMAND_DATA:
+              const compression = resData[idx++];
+              len = resData[idx] | (resData[idx + 1] << 8);
+              idx += 2;
+              if (idx + len <= data_size) {
+                for (let i = 0; i < len; i++) {
+                  processed_data[ptr++] = resData[idx++];
+                } 
+                break;
+              } 
+              idx = data_size;
+              break;
+            default:
+              idx = data_size;
+              break;
+          }
+        }
+
+        processed_data = new Uint8Array(processed_data, 0, ptr);
+
         const image_width = 160;
-        const image_height = (data_size / (16 * 20)) * 8;
+        const image_height = ((data_size / (16 * 20)) >> 0) * 8;
 
         if (image_height == 0) {
           canvas.width = canvas.height = 1;
@@ -48,7 +93,7 @@
           for (let x = 0; x < image_width; ++x) {
 
             let tile_addr = (((y / 8) >> 0) * 20  + ((x / 8) >> 0)) * 16 + (y % 8) * 2            
-            let color_index = ((resData[tile_addr] >> (7 - (x % 8))) & 1) + ((resData[tile_addr + 1] >> (7 - (x % 8))) & 1)
+            let color_index = ((processed_data[tile_addr] >> (7 - (x % 8))) & 1) + ((processed_data[tile_addr + 1] >> (7 - (x % 8))) & 1)
 
             const i = 4 * (y * image_width + x);
             writeData[i] = writeData[i + 1] = writeData[i + 2] = (color_index == 0) ? 0xff : (color_index == 1) ? 0x80 : (color_index == 2) ? 0x40 : 0;  

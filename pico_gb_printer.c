@@ -68,15 +68,17 @@ volatile uint8_t send_data = 0;
 uint8_t recv_bits = 0;
 volatile bool synchronized = false;
 
-uint8_t printer_command = 0, compression_indicator = 0;
+uint8_t printer_command = 0;
 uint16_t receive_byte_counter = 0;
 uint16_t packet_data_length = 0, printer_checksum = 0;
 
-uint32_t last_picture_pointer = 0;
 uint32_t receive_data_pointer = 0;
-uint8_t last_picture[PRINTER_BUFFER_SIZE * 128];    // paper length is 256 tiles
+uint8_t receive_data[96 * 1024];     // buffer length is 96K
 
-uint32_t sys_now();                                 // defined in tusb_lwip_glue.c 
+inline void receive_data_write(uint8_t byte) {
+    if (receive_data_pointer < sizeof(receive_data))
+         receive_data[receive_data_pointer++] = recv_data;
+}
 
 void gpio_callback(uint gpio, uint32_t events) {
     // on the falling edge set sending bit
@@ -113,10 +115,11 @@ void gpio_callback(uint gpio, uint32_t events) {
             printer_state = PRN_STATE_COMPRESSION_INDICATOR;
             switch(printer_command) {
                 case PRN_COMMAND_INIT:
-                    receive_data_pointer = 0, last_picture_pointer = 0;
-                    break;
+                    receive_data_pointer = 0;
                 case PRN_COMMAND_PRINT:
                 case PRN_COMMAND_DATA:
+                    receive_data_write(printer_command);
+                    break;
                 case PRN_COMMAND_STATUS:
                     break;
                 default:
@@ -125,14 +128,16 @@ void gpio_callback(uint gpio, uint32_t events) {
             }
             break;
         case PRN_STATE_COMPRESSION_INDICATOR:
-            compression_indicator = recv_data;
+            if (printer_command == PRN_COMMAND_DATA) receive_data_write(recv_data);
             printer_state = PRN_STATE_LEN_LOWER;
             break;
         case PRN_STATE_LEN_LOWER:
+            if ((printer_command != PRN_COMMAND_STATUS) && (printer_command != PRN_COMMAND_INIT)) receive_data_write(recv_data);
             packet_data_length = recv_data;
             printer_state = PRN_STATE_LEN_HIGHER;
             break;
         case PRN_STATE_LEN_HIGHER:
+            if ((printer_command != PRN_COMMAND_STATUS) && (printer_command != PRN_COMMAND_INIT)) receive_data_write(recv_data);
             packet_data_length = packet_data_length | ((uint16_t)recv_data << 8);
             printer_state = (packet_data_length > 0) ? PRN_STATE_DATA : PRN_STATE_CHECKSUM_1;
             receive_byte_counter = 0;
@@ -140,13 +145,7 @@ void gpio_callback(uint gpio, uint32_t events) {
         case PRN_STATE_DATA:
             if(++receive_byte_counter == packet_data_length) 
                 printer_state = PRN_STATE_CHECKSUM_1;
-            if (printer_command != PRN_COMMAND_DATA)                // if print command then skip data bytes (pages, palette, exp) 
-                break;
-            if (receive_data_pointer >= sizeof(last_picture))       // buffer overflow protection
-                break;
-            last_picture[receive_data_pointer++] = recv_data;
-            if (receive_data_pointer > last_picture_pointer)        // grow picture
-                last_picture_pointer += (PRINTER_WIDTH * TILE_SIZE);
+            if (printer_command != PRN_COMMAND_STATUS) receive_data_write(recv_data);
             LED_TOGGLE;
             break;
         case PRN_STATE_CHECKSUM_1:
@@ -230,8 +229,8 @@ int fs_open_custom(struct fs_file *file, const char *name) {
     if (!strcmp(name, IMAGE_FILE)) {
         // initialize fs_file correctly
         memset(file, 0, sizeof(struct fs_file));
-        file->data  = (const char *)last_picture;
-        file->len   = last_picture_pointer; 
+        file->data  = (const char *)receive_data;
+        file->len   = receive_data_pointer; 
         file->index = file->len;
         file->flags = FS_FILE_FLAGS_CUSTOM;
         return 1;
@@ -242,6 +241,8 @@ int fs_open_custom(struct fs_file *file, const char *name) {
 void fs_close_custom(struct fs_file *file) {
     file;
 }
+
+uint32_t sys_now();                  // defined in tusb_lwip_glue.c 
 
 int main()
 {
