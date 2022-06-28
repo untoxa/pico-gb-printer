@@ -62,7 +62,9 @@
               let sheets = resData[idx++];
               let margins = resData[idx++];
               let palette = resData[idx++];
-              let exposure = 0x80 + resData[idx++];
+              let exposure = Math.max(0xFF, 0x80 + resData[idx++]);
+
+              palette = (palette) ? palette : 0xE4;
 
               pal = new Uint8Array(data_size);
               pal[0] = ((exposure * ((palette >> 0) & 0x03)) / 3) >> 0;
@@ -86,7 +88,7 @@
                     let offset = (((tile_y << 3) + t) * canvas.width + (tile_x << 3) + b) << 2;
                     let color_index = ((b1 >> (7 - b)) & 1) | (((b2 >> (7 - b)) & 1) << 1);
 
-                    writeData[offset + 0] = writeData[offset + 1] = writeData[offset + 2] = pal[color_index] ^ 0xFF;  
+                    writeData[offset + 0] = writeData[offset + 1] = writeData[offset + 2] = 0xFF - pal[color_index];  
                     writeData[offset + 3] = 0xff;
                   }
                 }
