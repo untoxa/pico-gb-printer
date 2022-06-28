@@ -196,12 +196,6 @@ static const char * ssi_tags[] = {
     "RESET"
 };
 
-static const char *cgi_toggle_led(int iIndex, int iNumParams, char *pcParam[], char *pcValue[])
-{
-    LED_TOGGLE;
-    return ROOT_PAGE;
-}
-
 static const char *cgi_reset_usb_boot(int iIndex, int iNumParams, char *pcParam[], char *pcValue[])
 {
     #ifdef ENABLE_RESET
@@ -217,8 +211,6 @@ static const char *cgi_download(int iIndex, int iNumParams, char *pcParam[], cha
 
 static const tCGI cgi_handlers[] = {
     {
-        "/toggle_led", cgi_toggle_led
-    }, {
         "/reset_usb_boot", cgi_reset_usb_boot
     }, {
         "/download", cgi_download
