@@ -10,11 +10,13 @@
       <br>
       <canvas id="canvas" width="160" height="1"></canvas>
       <br><br>
-      <button id="get_image_btn">Get image...</button>
+      <button id="get_image_btn">Get image</button>
       <button id="download_image_btn" disabled>Download image...</button>
+      <button id="to_gallery_image_btn" disabled>To gallery...</button>
       <br>
       <!--#RESET-->
-</center>
+    </center>
+    <center id="gallery"><h2>Gallery:</h2><br></center>
 
     <script>
       const COMMAND_INIT  = 0x01;
@@ -29,6 +31,8 @@
       const canvas = document.getElementById("canvas");
       const getImageBtn = document.getElementById("get_image_btn");
       const downloadImageBtn = document.getElementById("download_image_btn");
+      const galleryImageBtn = document.getElementById("to_gallery_image_btn");
+      const gallery = document.getElementById("gallery");
 
       async function getCameraImage(canvas, binPath) {
         const res = await fetch(imageBinPath);
@@ -160,11 +164,20 @@
         await getCameraImage(canvas, imageBinPath);
         if (canvas.height > 1) {
           downloadImageBtn.disabled = false;
+          galleryImageBtn.disabled = false;
         }
       });
 
       downloadImageBtn.addEventListener("click", function () {
         downloadCanvasAsImage(canvas);
+      });
+
+      galleryImageBtn.addEventListener("click", function () {
+        if (canvas.height > 1) {
+          var img = new Image();
+          img.src = canvas.toDataURL();
+          gallery.appendChild(img);
+        }
       });
     </script>
   </body>
