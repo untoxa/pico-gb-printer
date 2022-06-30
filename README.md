@@ -5,6 +5,8 @@ Based on the original webserver for the PI Pico repo: https://github.com/maxnet/
 Webserver example that came with TinyUSB slightly modified to run on a Raspberry Pi Pico.
 Lets the Pico pretend to be a USB Ethernet device. Runs the webinterface at http://192.168.7.1/
 
+I suggest to use this board: https://stacksmashing.gumroad.com/l/gb-link with PI Pico.
+
 ## Build dependencies
 
 ### On Debian:

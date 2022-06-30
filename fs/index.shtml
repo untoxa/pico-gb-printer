@@ -141,23 +141,38 @@
               break;
           }
         }
+        
+        downloadImageBtn.disabled = galleryImageBtn.disabled = (canvas.height == 1);
       }
 
-      function downloadCanvasAsImage(canvas) {
+      async function downloadCanvasAsImage(canvas) {
         const canvasImage = canvas.toDataURL("image/png");
-        const xhr = new XMLHttpRequest();
-        xhr.responseType = "blob";
-        xhr.onload = function () {
-          const a = document.createElement("a");
-          a.href = window.URL.createObjectURL(xhr.response);
-          a.download = "download.png";
-          a.style.display = "none";
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        };
-        xhr.open("GET", canvasImage); // This is to download the canvas Image
-        xhr.send();
+        if (window.showSaveFilePicker) {
+          // Use file picker
+          const fileHandle = await window.showSaveFilePicker({
+            suggestedName: "image.png",
+          });
+          const writable = await fileHandle.createWritable();
+          canvas.toBlob(async (blob) => {
+            await writable.write(blob);
+            await writable.close();
+          });
+        } else {
+          // Fallback to simple download
+          const xhr = new XMLHttpRequest();
+          xhr.responseType = "blob";
+          xhr.onload = function () {
+            const a = document.createElement("a");
+            a.href = window.URL.createObjectURL(xhr.response);
+            a.download = "image.png";
+            a.style.display = "none";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          };
+          xhr.open("GET", canvasImage);
+          xhr.send();
+        }
       }
 
       getImageBtn.addEventListener("click", async function () {

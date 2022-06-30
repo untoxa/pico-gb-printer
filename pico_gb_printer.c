@@ -1,5 +1,6 @@
 #include "pico/stdlib.h"
 #include "pico/bootrom.h"
+#include "pico/time.h"
 #include "hardware/gpio.h"
 #include "hardware/watchdog.h"
 #include "hardware/structs/watchdog.h"
@@ -16,7 +17,7 @@
 #define LED_OFF                 (gpio_put(LED_PIN, false))
 #define LED_TOGGLE              (gpio_put(LED_PIN, !gpio_get(LED_PIN)))
 
-// PI Piko printer decoder
+// PI Pico printer
 
 #define PIN_SCK                 0
 #define PIN_SIN                 1
@@ -59,15 +60,15 @@ enum printer_state {
     PRN_STATE_STATUS
 };
 
-volatile bool watchdog_reset = false;
+volatile uint32_t last_watchdog, last_print_moment;
 
 volatile enum printer_state printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
-
 volatile uint8_t recv_data = 0; 
 volatile uint8_t send_data = 0;
 uint8_t recv_bits = 0;
 volatile bool synchronized = false;
 
+uint8_t printer_status = PRN_STATUS_OK, next_printer_status = PRN_STATUS_OK;
 uint8_t printer_command = 0;
 uint16_t receive_byte_counter = 0;
 uint16_t packet_data_length = 0, printer_checksum = 0;
@@ -75,9 +76,9 @@ uint16_t packet_data_length = 0, printer_checksum = 0;
 uint32_t receive_data_pointer = 0;
 uint8_t receive_data[96 * 1024];     // buffer length is 96K
 
-inline void receive_data_write(uint8_t byte) {
+inline void receive_data_write(uint8_t b) {
     if (receive_data_pointer < sizeof(receive_data))
-         receive_data[receive_data_pointer++] = recv_data;
+         receive_data[receive_data_pointer++] = b;
 }
 
 void gpio_callback(uint gpio, uint32_t events) {
@@ -89,6 +90,13 @@ void gpio_callback(uint gpio, uint32_t events) {
     // on the rising edge read received bit
     recv_data = (recv_data << 1) | (gpio_get(PIN_SIN) & 0x01);
 
+    uint32_t now = to_ms_since_boot(get_absolute_time());
+    if ((now - last_watchdog) > 1000) {
+        LED_OFF; 
+        PRINTER_RESET;
+        last_watchdog = now;
+    }
+
     if (synchronized) {
         if (++recv_bits != 8) return;
     } else {
@@ -99,6 +107,7 @@ void gpio_callback(uint gpio, uint32_t events) {
     }
     recv_bits = 0;    
 
+    // packet state machine
     switch (printer_state) {
         case PRN_STATE_WAIT_FOR_SYNC_1:
             if (recv_data == 0x88) {
@@ -113,14 +122,23 @@ void gpio_callback(uint gpio, uint32_t events) {
         case PRN_STATE_COMMAND:
             printer_command = recv_data;
             printer_state = PRN_STATE_COMPRESSION_INDICATOR;
+            printer_status = next_printer_status;
             switch(printer_command) {
                 case PRN_COMMAND_INIT:
-                    receive_data_pointer = 0;
+//                    receive_data_pointer = 0;
+                    printer_status = next_printer_status = PRN_STATUS_OK;
+                    receive_data_write(printer_command);
+                    break;
                 case PRN_COMMAND_PRINT:
+                    last_print_moment = now;
+                    next_printer_status |= PRN_STATUS_BUSY;
                 case PRN_COMMAND_DATA:
                     receive_data_write(printer_command);
                     break;
                 case PRN_COMMAND_STATUS:
+                    if (next_printer_status & PRN_STATUS_BUSY) {
+                        if ((now - last_print_moment) > 1000) next_printer_status &= ~PRN_STATUS_BUSY;
+                    }
                     break;
                 default:
                     PRINTER_RESET;
@@ -132,21 +150,26 @@ void gpio_callback(uint gpio, uint32_t events) {
             printer_state = PRN_STATE_LEN_LOWER;
             break;
         case PRN_STATE_LEN_LOWER:
-            if ((printer_command != PRN_COMMAND_STATUS) && (printer_command != PRN_COMMAND_INIT)) receive_data_write(recv_data);
             packet_data_length = recv_data;
             printer_state = PRN_STATE_LEN_HIGHER;
             break;
         case PRN_STATE_LEN_HIGHER:
-            if ((printer_command != PRN_COMMAND_STATUS) && (printer_command != PRN_COMMAND_INIT)) receive_data_write(recv_data);
             packet_data_length = packet_data_length | ((uint16_t)recv_data << 8);
-            printer_state = (packet_data_length > 0) ? PRN_STATE_DATA : PRN_STATE_CHECKSUM_1;
+            printer_state = (packet_data_length == 0) ? PRN_STATE_CHECKSUM_1 : PRN_STATE_DATA;
+            switch (printer_command) {
+                case PRN_COMMAND_DATA:
+                    if (packet_data_length == 0) next_printer_status |= PRN_STATUS_FULL, LED_OFF; else LED_ON;
+                case PRN_COMMAND_PRINT:
+                    receive_data_write(packet_data_length);
+                    receive_data_write(packet_data_length >> 8);
+                    break;
+            } 
             receive_byte_counter = 0;
             break;
         case PRN_STATE_DATA:
             if(++receive_byte_counter == packet_data_length) 
                 printer_state = PRN_STATE_CHECKSUM_1;
-            if (printer_command != PRN_COMMAND_STATUS) receive_data_write(recv_data);
-            LED_TOGGLE;
+            receive_data_write(recv_data);
             break;
         case PRN_STATE_CHECKSUM_1:
             printer_checksum = recv_data, printer_state = PRN_STATE_CHECKSUM_2;
@@ -157,18 +180,17 @@ void gpio_callback(uint gpio, uint32_t events) {
             send_data = PRINTER_DEVICE_ID;
             break;
         case PRN_STATE_DEVICE_ID:
-            send_data = PRN_STATUS_OK;
+            send_data = printer_status;
             printer_state = PRN_STATE_STATUS;
             break;
         case PRN_STATE_STATUS:        
+            last_watchdog = now;
             printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
             break;
         default:
             PRINTER_RESET;
             break;
     }
-
-    if (synchronized) watchdog_reset = true;
 }
 
 // let our webserver do some dynamic handling
@@ -234,8 +256,6 @@ void fs_close_custom(struct fs_file *file) {
     file;
 }
 
-uint32_t sys_now();                  // defined in tusb_lwip_glue.c 
-
 int main()
 {
     // For toggle_led
@@ -264,27 +284,15 @@ int main()
 
     gpio_set_irq_enabled_with_callback(PIN_SCK, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &gpio_callback);
 
+    last_watchdog = to_ms_since_boot(get_absolute_time());
+
     LED_OFF;
 
-    uint32_t last_watchdog = sys_now();
     while (true) {
         // process USB
         tud_task();
         // process WEB
         service_traffic(); 
-
-        // watchdog
-        uint32_t now = sys_now();
-        if (watchdog_reset) {
-            last_watchdog = now;
-            watchdog_reset = false;
-        } else {
-            if ((now - last_watchdog) > 1000) {
-                PRINTER_RESET;
-                LED_OFF;
-                last_watchdog = now;
-            };
-        }
     }
 
     return 0;
