@@ -13,8 +13,9 @@
 
 #define LED_PIN                 25
 
-#define LED_ON                  (gpio_put(LED_PIN, true))
-#define LED_OFF                 (gpio_put(LED_PIN, false))
+#define LED_SET(A)              (gpio_put(LED_PIN, (A)))
+#define LED_ON                  LED_SET(true)
+#define LED_OFF                 LED_SET(false)
 #define LED_TOGGLE              (gpio_put(LED_PIN, !gpio_get(LED_PIN)))
 
 // PI Pico printer
@@ -110,14 +111,10 @@ void gpio_callback(uint gpio, uint32_t events) {
     // packet state machine
     switch (printer_state) {
         case PRN_STATE_WAIT_FOR_SYNC_1:
-            if (recv_data == 0x88) {
-                printer_state = PRN_STATE_WAIT_FOR_SYNC_2, send_data = 0;
-            } else PRINTER_RESET;
+            if (recv_data == 0x88) printer_state = PRN_STATE_WAIT_FOR_SYNC_2, send_data = 0; else PRINTER_RESET;
             break;
         case PRN_STATE_WAIT_FOR_SYNC_2:
-            if(recv_data == 0x33) {
-                printer_state = PRN_STATE_COMMAND, send_data = 0;
-            } else PRINTER_RESET;
+            if (recv_data == 0x33) printer_state = PRN_STATE_COMMAND; else PRINTER_RESET;
             break;
         case PRN_STATE_COMMAND:
             printer_command = recv_data;
@@ -131,12 +128,12 @@ void gpio_callback(uint gpio, uint32_t events) {
                     break;
                 case PRN_COMMAND_PRINT:
                     last_print_moment = now;
-                    next_printer_status |= PRN_STATUS_BUSY;
+                    if (printer_status & PRN_STATUS_FULL) next_printer_status |= PRN_STATUS_BUSY;
                 case PRN_COMMAND_DATA:
                     receive_data_write(printer_command);
                     break;
                 case PRN_COMMAND_STATUS:
-                    if (next_printer_status & PRN_STATUS_BUSY) {
+                    if (printer_status & PRN_STATUS_BUSY) {
                         if ((now - last_print_moment) > 1000) next_printer_status &= ~PRN_STATUS_BUSY;
                     }
                     break;
@@ -158,7 +155,7 @@ void gpio_callback(uint gpio, uint32_t events) {
             printer_state = (packet_data_length == 0) ? PRN_STATE_CHECKSUM_1 : PRN_STATE_DATA;
             switch (printer_command) {
                 case PRN_COMMAND_DATA:
-                    if (packet_data_length == 0) next_printer_status |= PRN_STATUS_FULL, LED_OFF; else LED_ON;
+                    if (packet_data_length == 0) next_printer_status |= PRN_STATUS_FULL;
                 case PRN_COMMAND_PRINT:
                     receive_data_write(packet_data_length);
                     receive_data_write(packet_data_length >> 8);
@@ -170,9 +167,11 @@ void gpio_callback(uint gpio, uint32_t events) {
             if(++receive_byte_counter == packet_data_length) 
                 printer_state = PRN_STATE_CHECKSUM_1;
             receive_data_write(recv_data);
+            LED_TOGGLE;
             break;
         case PRN_STATE_CHECKSUM_1:
             printer_checksum = recv_data, printer_state = PRN_STATE_CHECKSUM_2;
+            LED_OFF;
             break;
         case PRN_STATE_CHECKSUM_2:
             printer_checksum |= ((uint16_t)recv_data << 8);            
@@ -183,7 +182,8 @@ void gpio_callback(uint gpio, uint32_t events) {
             send_data = printer_status;
             printer_state = PRN_STATE_STATUS;
             break;
-        case PRN_STATE_STATUS:        
+        case PRN_STATE_STATUS:
+            send_data = 0;        
             last_watchdog = now;
             printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
             break;
