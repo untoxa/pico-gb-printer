@@ -14,7 +14,7 @@
       <button id="download_image_btn" disabled>Download image...</button>
       <button id="to_gallery_image_btn" disabled>To gallery...</button>
       <br>
-      <!--#RESET-->
+      <!--#RESET--> <!--#RAWDATA-->
     </center>
     <center id="gallery"><h2>Gallery:</h2><br></center>
 
@@ -34,6 +34,14 @@
       const galleryImageBtn = document.getElementById("to_gallery_image_btn");
       const gallery = document.getElementById("gallery");
 
+      function resize(new_w, new_h) {
+        const ctx = canvas.getContext("2d");
+        let temp = ctx.getImageData(0, 0, canvas.width, canvas.height)
+        canvas.width = new_w;
+        canvas.height = new_h;
+        ctx.putImageData(temp, 0, 0)
+      }
+
       async function getCameraImage(canvas, binPath) {
         const res = await fetch(imageBinPath);
         const resBody = await res.blob();
@@ -41,7 +49,7 @@
         const resData = new Uint8Array(resBuf);
         const data_size = resBody.size;
 
-        processed_data = new Uint8Array(data_size);
+        processed_data = new Uint8Array(Math.max(1024*1024, data_size));
 
         canvas.width = canvas.height = 1;
 
@@ -53,8 +61,8 @@
           const command = resData[idx++]; 
           switch(command) {
             case COMMAND_INIT:
-              buffer_start = ptr = 0;
-              canvas.width = canvas.height = 1;
+//              buffer_start = ptr = 0;
+//              canvas.width = canvas.height = 1;
               break;
             case COMMAND_PRINT:
               len = resData[idx] | (resData[idx + 1] << 8);
@@ -76,8 +84,7 @@
               pal[2] = ((exposure * ((palette >> 4) & 0x03)) / 3) >> 0;
               pal[3] = ((exposure * ((palette >> 6) & 0x03)) / 3) >> 0;
 
-              canvas.width = (PRINTER_WIDTH * 8);
-              canvas.height += ((Math.max(0, ptr - buffer_start) / (TILE_SIZE * PRINTER_WIDTH)) >> 0) * 8; 
+              resize((PRINTER_WIDTH * 8), canvas.height + ((Math.max(0, ptr - buffer_start) / (TILE_SIZE * PRINTER_WIDTH)) >> 0) * 8)
 
               const ctx = canvas.getContext("2d");
               const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -141,7 +148,7 @@
               break;
           }
         }
-        
+
         downloadImageBtn.disabled = galleryImageBtn.disabled = (canvas.height == 1);
       }
 

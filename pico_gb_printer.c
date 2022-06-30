@@ -1,6 +1,6 @@
 #include "pico/stdlib.h"
 #include "pico/bootrom.h"
-#include "pico/time.h"
+#include "hardware/timer.h"
 #include "hardware/gpio.h"
 #include "hardware/watchdog.h"
 #include "hardware/structs/watchdog.h"
@@ -9,14 +9,17 @@
 
 #include "tusb_lwip_glue.h"
 
-#define ENABLE_RESET            1
+#define ENABLE_DEBUG            1
 
 #define LED_PIN                 25
-
 #define LED_SET(A)              (gpio_put(LED_PIN, (A)))
 #define LED_ON                  LED_SET(true)
 #define LED_OFF                 LED_SET(false)
 #define LED_TOGGLE              (gpio_put(LED_PIN, !gpio_get(LED_PIN)))
+
+#define MKS(A)                  (A)
+#define MS(A)                   ((A) * 1000)
+#define SEC(A)                  ((A) * 1000 * 1000)
 
 // PI Pico printer
 
@@ -24,7 +27,7 @@
 #define PIN_SIN                 1
 #define PIN_SOUT                2
 
-#define PRINTER_DEVICE_ID       0x81      
+#define PRINTER_DEVICE_ID       0x81
 
 #define PRN_COMMAND_INIT        0x01
 #define PRN_COMMAND_PRINT       0x02
@@ -61,7 +64,7 @@ enum printer_state {
     PRN_STATE_STATUS
 };
 
-volatile uint32_t last_watchdog, last_print_moment;
+volatile uint64_t last_watchdog, last_print_moment;
 
 volatile enum printer_state printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
 volatile uint8_t recv_data = 0; 
@@ -85,14 +88,14 @@ inline void receive_data_write(uint8_t b) {
 void gpio_callback(uint gpio, uint32_t events) {
     // on the falling edge set sending bit
     if (events & GPIO_IRQ_EDGE_FALL) {
-        gpio_put(PIN_SOUT, send_data & 0x01), send_data >>= 1;
+        gpio_put(PIN_SOUT, send_data & 0x80), send_data <<= 1;
         return;
     }
     // on the rising edge read received bit
     recv_data = (recv_data << 1) | (gpio_get(PIN_SIN) & 0x01);
 
-    uint32_t now = to_ms_since_boot(get_absolute_time());
-    if ((now - last_watchdog) > 1000) {
+    uint64_t now = time_us_64();
+    if ((now - last_watchdog) > SEC(20)) {
         LED_OFF; 
         PRINTER_RESET;
         last_watchdog = now;
@@ -102,7 +105,7 @@ void gpio_callback(uint gpio, uint32_t events) {
         if (++recv_bits != 8) return;
     } else {
         if (recv_data == 0x88) {
-            printer_state = PRN_STATE_WAIT_FOR_SYNC_1, receive_data_pointer = 0;
+            printer_state = PRN_STATE_WAIT_FOR_SYNC_1, receive_data_pointer = 0, send_data = 0;
             synchronized = true; 
         } else return;
     }
@@ -111,7 +114,7 @@ void gpio_callback(uint gpio, uint32_t events) {
     // packet state machine
     switch (printer_state) {
         case PRN_STATE_WAIT_FOR_SYNC_1:
-            if (recv_data == 0x88) printer_state = PRN_STATE_WAIT_FOR_SYNC_2, send_data = 0; else PRINTER_RESET;
+            if (recv_data == 0x88) printer_state = PRN_STATE_WAIT_FOR_SYNC_2; else PRINTER_RESET;
             break;
         case PRN_STATE_WAIT_FOR_SYNC_2:
             if (recv_data == 0x33) printer_state = PRN_STATE_COMMAND; else PRINTER_RESET;
@@ -134,7 +137,7 @@ void gpio_callback(uint gpio, uint32_t events) {
                     break;
                 case PRN_COMMAND_STATUS:
                     if (printer_status & PRN_STATUS_BUSY) {
-                        if ((now - last_print_moment) > 1000) next_printer_status &= ~PRN_STATUS_BUSY;
+                        if ((now - last_print_moment) > SEC(1)) next_printer_status &= ~PRN_STATUS_BUSY;
                     }
                     break;
                 default:
@@ -179,13 +182,13 @@ void gpio_callback(uint gpio, uint32_t events) {
             send_data = PRINTER_DEVICE_ID;
             break;
         case PRN_STATE_DEVICE_ID:
-            send_data = printer_status;
             printer_state = PRN_STATE_STATUS;
+            send_data = printer_status;
             break;
         case PRN_STATE_STATUS:
-            send_data = 0;        
             last_watchdog = now;
             printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
+            send_data = 0;
             break;
         default:
             PRINTER_RESET;
@@ -201,8 +204,15 @@ static u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
     size_t printed;
     switch (iIndex) {
         case 0:
-            #ifdef ENABLE_RESET
+            #ifdef ENABLE_DEBUG
                 printed = snprintf(pcInsert, iInsertLen, "<a href=\"/reset_usb_boot\">Reset</a>");
+            #else
+                printed = 0;
+            #endif
+            break;
+        case 1:
+            #ifdef ENABLE_DEBUG
+                printed = snprintf(pcInsert, iInsertLen, "<a href=\"/image.bin\">Raw data</a>");
             #else
                 printed = 0;
             #endif
@@ -215,12 +225,13 @@ static u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
 }
 
 static const char * ssi_tags[] = {
-    "RESET"
+    "RESET",
+    "RAWDATA"
 };
 
 static const char *cgi_reset_usb_boot(int iIndex, int iNumParams, char *pcParam[], char *pcValue[])
 {
-    #ifdef ENABLE_RESET
+    #ifdef ENABLE_DEBUG
         reset_usb_boot(0, 0);
     #endif
     return ROOT_PAGE;
@@ -274,17 +285,17 @@ int main()
     
     // init SIO pins
     gpio_init(PIN_SCK);
-    gpio_init(PIN_SIN);
-    gpio_init(PIN_SOUT);
-
     gpio_set_dir(PIN_SCK, GPIO_IN);
+    gpio_set_pulls(PIN_SCK, true, false);
+
+    gpio_init(PIN_SIN);
     gpio_set_dir(PIN_SIN, GPIO_IN);
+
+    gpio_init(PIN_SOUT);
     gpio_set_dir(PIN_SOUT, GPIO_OUT);
     gpio_put(PIN_SOUT, 0);
 
     gpio_set_irq_enabled_with_callback(PIN_SCK, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &gpio_callback);
-
-    last_watchdog = to_ms_since_boot(get_absolute_time());
 
     LED_OFF;
 
@@ -292,7 +303,7 @@ int main()
         // process USB
         tud_task();
         // process WEB
-        service_traffic(); 
+        service_traffic();
     }
 
     return 0;
