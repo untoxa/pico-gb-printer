@@ -9,7 +9,7 @@
 
 #include "tusb_lwip_glue.h"
 
-#define ENABLE_DEBUG            1
+#define ENABLE_DEBUG            false
 
 #define LED_PIN                 25
 #define LED_SET(A)              (gpio_put(LED_PIN, (A)))
@@ -63,6 +63,8 @@ enum printer_state {
     PRN_STATE_DEVICE_ID,
     PRN_STATE_STATUS
 };
+
+bool debug_enable = ENABLE_DEBUG;
 
 volatile uint64_t last_watchdog, last_print_moment;
 
@@ -202,24 +204,15 @@ void gpio_callback(uint gpio, uint32_t events) {
 #define STATUS_FILE "/status.json" 
 
 static u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
-    size_t printed;
+    size_t printed =0;
     switch (iIndex) {
         case 0:
-            #ifdef ENABLE_DEBUG
-                printed = snprintf(pcInsert, iInsertLen, "<a href=\"/reset_usb_boot\">Reset</a>");
-            #else
-                printed = 0;
-            #endif
+            if (debug_enable) printed = snprintf(pcInsert, iInsertLen, "<a href=\"/reset_usb_boot\">Reset</a>");
             break;
         case 1:
-            #ifdef ENABLE_DEBUG
-                printed = snprintf(pcInsert, iInsertLen, "<a href=\"/image.bin\">Raw data</a>");
-            #else
-                printed = 0;
-            #endif
+            if (debug_enable) printed = snprintf(pcInsert, iInsertLen, "<a href=\"/image.bin\">Raw data</a>");
             break;
         default:
-            printed = 0;
             break;
     }
     return (u16_t)printed;
@@ -228,9 +221,7 @@ static u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
 static const char * ssi_tags[] = {"RESET", "RAWDATA" };
 
 static const char *cgi_reset_usb_boot(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
-    #ifdef ENABLE_DEBUG
-        reset_usb_boot(0, 0);
-    #endif
+    if (debug_enable) reset_usb_boot(0, 0);
     return ROOT_PAGE;
 }
 
@@ -243,10 +234,18 @@ static const char *cgi_reset(int iIndex, int iNumParams, char *pcParam[], char *
     return STATUS_FILE;
 }
 
+static const char *cgi_options(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
+    for (int i = 0; i < iNumParams; i++) {
+        if (!strcmp(pcParam[i], "debug")) debug_enable = (!strcmp(pcValue[i], "on")); 
+    }
+    return ROOT_PAGE;
+}
+
 static const tCGI cgi_handlers[] = {
     { "/reset_usb_boot",    cgi_reset_usb_boot }, 
     { "/download",          cgi_download}, 
-    { "/reset",             cgi_reset }
+    { "/reset",             cgi_reset },
+    { "/options",           cgi_options }
 };
 
 int fs_open_custom(struct fs_file *file, const char *name) {
