@@ -1,6 +1,8 @@
-# Pico GabeBoy printer
+# Pico GameBoy printer
 
-![screenshot](/screenshot.png)
+<p align="center">
+  <img src="https://github.com/untoxa/pico-gb-printer/blob/main/screenshot.png?raw=true"/>
+</p>
 
 Based on the original webserver for the PI Pico repo: https://github.com/maxnet/pico-webserver
 
