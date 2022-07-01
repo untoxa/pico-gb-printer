@@ -9,7 +9,7 @@ Lets the Pico pretend to be a USB Ethernet device. Runs the webinterface at http
 
 I suggest to use this board: https://stacksmashing.gumroad.com/l/gb-link with PI Pico.
 
-Special thanks to @Raphael-Boichot, please check this repo: https://github.com/Raphael-Boichot/The-Arduino-SD-Game-Boy-Printer
+Special thanks to Raphael-Boichot, please check this repo: https://github.com/Raphael-Boichot/The-Arduino-SD-Game-Boy-Printer
 
 ## Build dependencies
 
