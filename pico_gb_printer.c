@@ -77,7 +77,7 @@ uint8_t printer_command = 0;
 uint16_t receive_byte_counter = 0;
 uint16_t packet_data_length = 0, printer_checksum = 0;
 
-uint32_t receive_data_pointer = 0;
+volatile uint32_t receive_data_pointer = 0;
 uint8_t receive_data[96 * 1024];     // buffer length is 96K
 
 inline void receive_data_write(uint8_t b) {
@@ -95,7 +95,7 @@ void gpio_callback(uint gpio, uint32_t events) {
     recv_data = (recv_data << 1) | (gpio_get(PIN_SIN) & 0x01);
 
     uint64_t now = time_us_64();
-    if ((now - last_watchdog) > SEC(20)) {
+    if ((now - last_watchdog) > SEC(15)) {
         LED_OFF; 
         PRINTER_RESET;
         last_watchdog = now;
@@ -198,7 +198,8 @@ void gpio_callback(uint gpio, uint32_t events) {
 
 // let our webserver do some dynamic handling
 #define ROOT_PAGE   "/index.shtml"
-#define IMAGE_FILE  "/image.bin" 
+#define IMAGE_FILE  "/image.bin"
+#define STATUS_FILE "/status.json" 
 
 static u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
     size_t printed;
@@ -224,30 +225,28 @@ static u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
     return (u16_t)printed;
 }
 
-static const char * ssi_tags[] = {
-    "RESET",
-    "RAWDATA"
-};
+static const char * ssi_tags[] = {"RESET", "RAWDATA" };
 
-static const char *cgi_reset_usb_boot(int iIndex, int iNumParams, char *pcParam[], char *pcValue[])
-{
+static const char *cgi_reset_usb_boot(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
     #ifdef ENABLE_DEBUG
         reset_usb_boot(0, 0);
     #endif
     return ROOT_PAGE;
 }
 
-static const char *cgi_download(int iIndex, int iNumParams, char *pcParam[], char *pcValue[])
-{
+static const char *cgi_download(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
     return IMAGE_FILE;
 }
 
+static const char *cgi_reset(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
+    receive_data_pointer = 0, PRINTER_RESET;
+    return STATUS_FILE;
+}
+
 static const tCGI cgi_handlers[] = {
-    {
-        "/reset_usb_boot", cgi_reset_usb_boot
-    }, {
-        "/download", cgi_download
-    }
+    { "/reset_usb_boot",    cgi_reset_usb_boot }, 
+    { "/download",          cgi_download}, 
+    { "/reset",             cgi_reset }
 };
 
 int fs_open_custom(struct fs_file *file, const char *name) {
@@ -256,6 +255,14 @@ int fs_open_custom(struct fs_file *file, const char *name) {
         memset(file, 0, sizeof(struct fs_file));
         file->data  = (const char *)receive_data;
         file->len   = receive_data_pointer; 
+        file->index = file->len;
+        file->flags = FS_FILE_FLAGS_CUSTOM;
+        return 1;
+    } else if (!strcmp(name, STATUS_FILE)) {
+        static const char status_ok[] = "{\"status\":\"OK\"}";
+        memset(file, 0, sizeof(struct fs_file));
+        file->data  = status_ok;
+        file->len   = sizeof(status_ok) - 1; 
         file->index = file->len;
         file->flags = FS_FILE_FLAGS_CUSTOM;
         return 1;
