@@ -26,11 +26,11 @@ If not, compile [CMake from source](https://cmake.org/download/#latest) first.
 
 ### On Windows:
 
-Install ARM GCC compiler: https://developer.arm.com/downloads/-/gnu-rm
-Install MSYS
-Install CMake
+- Install ARM GCC compiler: https://developer.arm.com/downloads/-/gnu-rm
+- Install MSYS
+- Install CMake
 
-use 
+Then use this command 
 ```
 cmake .. -G "MSYS Makefiles"
 ```
@@ -39,7 +39,7 @@ instead of
 ```
 cmake ..
 ```
-in the build instruction below.
+in the build instructions below.
 
 ## Build instructions
 
