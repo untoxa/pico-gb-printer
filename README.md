@@ -1,5 +1,7 @@
 # Pico GabeBoy printer
 
+![screenshot](/screenshot.png)
+
 Based on the original webserver for the PI Pico repo: https://github.com/maxnet/pico-webserver
 
 Webserver example that came with TinyUSB slightly modified to run on a Raspberry Pi Pico.
