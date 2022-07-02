@@ -10,6 +10,7 @@ pico_sdk_init()
 # LWIP
 set(LWIP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lwip)
 set (LWIP_INCLUDE_DIRS
+    "include"
     "${LWIP_DIR}/src/include"
     "${CMAKE_CURRENT_SOURCE_DIR}"
 )
@@ -21,7 +22,7 @@ set(TINYUSB_LIBNETWORKING_SOURCES
     ${PICO_TINYUSB_PATH}/lib/networking/rndis_reports.c
 )
 
-add_executable(${PROJECT_NAME} pico_gb_printer.c tusb_lwip_glue.c usb_descriptors.c ${TINYUSB_LIBNETWORKING_SOURCES})
+add_executable(${PROJECT_NAME} src/pico_gb_printer.c src/tusb_lwip_glue.c src/usb_descriptors.c ${TINYUSB_LIBNETWORKING_SOURCES})
 
 pico_enable_stdio_usb(${PROJECT_NAME} 0)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
