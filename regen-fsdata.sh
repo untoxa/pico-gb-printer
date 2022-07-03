@@ -7,5 +7,5 @@ if [ ! -f makefsdata ]; then
 fi
 
 echo Regenerating fsdata.c
-./build/makefsdata ./fs -f:include/fsdata.c
+./build/makefsdata ./fs -f:include/pico_printer_fs.c
 echo Done
