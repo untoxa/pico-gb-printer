@@ -20,6 +20,7 @@
       <button id="to_gallery_btn" disabled>Add to gallery...</button>
       <button id="delete_selected_btn" disabled>Delete selected...</button>
       <br>
+      <br>
     </center>
     <div id="gallery" style="display: flex;flex-wrap: wrap;justify-content: center;align-items: flex-start;"></div>
 
