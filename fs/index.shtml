@@ -11,14 +11,17 @@
       <canvas id="canvas" width="160" height="1"></canvas>
       <br><br>
       <button id="get_image_btn">Get image</button>
-      <button id="tear_btn">Tear</button>
-      <button id="to_gallery_btn" disabled>To gallery...</button>
       <input type="text" id="download_file_name" style="width:70">
       <button id="download_image_btn" disabled>Download image...</button>
+      <button id="tear_btn">Tear</button>
       <br>
       <!--#RESET--> <!--#RAWDATA-->
+      <h2>Gallery:</h2>
+      <button id="to_gallery_btn" disabled>Add to gallery...</button>
+      <button id="delete_selected_btn" disabled>Delete selected...</button>
+      <br>
     </center>
-    <center id="gallery"><h2>Gallery:</h2><br></center>
+    <div id="gallery" style="display: flex;flex-wrap: wrap;justify-content: center;align-items: flex-start;"></div>
 
     <script>
       const COMMAND_INIT  = 0x01;
@@ -40,6 +43,7 @@
       const togalleryBtn = document.getElementById("to_gallery_btn");
       const gallery = document.getElementById("gallery");
       const tearBtn = document.getElementById("tear_btn");
+      const deleteSelectedBtn = document.getElementById("delete_selected_btn");
 
       String.prototype.format = function() {
         var formatted = this;
@@ -215,10 +219,32 @@
 
       togalleryBtn.addEventListener("click", function () {
         if (canvas.height > 1) {
-          var img = new Image();
+          const div = document.createElement("DIV");
+          const img = new Image();
           img.src = canvas.toDataURL();
-          gallery.appendChild(img);
+          div.appendChild(img);
+          div.markedForDeletion = false;          
+          const input = document.createElement("INPUT");
+          input.setAttribute("type", "checkbox");
+          input.addEventListener("change", function() {
+            deleteSelectedBtn.disabled = !(div.markedForDeletion = (input.checked));
+            if  (!deleteSelectedBtn.disabled) return;
+            var items = gallery.children;
+            for (var i = 0; i < items.length; i++) {
+              if (!(deleteSelectedBtn.disabled = !(items[i].markedForDeletion))) break; 
+            }
+          });
+          div.appendChild(input);
+          gallery.appendChild(div);
         }
+      });
+
+      deleteSelectedBtn.addEventListener("click", function () {
+        var items = gallery.children;
+        for (var i = items.length - 1; i >= 0; i--) {
+          if (items[i].markedForDeletion) items[i].remove();
+        }
+        deleteSelectedBtn.disabled = true;
       });
 
       tearBtn.addEventListener("click", async function () {
@@ -227,7 +253,8 @@
             return response.json();
           })
           .then((data) => {
-            // do something with jsonResponse
+            if (data.result != "ok") return;
+            getImageBtn.click();
           });
       });
 
