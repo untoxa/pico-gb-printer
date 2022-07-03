@@ -80,7 +80,9 @@ uint16_t receive_byte_counter = 0;
 uint16_t packet_data_length = 0, printer_checksum = 0;
 
 volatile uint32_t receive_data_pointer = 0;
-uint8_t receive_data[96 * 1024];     // buffer length is 96K
+uint8_t receive_data[96 * 1024];    // buffer length is 96K
+
+uint8_t status_buffer[1024] = {0};  // buffer for rendering of status json
 
 inline void receive_data_write(uint8_t b) {
     if (receive_data_pointer < sizeof(receive_data))
@@ -238,7 +240,7 @@ static const char *cgi_options(int iIndex, int iNumParams, char *pcParam[], char
     for (int i = 0; i < iNumParams; i++) {
         if (!strcmp(pcParam[i], "debug")) debug_enable = (!strcmp(pcValue[i], "on")); 
     }
-    return ROOT_PAGE;
+    return STATUS_FILE;
 }
 
 static const tCGI cgi_handlers[] = {
@@ -249,6 +251,8 @@ static const tCGI cgi_handlers[] = {
 };
 
 int fs_open_custom(struct fs_file *file, const char *name) {
+    static const char *on_off[] = {"off", "on"};
+    static const char *true_false[] = {"false", "true"};
     if (!strcmp(name, IMAGE_FILE)) {
         // initialize fs_file correctly
         memset(file, 0, sizeof(struct fs_file));
@@ -258,10 +262,12 @@ int fs_open_custom(struct fs_file *file, const char *name) {
         file->flags = FS_FILE_FLAGS_CUSTOM;
         return 1;
     } else if (!strcmp(name, STATUS_FILE)) {
-        static const char status_ok[] = "{\"status\":\"OK\"}";
         memset(file, 0, sizeof(struct fs_file));
-        file->data  = status_ok;
-        file->len   = sizeof(status_ok) - 1; 
+        file->data  = status_buffer;
+        file->len   = snprintf(status_buffer, sizeof(status_buffer), 
+                               "{\"result\":\"ok\",\"options\":{\"debug\":\"%s\"},\"status\":{\"synchronized\":%s,\"received:\":%d}}", 
+                               on_off[debug_enable], 
+                               true_false[synchronized], receive_data_pointer); 
         file->index = file->len;
         file->flags = FS_FILE_FLAGS_CUSTOM;
         return 1;

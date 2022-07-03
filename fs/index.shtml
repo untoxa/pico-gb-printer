@@ -12,8 +12,9 @@
       <br><br>
       <button id="get_image_btn">Get image</button>
       <button id="tear_btn">Tear</button>
-      <button id="download_image_btn" disabled>Download image...</button>
       <button id="to_gallery_btn" disabled>To gallery...</button>
+      <input type="text" id="download_file_name" style="width:70">
+      <button id="download_image_btn" disabled>Download image...</button>
       <br>
       <!--#RESET--> <!--#RAWDATA-->
     </center>
@@ -30,12 +31,24 @@
       const imageBinPath = "/download";
       const resetPath = "/reset";
 
+      let downloadIndex = 0;
+
       const canvas = document.getElementById("canvas");
       const getImageBtn = document.getElementById("get_image_btn");
       const downloadImageBtn = document.getElementById("download_image_btn");
+      const downloadFileName = document.getElementById("download_file_name");
       const togalleryBtn = document.getElementById("to_gallery_btn");
       const gallery = document.getElementById("gallery");
       const tearBtn = document.getElementById("tear_btn");
+
+      String.prototype.format = function() {
+        var formatted = this;
+        for (var i = 0; i < arguments.length; i++) {
+          var regexp = new RegExp('\\{'+i+'\\}', 'gi');
+          formatted = formatted.replace(regexp, arguments[i]);
+        }
+        return formatted;
+      };
 
       function resize(new_w, new_h) {
         const ctx = canvas.getContext("2d");
@@ -155,10 +168,15 @@
 
       async function downloadCanvasAsImage(canvas) {
         const canvasImage = canvas.toDataURL("image/png");
+        let file_name = downloadFileName.value;
+        if (file_name.length == 0) {
+          downloadIndex += 1;
+          file_name = "image{0}.png".format(downloadIndex);
+        }
         if (window.showSaveFilePicker) {
           // Use file picker
           const fileHandle = await window.showSaveFilePicker({
-            suggestedName: "image.png",
+            suggestedName: file_name,
           });
           const writable = await fileHandle.createWritable();
           canvas.toBlob(async (blob) => {
@@ -172,7 +190,7 @@
           xhr.onload = function () {
             const a = document.createElement("a");
             a.href = window.URL.createObjectURL(xhr.response);
-            a.download = "image.png";
+            a.download = file_name;
             a.style.display = "none";
             document.body.appendChild(a);
             a.click();
