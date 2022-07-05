@@ -171,10 +171,10 @@ void gpio_callback(uint gpio, uint32_t events) {
             receive_byte_counter = 0;
             break;
         case PRN_STATE_DATA:
+            if (!(receive_byte_counter & 0x3F)) LED_TOGGLE;
             if(++receive_byte_counter == packet_data_length) 
                 printer_state = PRN_STATE_CHECKSUM_1;
             receive_data_write(recv_data);
-            LED_TOGGLE;
             break;
         case PRN_STATE_CHECKSUM_1:
             printer_checksum = recv_data, printer_state = PRN_STATE_CHECKSUM_2;
