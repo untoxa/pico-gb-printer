@@ -279,8 +279,7 @@ void fs_close_custom(struct fs_file *file) {
     file;
 }
 
-int main()
-{
+int main() {
     // For toggle_led
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);

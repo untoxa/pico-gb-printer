@@ -46,16 +46,14 @@ static const ip_addr_t netmask = IPADDR4_INIT_BYTES(255, 255, 255, 0);
 static const ip_addr_t gateway = IPADDR4_INIT_BYTES(0, 0, 0, 0);
 
 /* database IP addresses that can be offered to the host; this must be in RAM to store assigned MAC addresses */
-static dhcp_entry_t entries[] =
-{
+static dhcp_entry_t entries[] = {
     /* mac ip address                          lease time */
     { {0}, IPADDR4_INIT_BYTES(192, 168, 7, 2), 24 * 60 * 60 },
     { {0}, IPADDR4_INIT_BYTES(192, 168, 7, 3), 24 * 60 * 60 },
     { {0}, IPADDR4_INIT_BYTES(192, 168, 7, 4), 24 * 60 * 60 },
 };
 
-static const dhcp_config_t dhcp_config =
-{
+static const dhcp_config_t dhcp_config = {
     .router = IPADDR4_INIT_BYTES(0, 0, 0, 0),  /* router address (if any) */
     .port = 67,                                /* listen port */
     .dns = IPADDR4_INIT_BYTES(0, 0, 0, 0),     /* dns server (if any) */
@@ -64,35 +62,29 @@ static const dhcp_config_t dhcp_config =
     .entries = entries                         /* entries */
 };
 
-static err_t linkoutput_fn(struct netif *netif, struct pbuf *p)
-{
+static err_t linkoutput_fn(struct netif *netif, struct pbuf *p) {
     (void)netif;
     
-    for (;;)
-    {
-      /* if TinyUSB isn't ready, we must signal back to lwip that there is nothing we can do */
-      if (!tud_ready())
-        return ERR_USE;
-    
-      /* if the network driver can accept another packet, we make it happen */
-      if (tud_network_can_xmit())
-      {
-        tud_network_xmit(p, 0 /* unused for this example */);
-        return ERR_OK;
-      }
-    
-      /* transfer execution to TinyUSB in the hopes that it will finish transmitting the prior packet */
-      tud_task();
+    for (;;) {
+        /* if TinyUSB isn't ready, we must signal back to lwip that there is nothing we can do */
+        if (!tud_ready()) return ERR_USE;
+
+        /* if the network driver can accept another packet, we make it happen */
+        if (tud_network_can_xmit()) {
+            tud_network_xmit(p, 0 /* unused for this example */);
+            return ERR_OK;
+        }
+
+        /* transfer execution to TinyUSB in the hopes that it will finish transmitting the prior packet */
+        tud_task();
     }
 }
 
-static err_t output_fn(struct netif *netif, struct pbuf *p, const ip_addr_t *addr)
-{
+static err_t output_fn(struct netif *netif, struct pbuf *p, const ip_addr_t *addr) {
     return etharp_output(netif, p, addr);
 }
 
-static err_t netif_init_cb(struct netif *netif)
-{
+static err_t netif_init_cb(struct netif *netif) {
     LWIP_ASSERT("netif != NULL", (netif != NULL));
     netif->mtu = CFG_TUD_NET_MTU;
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP | NETIF_FLAG_UP;
@@ -104,8 +96,7 @@ static err_t netif_init_cb(struct netif *netif)
     return ERR_OK;
 }
 
-void init_lwip(void)
-{
+void init_lwip(void) {
     struct netif *netif = &netif_data;
     
     /* Fixup MAC address based on flash serial */
@@ -129,28 +120,23 @@ void init_lwip(void)
     netif_set_default(netif);
 }
 
-void tud_network_init_cb(void)
-{
+void tud_network_init_cb(void) {
     /* if the network is re-initializing and we have a leftover packet, we must do a cleanup */
-    if (received_frame)
-    {
-      pbuf_free(received_frame);
-      received_frame = NULL;
+    if (received_frame) {
+        pbuf_free(received_frame);
+        received_frame = NULL;
     }
 }
 
-bool tud_network_recv_cb(const uint8_t *src, uint16_t size)
-{
+bool tud_network_recv_cb(const uint8_t *src, uint16_t size) {
     /* this shouldn't happen, but if we get another packet before 
     parsing the previous, we must signal our inability to accept it */
     if (received_frame) return false;
     
-    if (size)
-    {
+    if (size) {
         struct pbuf *p = pbuf_alloc(PBUF_RAW, size, PBUF_POOL);
 
-        if (p)
-        {
+        if (p) {
             /* pbuf_alloc() has already initialized struct; all we need to do is copy the data */
             memcpy(p->payload, src, size);
         
@@ -162,8 +148,7 @@ bool tud_network_recv_cb(const uint8_t *src, uint16_t size)
     return true;
 }
 
-uint16_t tud_network_xmit_cb(uint8_t *dst, void *ref, uint16_t arg)
-{
+uint16_t tud_network_xmit_cb(uint8_t *dst, void *ref, uint16_t arg) {
     struct pbuf *p = (struct pbuf *)ref;
     struct pbuf *q;
     uint16_t len = 0;
@@ -171,8 +156,7 @@ uint16_t tud_network_xmit_cb(uint8_t *dst, void *ref, uint16_t arg)
     (void)arg; /* unused for this example */
 
     /* traverse the "pbuf chain"; see ./lwip/src/core/pbuf.c for more info */
-    for(q = p; q != NULL; q = q->next)
-    {
+    for(q = p; q != NULL; q = q->next) {
         memcpy(dst, (char *)q->payload, q->len);
         dst += q->len;
         len += q->len;
@@ -182,27 +166,22 @@ uint16_t tud_network_xmit_cb(uint8_t *dst, void *ref, uint16_t arg)
     return len;
 }
 
-void service_traffic(void)
-{
+void service_traffic(void) {
     /* handle any packet received by tud_network_recv_cb() */
-    if (received_frame)
-    {
+    if (received_frame) {
       ethernet_input(received_frame, &netif_data);
       pbuf_free(received_frame);
       received_frame = NULL;
       tud_network_recv_renew();
     }
-    
     sys_check_timeouts();
 }
 
-void dhcpd_init()
-{
+void dhcpd_init() {
     while (dhserv_init(&dhcp_config) != ERR_OK);    
 }
 
-void wait_for_netif_is_up()
-{
+void wait_for_netif_is_up() {
     while (!netif_is_up(&netif_data));    
 }
 
@@ -211,38 +190,28 @@ void wait_for_netif_is_up()
 auto_init_mutex(lwip_mutex);
 static int lwip_mutex_count = 0;
 
-sys_prot_t sys_arch_protect(void)
-{
+sys_prot_t sys_arch_protect(void) {
     uint32_t owner;
-    if (!mutex_try_enter(&lwip_mutex, &owner))
-    {
-        if (owner != get_core_num())
-        {
+    if (!mutex_try_enter(&lwip_mutex, &owner)) {
+        if (owner != get_core_num()) {
             // Wait until other core releases mutex
             mutex_enter_blocking(&lwip_mutex);
         }
     }
-
-    lwip_mutex_count++;
-    
+    lwip_mutex_count++;    
     return 0;
 }
 
-void sys_arch_unprotect(sys_prot_t pval)
-{
-    (void)pval;
-    
-    if (lwip_mutex_count)
-    {
+void sys_arch_unprotect(sys_prot_t pval) {
+    (void)pval;    
+    if (lwip_mutex_count) {
         lwip_mutex_count--;
-        if (!lwip_mutex_count)
-        {
+        if (!lwip_mutex_count) {
             mutex_exit(&lwip_mutex);
         }
     }
 }
 
-uint32_t sys_now(void)
-{
-    return to_ms_since_boot( get_absolute_time() );
+uint32_t sys_now(void) {
+    return to_ms_since_boot(get_absolute_time());
 }
