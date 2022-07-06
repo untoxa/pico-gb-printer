@@ -2,6 +2,7 @@
 #include "pico/bootrom.h"
 #include "hardware/timer.h"
 #include "hardware/gpio.h"
+#include "hardware/irq.h"
 #include "hardware/watchdog.h"
 #include "hardware/structs/watchdog.h"
 
