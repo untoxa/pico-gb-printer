@@ -300,7 +300,6 @@ int main() {
     // init SIO pins
     gpio_init(PIN_SCK);
     gpio_set_dir(PIN_SCK, GPIO_IN);
-    gpio_set_pulls(PIN_SCK, true, false);
 
     gpio_init(PIN_SIN);
     gpio_set_dir(PIN_SIN, GPIO_IN);
