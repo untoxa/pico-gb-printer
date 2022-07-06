@@ -90,6 +90,8 @@ inline void receive_data_write(uint8_t b) {
 }
 
 void gpio_callback(uint gpio, uint32_t events) {
+    // check gpio
+    if (gpio != PIN_SCK) return;
     // on the falling edge set sending bit
     if (events & GPIO_IRQ_EDGE_FALL) {
         gpio_put(PIN_SOUT, send_data & 0x80), send_data <<= 1;
@@ -276,7 +278,7 @@ int fs_open_custom(struct fs_file *file, const char *name) {
 }
 
 void fs_close_custom(struct fs_file *file) {
-    file;
+    LWIP_UNUSED_ARG(file);
 }
 
 int main() {
@@ -307,6 +309,7 @@ int main() {
     gpio_put(PIN_SOUT, 0);
 
     gpio_set_irq_enabled_with_callback(PIN_SCK, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &gpio_callback);
+    irq_set_priority(PIO0_IRQ_0, PICO_DEFAULT_IRQ_PRIORITY >> 1); 
 
     LED_OFF;
 
