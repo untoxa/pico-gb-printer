@@ -57,6 +57,10 @@
 
 #define PRINTER_RESET           (printer_state = PRN_STATE_WAIT_FOR_SYNC_1, synchronized = false)
 
+// PXLR-Studio 2 transfer
+
+#define CAM_COMMAND_TRANSFER    0x10
+
 enum printer_state {
     PRN_STATE_WAIT_FOR_SYNC_1,
     PRN_STATE_WAIT_FOR_SYNC_2,
@@ -146,12 +150,13 @@ void gpio_callback(uint gpio, uint32_t events) {
                 case PRN_COMMAND_PRINT:
                     last_print_moment = now;
                     if (printer_status & PRN_STATUS_FULL) next_printer_status |= PRN_STATUS_BUSY;
+                case CAM_COMMAND_TRANSFER:
                 case PRN_COMMAND_DATA:
                     receive_data_write(printer_command);
                     break;
                 case PRN_COMMAND_STATUS:
                     if (printer_status & PRN_STATUS_BUSY) {
-                        if ((now - last_print_moment) > SEC(1)) next_printer_status &= ~PRN_STATUS_BUSY;
+                        if ((now - last_print_moment) > MS(100)) next_printer_status &= ~PRN_STATUS_BUSY;
                     }
                     break;
                 default:
@@ -168,11 +173,12 @@ void gpio_callback(uint gpio, uint32_t events) {
             printer_state = PRN_STATE_LEN_HIGHER;
             break;
         case PRN_STATE_LEN_HIGHER:
-            packet_data_length = packet_data_length | ((uint16_t)recv_data << 8);
+            packet_data_length |= ((uint16_t)recv_data << 8);
             printer_state = (packet_data_length == 0) ? PRN_STATE_CHECKSUM_1 : PRN_STATE_DATA;
             switch (printer_command) {
                 case PRN_COMMAND_DATA:
                     if (packet_data_length == 0) next_printer_status |= PRN_STATUS_FULL;
+                case CAM_COMMAND_TRANSFER:
                 case PRN_COMMAND_PRINT:
                     receive_data_write(packet_data_length);
                     receive_data_write(packet_data_length >> 8);
@@ -261,7 +267,7 @@ static const tCGI cgi_handlers[] = {
 };
 
 int fs_open_custom(struct fs_file *file, const char *name) {
-    static const char *on_off[] = {"off", "on"};
+    static const char *on_off[]     = {"off", "on"};
     static const char *true_false[] = {"false", "true"};
     if (!strcmp(name, IMAGE_FILE)) {
         // initialize fs_file correctly
@@ -291,7 +297,7 @@ void fs_close_custom(struct fs_file *file) {
 }
 
 #if (USE_MULTICORE==1)
-void core1_entry() {
+void core1_context() {
     static const uint32_t events[] = {GPIO_IRQ_EDGE_FALL, GPIO_IRQ_EDGE_RISE};
     bool new, old = gpio_get(PIN_SCK);
     while (true) {
@@ -332,7 +338,7 @@ int main() {
     gpio_put(PIN_SOUT, 0);
 
 #if (USE_MULTICORE==1)
-    multicore_launch_core1(core1_entry);
+    multicore_launch_core1(core1_context);
 #else
     gpio_set_irq_enabled_with_callback(PIN_SCK, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &gpio_callback);
     irq_set_priority(IO_IRQ_BANK0, 0);
