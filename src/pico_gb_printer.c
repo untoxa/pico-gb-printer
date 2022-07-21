@@ -1,3 +1,5 @@
+#define USE_MULTICORE 1
+
 #include "pico/stdlib.h"
 #include "pico/bootrom.h"
 #include "hardware/timer.h"
@@ -9,6 +11,10 @@
 #include "lwip/apps/fs.h"
 
 #include "tusb_lwip_glue.h"
+
+#if (USE_MULTICORE==1)
+    #include "pico/multicore.h"
+#endif
 
 #define ENABLE_DEBUG            false
 
@@ -47,7 +53,7 @@
 
 #define TILE_SIZE               0x10
 #define PRINTER_WIDTH           20
-#define PRINTER_BUFFER_SIZE     (PRINTER_WIDTH * TILE_SIZE * 2)           
+#define PRINTER_BUFFER_SIZE     (PRINTER_WIDTH * TILE_SIZE * 2)
 
 #define PRINTER_RESET           (printer_state = PRN_STATE_WAIT_FOR_SYNC_1, synchronized = false)
 
@@ -66,11 +72,12 @@ enum printer_state {
 };
 
 bool debug_enable = ENABLE_DEBUG;
+bool speed_240_KHz = false;
 
 volatile uint64_t last_watchdog, last_print_moment;
 
 volatile enum printer_state printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
-volatile uint8_t recv_data = 0; 
+volatile uint8_t recv_data = 0;
 volatile uint8_t send_data = 0;
 uint8_t recv_bits = 0;
 volatile bool synchronized = false;
@@ -103,7 +110,7 @@ void gpio_callback(uint gpio, uint32_t events) {
 
     uint64_t now = time_us_64();
     if ((now - last_watchdog) > SEC(15)) {
-        LED_OFF; 
+        LED_OFF;
         PRINTER_RESET;
         last_watchdog = now;
     }
@@ -113,10 +120,10 @@ void gpio_callback(uint gpio, uint32_t events) {
     } else {
         if (recv_data == 0x88) {
             printer_state = PRN_STATE_WAIT_FOR_SYNC_1, receive_data_pointer = 0, send_data = 0;
-            synchronized = true; 
+            synchronized = true;
         } else return;
     }
-    recv_bits = 0;    
+    recv_bits = 0;
 
     // packet state machine
     switch (printer_state) {
@@ -170,12 +177,12 @@ void gpio_callback(uint gpio, uint32_t events) {
                     receive_data_write(packet_data_length);
                     receive_data_write(packet_data_length >> 8);
                     break;
-            } 
+            }
             receive_byte_counter = 0;
             break;
         case PRN_STATE_DATA:
             if (!(receive_byte_counter & 0x3F)) LED_TOGGLE;
-            if(++receive_byte_counter == packet_data_length) 
+            if(++receive_byte_counter == packet_data_length)
                 printer_state = PRN_STATE_CHECKSUM_1;
             receive_data_write(recv_data);
             break;
@@ -184,7 +191,7 @@ void gpio_callback(uint gpio, uint32_t events) {
             LED_OFF;
             break;
         case PRN_STATE_CHECKSUM_2:
-            printer_checksum |= ((uint16_t)recv_data << 8);            
+            printer_checksum |= ((uint16_t)recv_data << 8);
             printer_state = PRN_STATE_DEVICE_ID;
             send_data = PRINTER_DEVICE_ID;
             break;
@@ -206,10 +213,10 @@ void gpio_callback(uint gpio, uint32_t events) {
 // let our webserver do some dynamic handling
 #define ROOT_PAGE   "/index.shtml"
 #define IMAGE_FILE  "/image.bin"
-#define STATUS_FILE "/status.json" 
+#define STATUS_FILE "/status.json"
 
 static u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
-    size_t printed =0;
+    size_t printed = 0;
     switch (iIndex) {
         case 0:
             if (debug_enable) printed = snprintf(pcInsert, iInsertLen, "<a href=\"/reset_usb_boot\">Reset</a>");
@@ -225,9 +232,11 @@ static u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
 
 static const char * ssi_tags[] = {"RESET", "RAWDATA" };
 
-static const char *cgi_reset_usb_boot(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
-    if (debug_enable) reset_usb_boot(0, 0);
-    return ROOT_PAGE;
+static const char *cgi_options(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
+    for (int i = 0; i < iNumParams; i++) {
+        if (!strcmp(pcParam[i], "debug")) debug_enable = (!strcmp(pcValue[i], "on"));
+    }
+    return STATUS_FILE;
 }
 
 static const char *cgi_download(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
@@ -239,18 +248,16 @@ static const char *cgi_reset(int iIndex, int iNumParams, char *pcParam[], char *
     return STATUS_FILE;
 }
 
-static const char *cgi_options(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
-    for (int i = 0; i < iNumParams; i++) {
-        if (!strcmp(pcParam[i], "debug")) debug_enable = (!strcmp(pcValue[i], "on")); 
-    }
-    return STATUS_FILE;
+static const char *cgi_reset_usb_boot(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
+    if (debug_enable) reset_usb_boot(0, 0);
+    return ROOT_PAGE;
 }
 
 static const tCGI cgi_handlers[] = {
-    { "/reset_usb_boot",    cgi_reset_usb_boot }, 
-    { "/download",          cgi_download}, 
+    { "/options",           cgi_options },
+    { "/download",          cgi_download },
     { "/reset",             cgi_reset },
-    { "/options",           cgi_options }
+    { "/reset_usb_boot",    cgi_reset_usb_boot }
 };
 
 int fs_open_custom(struct fs_file *file, const char *name) {
@@ -260,17 +267,18 @@ int fs_open_custom(struct fs_file *file, const char *name) {
         // initialize fs_file correctly
         memset(file, 0, sizeof(struct fs_file));
         file->data  = (const char *)receive_data;
-        file->len   = receive_data_pointer; 
+        file->len   = receive_data_pointer;
         file->index = file->len;
         file->flags = FS_FILE_FLAGS_CUSTOM;
         return 1;
     } else if (!strcmp(name, STATUS_FILE)) {
         memset(file, 0, sizeof(struct fs_file));
         file->data  = status_buffer;
-        file->len   = snprintf(status_buffer, sizeof(status_buffer), 
-                               "{\"result\":\"ok\",\"options\":{\"debug\":\"%s\"},\"status\":{\"synchronized\":%s,\"received:\":%d}}", 
-                               on_off[debug_enable], 
-                               true_false[synchronized], receive_data_pointer); 
+        file->len   = snprintf(status_buffer, sizeof(status_buffer),
+                               "{\"result\":\"ok\",\"options\":{\"debug\":\"%s\"},\"status\":{\"synchronized\":%s,\"received:\":%d},\"system\":{\"fast\":%s}}",
+                               on_off[debug_enable],
+                               true_false[synchronized], receive_data_pointer,
+                               true_false[speed_240_KHz]);
         file->index = file->len;
         file->flags = FS_FILE_FLAGS_CUSTOM;
         return 1;
@@ -282,7 +290,22 @@ void fs_close_custom(struct fs_file *file) {
     LWIP_UNUSED_ARG(file);
 }
 
+#if (USE_MULTICORE==1)
+void core1_entry() {
+    static const uint32_t events[] = {GPIO_IRQ_EDGE_FALL, GPIO_IRQ_EDGE_RISE};
+    bool new, old = gpio_get(PIN_SCK);
+    while (true) {
+        if ((new = gpio_get(PIN_SCK)) != old) {
+            gpio_callback(PIN_SCK, events[new]);
+            old = new;
+        }
+    }
+}
+#endif
+
 int main() {
+    speed_240_KHz = set_sys_clock_khz(240000, false);
+
     // For toggle_led
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
@@ -296,7 +319,7 @@ int main() {
     httpd_init();
     http_set_cgi_handlers(cgi_handlers, LWIP_ARRAYSIZE(cgi_handlers));
     http_set_ssi_handler(ssi_handler, ssi_tags, LWIP_ARRAYSIZE(ssi_tags));
-    
+
     // init SIO pins
     gpio_init(PIN_SCK);
     gpio_set_dir(PIN_SCK, GPIO_IN);
@@ -308,9 +331,12 @@ int main() {
     gpio_set_dir(PIN_SOUT, GPIO_OUT);
     gpio_put(PIN_SOUT, 0);
 
+#if (USE_MULTICORE==1)
+    multicore_launch_core1(core1_entry);
+#else
     gpio_set_irq_enabled_with_callback(PIN_SCK, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &gpio_callback);
-    irq_set_priority(PIO0_IRQ_0, PICO_DEFAULT_IRQ_PRIORITY >> 1); 
-
+    irq_set_priority(IO_IRQ_BANK0, 0);
+#endif
     LED_OFF;
 
     while (true) {

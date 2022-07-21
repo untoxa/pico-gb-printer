@@ -33,7 +33,7 @@
 static struct netif netif_data;
 
 /* shared between tud_network_recv_cb() and service_traffic() */
-static struct pbuf *received_frame;
+static struct pbuf *received_frame = NULL;
 
 /* this is used by this code, ./class/net/net_driver.c, and usb_descriptors.c */
 /* ideally speaking, this should be generated from the hardware's unique ID (if available) */
@@ -150,17 +150,15 @@ bool tud_network_recv_cb(const uint8_t *src, uint16_t size) {
 
 uint16_t tud_network_xmit_cb(uint8_t *dst, void *ref, uint16_t arg) {
     struct pbuf *p = (struct pbuf *)ref;
-    struct pbuf *q;
     uint16_t len = 0;
 
-    (void)arg; /* unused for this example */
+    LWIP_UNUSED_ARG(arg);
 
     /* traverse the "pbuf chain"; see ./lwip/src/core/pbuf.c for more info */
-    for(q = p; q != NULL; q = q->next) {
+    for(struct pbuf *q = p; q != NULL; q = q->next) {
         memcpy(dst, (char *)q->payload, q->len);
         dst += q->len;
-        len += q->len;
-        if (q->len == q->tot_len) break;
+        if ((len += q->len) >= p->tot_len) break;
     }
 
     return len;
@@ -169,10 +167,10 @@ uint16_t tud_network_xmit_cb(uint8_t *dst, void *ref, uint16_t arg) {
 void service_traffic(void) {
     /* handle any packet received by tud_network_recv_cb() */
     if (received_frame) {
-      ethernet_input(received_frame, &netif_data);
-      pbuf_free(received_frame);
-      received_frame = NULL;
-      tud_network_recv_renew();
+        ethernet_input(received_frame, &netif_data);
+        pbuf_free(received_frame);
+        received_frame = NULL;
+        tud_network_recv_renew();
     }
     sys_check_timeouts();
 }
