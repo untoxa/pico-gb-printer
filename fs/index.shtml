@@ -25,15 +25,17 @@
     <div id="gallery" style="display: flex;flex-wrap: wrap;justify-content: center;align-items: flex-start;"></div>
 
     <script>
-      const COMMAND_INIT  = 0x01;
-      const COMMAND_PRINT = 0x02;
-      const COMMAND_DATA  = 0x04;
+      const COMMAND_INIT      = 0x01;
+      const COMMAND_PRINT     = 0x02;
+      const COMMAND_DATA      = 0x04;
+      const COMMAND_TRANSFER  = 0x10;
 
       const PRINTER_WIDTH = 20;
-      const TILE_SIZE = 0x10;
+      const CAMERA_WIDTH  = 16;
+      const TILE_SIZE     = 0x10;
 
-      const imageBinPath = "/download";
-      const resetPath = "/reset";
+      const imageBinPath  = "/download";
+      const resetPath     = "/reset";
 
       let downloadIndex = 0;
 
@@ -63,6 +65,71 @@
         ctx.putImageData(temp, 0, 0)
       }
 
+      function render(image_data, image_start, image_end, image_tile_width, sheets, margin, palette, exposure) {
+        pal = new Uint8Array(4);
+        pal[0] = ((exposure * ((palette >> 0) & 0x03)) / 3) >> 0;
+        pal[1] = ((exposure * ((palette >> 2) & 0x03)) / 3) >> 0;
+        pal[2] = ((exposure * ((palette >> 4) & 0x03)) / 3) >> 0;
+        pal[3] = ((exposure * ((palette >> 6) & 0x03)) / 3) >> 0;
+
+        resize((image_tile_width * 8), canvas.height + ((Math.max(0, image_end - image_start) / (TILE_SIZE * image_tile_width)) >> 0) * 8)
+
+        const ctx = canvas.getContext("2d");
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const writeData = imageData.data;
+        let tile_y = (((image_start / TILE_SIZE) >> 0) / image_tile_width) >> 0;
+        let tile_x = ((image_start / TILE_SIZE) >> 0) % image_tile_width;
+        for (let i = image_start; i < image_end; ) {
+          for (let t = 0; t < 8; t++) {
+            let b1 = image_data[i++];
+            let b2 = image_data[i++];
+            for (let b = 0; b < 8; b++) {
+              let offset = (((tile_y << 3) + t) * canvas.width + (tile_x << 3) + b) << 2;
+              let color_index = ((b1 >> (7 - b)) & 1) | (((b2 >> (7 - b)) & 1) << 1);
+
+              writeData[offset + 0] = writeData[offset + 1] = writeData[offset + 2] = 0xFF - pal[color_index];
+              writeData[offset + 3] = 0xff;
+            }
+          }
+          tile_x += 1;
+          if (tile_x >= image_tile_width) {
+            tile_x = 0;
+            tile_y++;
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+
+        return (margin == 0x03);
+      }
+
+      function decode(is_compressed, sour, sour_size, sour_data_len, sour_ptr, dest, dest_ptr) {
+        if (sour_ptr + sour_data_len <= sour_size) {
+          if (is_compressed) {
+            const stop = sour_ptr + sour_data_len;
+            while (sour_ptr < stop) {
+              const tag = sour[sour_ptr++];
+              if (tag & 0x80) {
+                const data = sour[sour_ptr++];
+                for (let i = 0; i < ((tag & 0x7f) + 2); i++) {
+                  dest[dest_ptr++] = data;
+                }
+              } else {
+                for (let i = 0; i < (tag + 1); i++) {
+                  dest[dest_ptr++] = sour[sour_ptr++];
+                }
+              }
+            }
+            return dest_ptr;
+          } else {
+            for (let i = 0; i < sour_data_len; i++) {
+              dest[dest_ptr++] = sour[sour_ptr++];
+            }
+            return dest_ptr;
+          }
+        }
+        return dest_ptr;
+      }
+
       async function getCameraImage(canvas, binPath) {
         const res = await fetch(imageBinPath);
         const resBody = await res.blob();
@@ -79,89 +146,41 @@
         let idx = 0;
         let len = 0;
         while (idx < data_size) {
-          const command = resData[idx++]; 
+          const command = resData[idx++];
           switch(command) {
             case COMMAND_INIT:
               break;
             case COMMAND_PRINT:
-              len = resData[idx] | (resData[idx + 1] << 8);
-              idx += 2;
-              if (len != 4) {
+              if ((len = resData[idx++] | (resData[idx++] << 8)) != 4) {
                 idx = data_size;
                 break;
               }
               let sheets = resData[idx++];
               let margins = resData[idx++];
               let palette = resData[idx++];
-              let exposure = Math.max(0xFF, 0x80 + resData[idx++]);
+              let exposure = Math.min(0xFF, 0x80 + resData[idx++]);
 
               palette = (palette) ? palette : 0xE4;
 
-              pal = new Uint8Array(data_size);
-              pal[0] = ((exposure * ((palette >> 0) & 0x03)) / 3) >> 0;
-              pal[1] = ((exposure * ((palette >> 2) & 0x03)) / 3) >> 0;
-              pal[2] = ((exposure * ((palette >> 4) & 0x03)) / 3) >> 0;
-              pal[3] = ((exposure * ((palette >> 6) & 0x03)) / 3) >> 0;
-
-              resize((PRINTER_WIDTH * 8), canvas.height + ((Math.max(0, ptr - buffer_start) / (TILE_SIZE * PRINTER_WIDTH)) >> 0) * 8)
-
-              const ctx = canvas.getContext("2d");
-              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-              const writeData = imageData.data;
-              let tile_y = (((buffer_start / TILE_SIZE) >> 0) / PRINTER_WIDTH) >> 0; 
-              let tile_x = ((buffer_start / TILE_SIZE) >> 0) % PRINTER_WIDTH;               
-              for (let i = buffer_start; i < ptr; ) {
-                for (let t = 0; t < 8; t++) {
-                  let b1 = processed_data[i++];
-                  let b2 = processed_data[i++];
-                  for (let b = 0; b < 8; b++) { 
-                    let offset = (((tile_y << 3) + t) * canvas.width + (tile_x << 3) + b) << 2;
-                    let color_index = ((b1 >> (7 - b)) & 1) | (((b2 >> (7 - b)) & 1) << 1);
-
-                    writeData[offset + 0] = writeData[offset + 1] = writeData[offset + 2] = 0xFF - pal[color_index];  
-                    writeData[offset + 3] = 0xff;
-                  }
-                }
-                tile_x += 1; 
-                if (tile_x >= PRINTER_WIDTH) {
-                  tile_x = 0; 
-                  tile_y++;
-                } 
-              }
-              ctx.putImageData(imageData, 0, 0);
+              render(processed_data, buffer_start, ptr, PRINTER_WIDTH, sheets, margins, palette, exposure);
 
               buffer_start = ptr;
               break;
-            case COMMAND_DATA:
-              const compression = resData[idx++];
-              len = resData[idx] | (resData[idx + 1] << 8);
-              idx += 2;
-              if (idx + len <= data_size) {
-                if (compression) {
-                  const stop = idx + len;
-                  while (idx < stop) {
-                    const tag = resData[idx++];
-                    if (tag & 0x80) {
-                      const data = resData[idx++];
-                      for (let i = 0; i < ((tag & 0x7f) + 2); i++) {
-                        processed_data[ptr++] = data;
-                      }
-                    } else {
-                      for (let i = 0; i < (tag + 1); i++) {
-                        processed_data[ptr++] = resData[idx++];
-                      }
-                    }
-                  }
-                  break;
-                } else {
-                  for (let i = 0; i < len; i++) {
-                    processed_data[ptr++] = resData[idx++];
-                  } 
-                  break;                  
-                }
-              } 
-              idx = data_size;
+            case COMMAND_TRANSFER: {
+              len = resData[idx++] | (resData[idx++] << 8);
+              let current_image_start = ptr;
+              ptr = decode(false, resData, data_size, len, idx, processed_data, ptr);
+              idx += len;
+              render(processed_data, current_image_start, ptr, CAMERA_WIDTH, 1, 0x03, 0xE4, 0xFF);
               break;
+            }
+            case COMMAND_DATA: {
+              const compression = resData[idx++];
+              len = resData[idx++] | (resData[idx++] << 8);
+              ptr = decode(compression, resData, data_size, len, idx, processed_data, ptr);
+              idx += len;
+              break;
+            }
             default:
               idx = data_size;
               break;
@@ -224,7 +243,7 @@
           const img = new Image();
           img.src = canvas.toDataURL();
           div.appendChild(img);
-          div.markedForDeletion = false;          
+          div.markedForDeletion = false;
           const input = document.createElement("INPUT");
           input.setAttribute("type", "checkbox");
           input.addEventListener("change", function() {
@@ -232,7 +251,7 @@
             if  (!deleteSelectedBtn.disabled) return;
             var items = gallery.children;
             for (var i = 0; i < items.length; i++) {
-              if (!(deleteSelectedBtn.disabled = !(items[i].markedForDeletion))) break; 
+              if (!(deleteSelectedBtn.disabled = !(items[i].markedForDeletion))) break;
             }
           });
           div.appendChild(input);

@@ -17,6 +17,7 @@
 #endif
 
 #define ENABLE_DEBUG            false
+#define BUFFER_SIZE_KB          128
 
 #define LED_PIN                 25
 #define LED_SET(A)              (gpio_put(LED_PIN, (A)))
@@ -92,9 +93,9 @@ uint16_t receive_byte_counter = 0;
 uint16_t packet_data_length = 0, printer_checksum = 0;
 
 volatile uint32_t receive_data_pointer = 0;
-uint8_t receive_data[96 * 1024];    // buffer length is 96K
+uint8_t receive_data[BUFFER_SIZE_KB * 1024];    // buffer length is 96K
 
-uint8_t status_buffer[1024] = {0};  // buffer for rendering of status json
+uint8_t status_buffer[1024] = {0};              // buffer for rendering of status json
 
 inline void receive_data_write(uint8_t b) {
     if (receive_data_pointer < sizeof(receive_data))
@@ -281,10 +282,10 @@ int fs_open_custom(struct fs_file *file, const char *name) {
         memset(file, 0, sizeof(struct fs_file));
         file->data  = status_buffer;
         file->len   = snprintf(status_buffer, sizeof(status_buffer),
-                               "{\"result\":\"ok\",\"options\":{\"debug\":\"%s\"},\"status\":{\"synchronized\":%s,\"received:\":%d},\"system\":{\"fast\":%s}}",
+                               "{\"result\":\"ok\",\"options\":{\"debug\":\"%s\"},\"status\":{\"synchronized\":%s,\"received:\":%d},\"system\":{\"fast\":%s,\"buffer_size\":%d}}",
                                on_off[debug_enable],
                                true_false[synchronized], receive_data_pointer,
-                               true_false[speed_240_KHz]);
+                               true_false[speed_240_KHz], sizeof(receive_data));
         file->index = file->len;
         file->flags = FS_FILE_FLAGS_CUSTOM;
         return 1;
