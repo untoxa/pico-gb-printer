@@ -17,7 +17,7 @@
 #endif
 
 #define ENABLE_DEBUG            false
-#define BUFFER_SIZE_KB          128
+#define BUFFER_SIZE_KB          176
 
 #define LED_PIN                 25
 #define LED_SET(A)              (gpio_put(LED_PIN, (A)))
@@ -282,7 +282,10 @@ int fs_open_custom(struct fs_file *file, const char *name) {
         memset(file, 0, sizeof(struct fs_file));
         file->data  = status_buffer;
         file->len   = snprintf(status_buffer, sizeof(status_buffer),
-                               "{\"result\":\"ok\",\"options\":{\"debug\":\"%s\"},\"status\":{\"synchronized\":%s,\"received:\":%d},\"system\":{\"fast\":%s,\"buffer_size\":%d}}",
+                               "{\"result\":\"ok\"," \
+                               "\"options\":{\"debug\":\"%s\"}," \
+                               "\"status\":{\"synchronized\":%s,\"received:\":%d},"\
+                               "\"system\":{\"fast\":%s,\"buffer_size\":%d}}",
                                on_off[debug_enable],
                                true_false[synchronized], receive_data_pointer,
                                true_false[speed_240_KHz], sizeof(receive_data));
