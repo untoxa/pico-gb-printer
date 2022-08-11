@@ -3,13 +3,15 @@
     <title>Pico Game Boy Printer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-      body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"; }
-      button { padding: 5px; margin: 3px; font-size: 1rem; }
+      body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"; text-align: center; }
+      button { padding: 5px 10px; margin: 6px; font-size: 1rem; }
+      h1 { font-size: 2rem; }
+      .gallery-image { padding: 0 5px 10px 5px; }
     </style>
   </head>
   <body>
 
-    <center>
+    <div id="header">
       <h1>Pico Game Boy Printer</h1>
       <p>Start printing on your Game Boy. When the led stops blinking, press the "Get Images" button.</p>
       <button id="get_image_btn">Get Images</button><!--
@@ -19,8 +21,7 @@
    --><br>
       <!--#RESET--> <!--#RAWDATA-->
       <br>
-      <br>
-    </center>
+    </div>
     <div id="gallery" style="display: flex;flex-wrap: wrap;justify-content: center;align-items: flex-start;"></div>
 
     <script>
@@ -214,18 +215,16 @@
 
       function addCanvasToGallery(canvas) {
         if (canvas.height > 1) {
-          const div = document.createElement("DIV");
-
-          const center = document.createElement("CENTER");
-          div.appendChild(center);
+          const div = document.createElement("div");
+          div.classList.add("gallery-image");
 
           const img = new Image();
           img.src = canvas.toDataURL();
-          center.appendChild(img);
-          center.appendChild(document.createElement("BR"));
+          div.appendChild(img);
+          div.appendChild(document.createElement("br"));
           div.markedForDeletion = false;
 
-          const input = document.createElement("INPUT");
+          const input = document.createElement("input");
           input.setAttribute("type", "checkbox");
           input.addEventListener("change", function() {
             deleteSelectedBtn.disabled = !(div.markedForDeletion = (input.checked));
@@ -236,14 +235,14 @@
               if (!(deleteSelectedBtn.disabled = !(items[i].markedForDeletion))) break;
             }
           });
-          center.appendChild(input);
+          div.appendChild(input);
 
-          const btn = document.createElement("BUTTON");
+          const btn = document.createElement("button");
           btn.textContent = "Save";
           btn.addEventListener("click", function () {
             downloadImage(img);
           });
-          center.appendChild(btn);
+          div.appendChild(btn);
 
           gallery.appendChild(div);
           selectAllBtn.disabled = false;
