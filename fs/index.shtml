@@ -1,6 +1,6 @@
 <html lang="en">
   <head>
-    <title>Pico GameBoy Printer</title>
+    <title>Pico Game Boy Printer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
       body {
@@ -11,7 +11,7 @@
   <body>
 
     <center>
-      <h1>Pico GameBoy Printer</h1>
+      <h1>Pico Game Boy Printer</h1>
       Start printing on your Game Boy. When the led stops blinking, press the "Get Images" button.<br><br>
       <button id="get_image_btn">Get Images</button>
       <button id="tear_btn">Tear</button>
