@@ -1,4 +1,5 @@
 #define USE_MULTICORE 1
+#define USE_KEY 1
 
 #include "pico/stdlib.h"
 #include "pico/bootrom.h"
@@ -34,6 +35,9 @@
 #define PIN_SCK                 0
 #define PIN_SIN                 1
 #define PIN_SOUT                2
+
+// "Tear" button
+#define PIN_KEY                 23
 
 #define PRINTER_DEVICE_ID       0x81
 
@@ -217,6 +221,11 @@ void gpio_callback(uint gpio, uint32_t events) {
     }
 }
 
+void key_callback(uint gpio, uint32_t events) {
+    receive_data_pointer = 0, PRINTER_RESET;
+    LED_OFF;
+}
+
 // let our webserver do some dynamic handling
 #define ROOT_PAGE   "/index.shtml"
 #define IMAGE_FILE  "/image.bin"
@@ -340,6 +349,12 @@ int main() {
     gpio_init(PIN_SOUT);
     gpio_set_dir(PIN_SOUT, GPIO_OUT);
     gpio_put(PIN_SOUT, 0);
+
+#if (USE_KEY==1)
+    gpio_init(PIN_KEY);
+    gpio_set_dir(PIN_KEY, GPIO_IN);
+    gpio_set_irq_enabled_with_callback(PIN_KEY, GPIO_IRQ_EDGE_RISE, true, &key_callback);
+#endif
 
 #if (USE_MULTICORE==1)
     multicore_launch_core1(core1_context);
