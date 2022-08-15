@@ -322,11 +322,10 @@ void fs_close_custom(struct fs_file *file) {
 
 #if (USE_MULTICORE==1)
 void core1_context() {
-    static const uint32_t events[] = {GPIO_IRQ_EDGE_FALL, GPIO_IRQ_EDGE_RISE};
     bool new, old = gpio_get(PIN_SCK);
     while (true) {
         if ((new = gpio_get(PIN_SCK)) != old) {
-            gpio_callback(PIN_SCK, events[new]);
+            gpio_callback(PIN_SCK, (new) ? GPIO_IRQ_EDGE_RISE : GPIO_IRQ_EDGE_FALL);
             old = new;
         }
     }
