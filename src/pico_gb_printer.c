@@ -44,6 +44,7 @@
 #define PRN_COMMAND_INIT        0x01
 #define PRN_COMMAND_PRINT       0x02
 #define PRN_COMMAND_DATA        0x04
+#define PRN_COMMAND_BREAK       0x08
 #define PRN_COMMAND_STATUS      0x0F
 
 #define PRN_STATUS_LOWBAT       0x80
@@ -86,15 +87,7 @@ bool speed_240_KHz = false;
 volatile uint64_t last_watchdog, last_print_moment;
 
 volatile enum printer_state printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
-volatile uint8_t recv_data = 0;
-volatile uint8_t send_data = 0;
-uint8_t recv_bits = 0;
 volatile bool synchronized = false;
-
-uint8_t printer_status = PRN_STATUS_OK, next_printer_status = PRN_STATUS_OK;
-uint8_t printer_command = 0;
-uint16_t receive_byte_counter = 0;
-uint16_t packet_data_length = 0, printer_checksum = 0;
 
 volatile uint32_t receive_data_pointer = 0;
 uint8_t receive_data[BUFFER_SIZE_KB * 1024];    // buffer length is 96K
@@ -106,16 +99,14 @@ inline void receive_data_write(uint8_t b) {
          receive_data[receive_data_pointer++] = b;
 }
 
-void gpio_callback(uint gpio, uint32_t events) {
-    // check gpio
-    if (gpio != PIN_SCK) return;
-    // on the falling edge set sending bit
-    if (events & GPIO_IRQ_EDGE_FALL) {
-        gpio_put(PIN_SOUT, send_data & 0x80), send_data <<= 1;
-        return;
-    }
-    // on the rising edge read received bit
-    recv_data = (recv_data << 1) | (gpio_get(PIN_SIN) & 0x01);
+// printer packet state machine
+static uint8_t process_data(uint8_t data_in) {
+    static uint8_t printer_status = PRN_STATUS_OK, next_printer_status = PRN_STATUS_OK;
+    static uint8_t printer_command = 0;
+    static uint16_t receive_byte_counter = 0;
+    static uint16_t packet_data_length = 0, printer_checksum = 0;
+
+    uint8_t data_out = 0;
 
     uint64_t now = time_us_64();
     if ((now - last_watchdog) > SEC(15)) {
@@ -124,31 +115,19 @@ void gpio_callback(uint gpio, uint32_t events) {
         last_watchdog = now;
     }
 
-    if (synchronized) {
-        if (++recv_bits != 8) return;
-    } else {
-        if (recv_data == 0x88) {
-            printer_state = PRN_STATE_WAIT_FOR_SYNC_1, receive_data_pointer = 0, send_data = 0;
-            synchronized = true;
-        } else return;
-    }
-    recv_bits = 0;
-
-    // packet state machine
     switch (printer_state) {
         case PRN_STATE_WAIT_FOR_SYNC_1:
-            if (recv_data == 0x88) printer_state = PRN_STATE_WAIT_FOR_SYNC_2; else PRINTER_RESET;
+            if (data_in == 0x88) printer_state = PRN_STATE_WAIT_FOR_SYNC_2; else PRINTER_RESET;
             break;
         case PRN_STATE_WAIT_FOR_SYNC_2:
-            if (recv_data == 0x33) printer_state = PRN_STATE_COMMAND; else PRINTER_RESET;
+            if (data_in == 0x33) printer_state = PRN_STATE_COMMAND; else PRINTER_RESET;
             break;
         case PRN_STATE_COMMAND:
-            printer_command = recv_data;
+            printer_command = data_in;
             printer_state = PRN_STATE_COMPRESSION_INDICATOR;
             printer_status = next_printer_status;
             switch(printer_command) {
                 case PRN_COMMAND_INIT:
-//                    receive_data_pointer = 0;
                     printer_status = next_printer_status = PRN_STATUS_OK;
                     receive_data_write(printer_command);
                     break;
@@ -158,6 +137,10 @@ void gpio_callback(uint gpio, uint32_t events) {
                 case CAM_COMMAND_TRANSFER:
                 case PRN_COMMAND_DATA:
                     receive_data_write(printer_command);
+                    break;
+                case PRN_COMMAND_BREAK:
+                    receive_data_pointer = 0;
+                    printer_status = next_printer_status = PRN_STATUS_OK;
                     break;
                 case PRN_COMMAND_STATUS:
                     if (printer_status & PRN_STATUS_BUSY) {
@@ -170,15 +153,15 @@ void gpio_callback(uint gpio, uint32_t events) {
             }
             break;
         case PRN_STATE_COMPRESSION_INDICATOR:
-            if (printer_command == PRN_COMMAND_DATA) receive_data_write(recv_data);
+            if (printer_command == PRN_COMMAND_DATA) receive_data_write(data_in);
             printer_state = PRN_STATE_LEN_LOWER;
             break;
         case PRN_STATE_LEN_LOWER:
-            packet_data_length = recv_data;
+            packet_data_length = data_in;
             printer_state = PRN_STATE_LEN_HIGHER;
             break;
         case PRN_STATE_LEN_HIGHER:
-            packet_data_length |= ((uint16_t)recv_data << 8);
+            packet_data_length |= ((uint16_t)data_in << 8);
             printer_state = (packet_data_length == 0) ? PRN_STATE_CHECKSUM_1 : PRN_STATE_DATA;
             switch (printer_command) {
                 case PRN_COMMAND_DATA:
@@ -195,33 +178,61 @@ void gpio_callback(uint gpio, uint32_t events) {
             if (!(receive_byte_counter & 0x3F)) LED_TOGGLE;
             if(++receive_byte_counter == packet_data_length)
                 printer_state = PRN_STATE_CHECKSUM_1;
-            receive_data_write(recv_data);
+            receive_data_write(data_in);
             break;
         case PRN_STATE_CHECKSUM_1:
-            printer_checksum = recv_data, printer_state = PRN_STATE_CHECKSUM_2;
+            printer_checksum = data_in, printer_state = PRN_STATE_CHECKSUM_2;
             LED_OFF;
             break;
         case PRN_STATE_CHECKSUM_2:
-            printer_checksum |= ((uint16_t)recv_data << 8);
+            printer_checksum |= ((uint16_t)data_in << 8);
             printer_state = PRN_STATE_DEVICE_ID;
-            send_data = PRINTER_DEVICE_ID;
+            data_out = PRINTER_DEVICE_ID;
             break;
         case PRN_STATE_DEVICE_ID:
             printer_state = PRN_STATE_STATUS;
-            send_data = printer_status;
+            data_out = printer_status;
             break;
         case PRN_STATE_STATUS:
             last_watchdog = now;
             printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
-            send_data = 0;
             break;
         default:
             PRINTER_RESET;
             break;
     }
+    return data_out;
 }
 
-void key_callback(uint gpio, uint32_t events) {
+static void gpio_callback(uint gpio, uint32_t events) {
+    static uint8_t recv_data = 0;
+    static uint8_t send_data = 0;
+    static uint8_t recv_bits = 0;
+
+    // check gpio
+    if (gpio != PIN_SCK) return;
+    // on the falling edge set sending bit
+    if (events & GPIO_IRQ_EDGE_FALL) {
+        gpio_put(PIN_SOUT, send_data & 0x80), send_data <<= 1;
+        return;
+    }
+    // on the rising edge read received bit
+    recv_data = (recv_data << 1) | (gpio_get(PIN_SIN) & 0x01);
+
+    if (synchronized) {
+        if (++recv_bits != 8) return;
+    } else {
+        if (recv_data == 0x88) {
+            printer_state = PRN_STATE_WAIT_FOR_SYNC_1, receive_data_pointer = 0, send_data = 0;
+            synchronized = true;
+        } else return;
+    }
+    recv_bits = 0;
+
+    send_data = process_data(recv_data);
+}
+
+static void key_callback(uint gpio, uint32_t events) {
     receive_data_pointer = 0, PRINTER_RESET;
     LED_OFF;
 }
