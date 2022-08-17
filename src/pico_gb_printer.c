@@ -1,21 +1,18 @@
 #define USE_MULTICORE 1
 #define USE_KEY 1
+#define USE_SPI 0
 
 #include "pico/stdlib.h"
 #include "pico/bootrom.h"
+#include "pico/multicore.h"
 #include "hardware/timer.h"
 #include "hardware/gpio.h"
 #include "hardware/irq.h"
-#include "hardware/watchdog.h"
-#include "hardware/structs/watchdog.h"
+#include "hardware/spi.h"
 
 #include "lwip/apps/fs.h"
 
 #include "tusb_lwip_glue.h"
-
-#if (USE_MULTICORE==1)
-    #include "pico/multicore.h"
-#endif
 
 #define ENABLE_DEBUG            false
 #define BUFFER_SIZE_KB          176
@@ -32,9 +29,16 @@
 
 // PI Pico printer
 
+// GPIO mode pins
 #define PIN_SCK                 0
 #define PIN_SIN                 1
 #define PIN_SOUT                2
+// SPI mode pins
+#define PIN_SPI_SCK             10
+#define PIN_SPI_SOUT            11
+#define PIN_SPI_SIN             8
+
+#define SPI_BAUDRATE            64 * 1024 * 8
 
 // "Tear" button
 #define PIN_KEY                 23
@@ -84,6 +88,7 @@ enum printer_state {
 bool debug_enable = ENABLE_DEBUG;
 bool speed_240_KHz = false;
 
+volatile uint64_t time_us_now = 0;
 volatile uint64_t last_watchdog, last_print_moment;
 
 volatile enum printer_state printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
@@ -108,13 +113,6 @@ static uint8_t process_data(uint8_t data_in) {
 
     uint8_t data_out = 0;
 
-    uint64_t now = time_us_64();
-    if ((now - last_watchdog) > SEC(15)) {
-        LED_OFF;
-        PRINTER_RESET;
-        last_watchdog = now;
-    }
-
     switch (printer_state) {
         case PRN_STATE_WAIT_FOR_SYNC_1:
             if (data_in == 0x88) printer_state = PRN_STATE_WAIT_FOR_SYNC_2; else PRINTER_RESET;
@@ -132,7 +130,7 @@ static uint8_t process_data(uint8_t data_in) {
                     receive_data_write(printer_command);
                     break;
                 case PRN_COMMAND_PRINT:
-                    last_print_moment = now;
+                    last_print_moment = time_us_now;
                     if (printer_status & PRN_STATUS_FULL) next_printer_status |= PRN_STATUS_BUSY;
                 case CAM_COMMAND_TRANSFER:
                 case PRN_COMMAND_DATA:
@@ -144,7 +142,7 @@ static uint8_t process_data(uint8_t data_in) {
                     break;
                 case PRN_COMMAND_STATUS:
                     if (printer_status & PRN_STATUS_BUSY) {
-                        if ((now - last_print_moment) > MS(100)) next_printer_status &= ~PRN_STATUS_BUSY;
+                        if ((time_us_now - last_print_moment) > MS(100)) next_printer_status &= ~PRN_STATUS_BUSY;
                     }
                     break;
                 default:
@@ -194,7 +192,7 @@ static uint8_t process_data(uint8_t data_in) {
             data_out = printer_status;
             break;
         case PRN_STATE_STATUS:
-            last_watchdog = now;
+            last_watchdog = time_us_now;
             printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
             break;
         default:
@@ -209,8 +207,6 @@ static void gpio_callback(uint gpio, uint32_t events) {
     static uint8_t send_data = 0;
     static uint8_t recv_bits = 0;
 
-    // check gpio
-    if (gpio != PIN_SCK) return;
     // on the falling edge set sending bit
     if (events & GPIO_IRQ_EDGE_FALL) {
         gpio_put(PIN_SOUT, send_data & 0x80), send_data <<= 1;
@@ -218,6 +214,13 @@ static void gpio_callback(uint gpio, uint32_t events) {
     }
     // on the rising edge read received bit
     recv_data = (recv_data << 1) | (gpio_get(PIN_SIN) & 0x01);
+
+    time_us_now = time_us_64();
+    if ((time_us_now - last_watchdog) > SEC(15)) {
+        LED_OFF;
+        PRINTER_RESET;
+        last_watchdog = time_us_now;
+    }
 
     if (synchronized) {
         if (++recv_bits != 8) return;
@@ -320,8 +323,55 @@ void fs_close_custom(struct fs_file *file) {
     LWIP_UNUSED_ARG(file);
 }
 
+static inline void setup_sio() {
+    // init SIO pins
+    gpio_init(PIN_SCK);
+    gpio_set_dir(PIN_SCK, GPIO_IN);
+
+    gpio_init(PIN_SIN);
+    gpio_set_dir(PIN_SIN, GPIO_IN);
+
+    gpio_init(PIN_SOUT);
+    gpio_set_dir(PIN_SOUT, GPIO_OUT);
+    gpio_put(PIN_SOUT, 0);
+}
+
+#if (USE_SPI==1)
+static inline void retrigger_spi(spi_inst_t *spi) {
+    hw_clear_bits(&spi_get_hw(spi)->cr1, SPI_SSPCR1_SSE_BITS);
+    hw_set_bits(&spi_get_hw(spi)->cr1, SPI_SSPCR1_SSE_BITS);
+}
+#endif
+
 #if (USE_MULTICORE==1)
 void core1_context() {
+    irq_set_mask_enabled(0xffffffff, false);
+#if (USE_SPI==1)
+    // init SPI
+    spi_init(spi1, SPI_BAUDRATE);
+
+    spi_set_slave(spi1, true);
+    gpio_set_function(PIN_SPI_SCK, GPIO_FUNC_SPI);
+    gpio_set_function(PIN_SPI_SIN, GPIO_FUNC_SPI);
+    gpio_set_function(PIN_SPI_SOUT, GPIO_FUNC_SPI);
+
+    spi_set_format(spi1, 8, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
+    retrigger_spi(spi1);
+
+    uint64_t last_readable;
+    while (true) {
+        time_us_now = time_us_64();
+        if (spi_is_readable(spi1)) {
+            last_readable = time_us_now;
+            spi_get_hw(spi1)->dr = process_data(spi_get_hw(spi1)->dr);
+        }
+        if (time_us_now - last_readable > MS(200)) {
+            retrigger_spi(spi1);
+            last_readable = time_us_now;
+        }
+    }
+#else
+    setup_sio();
     bool new, old = gpio_get(PIN_SCK);
     while (true) {
         if ((new = gpio_get(PIN_SCK)) != old) {
@@ -329,6 +379,7 @@ void core1_context() {
             old = new;
         }
     }
+#endif
 }
 #endif
 
@@ -341,6 +392,13 @@ int main() {
 
     LED_ON;
 
+#if (USE_KEY==1)
+    // set up key
+    gpio_init(PIN_KEY);
+    gpio_set_dir(PIN_KEY, GPIO_IN);
+    gpio_set_irq_enabled_with_callback(PIN_KEY, GPIO_IRQ_EDGE_RISE, true, &key_callback);
+#endif
+
     // Initialize tinyusb, lwip, dhcpd and httpd
     init_lwip();
     wait_for_netif_is_up();
@@ -349,26 +407,10 @@ int main() {
     http_set_cgi_handlers(cgi_handlers, LWIP_ARRAYSIZE(cgi_handlers));
     http_set_ssi_handler(ssi_handler, ssi_tags, LWIP_ARRAYSIZE(ssi_tags));
 
-    // init SIO pins
-    gpio_init(PIN_SCK);
-    gpio_set_dir(PIN_SCK, GPIO_IN);
-
-    gpio_init(PIN_SIN);
-    gpio_set_dir(PIN_SIN, GPIO_IN);
-
-    gpio_init(PIN_SOUT);
-    gpio_set_dir(PIN_SOUT, GPIO_OUT);
-    gpio_put(PIN_SOUT, 0);
-
-#if (USE_KEY==1)
-    gpio_init(PIN_KEY);
-    gpio_set_dir(PIN_KEY, GPIO_IN);
-    gpio_set_irq_enabled_with_callback(PIN_KEY, GPIO_IRQ_EDGE_RISE, true, &key_callback);
-#endif
-
 #if (USE_MULTICORE==1)
     multicore_launch_core1(core1_context);
 #else
+    setup_sio();
     gpio_set_irq_enabled_with_callback(PIN_SCK, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &gpio_callback);
     irq_set_priority(IO_IRQ_BANK0, 0);
 #endif
