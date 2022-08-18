@@ -27,22 +27,23 @@
 #define MS(A)                   ((A) * 1000)
 #define SEC(A)                  ((A) * 1000 * 1000)
 
-// PI Pico printer
-
-// GPIO mode pins
+// GPIO mode
 #define PIN_SCK                 0
 #define PIN_SIN                 1
 #define PIN_SOUT                2
-// SPI mode pins
+
+// SPI mode
+#define SPI_PORT                spi1
+#define SPI_BAUDRATE            64 * 1024 * 8
+
 #define PIN_SPI_SCK             10
 #define PIN_SPI_SOUT            11
-#define PIN_SPI_SIN             8
-
-#define SPI_BAUDRATE            64 * 1024 * 8
+#define PIN_SPI_SIN             12
 
 // "Tear" button
 #define PIN_KEY                 23
 
+// PI Pico printer
 #define PRINTER_DEVICE_ID       0x81
 
 #define PRN_COMMAND_INIT        0x01
@@ -67,8 +68,7 @@
 
 #define PRINTER_RESET           (printer_state = PRN_STATE_WAIT_FOR_SYNC_1, synchronized = false)
 
-// PXLR-Studio 2 transfer
-
+// PXLR-Studio-next transfer
 #define CAM_COMMAND_TRANSFER    0x10
 
 enum printer_state {
@@ -348,25 +348,25 @@ void core1_context() {
     irq_set_mask_enabled(0xffffffff, false);
 #if (USE_SPI==1)
     // init SPI
-    spi_init(spi1, SPI_BAUDRATE);
+    spi_init(SPI_PORT, SPI_BAUDRATE);
 
-    spi_set_slave(spi1, true);
+    spi_set_slave(SPI_PORT, true);
     gpio_set_function(PIN_SPI_SCK, GPIO_FUNC_SPI);
     gpio_set_function(PIN_SPI_SIN, GPIO_FUNC_SPI);
     gpio_set_function(PIN_SPI_SOUT, GPIO_FUNC_SPI);
 
-    spi_set_format(spi1, 8, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
-    retrigger_spi(spi1);
+    spi_set_format(SPI_PORT, 8, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
+    retrigger_spi(SPI_PORT);
 
     uint64_t last_readable;
     while (true) {
         time_us_now = time_us_64();
-        if (spi_is_readable(spi1)) {
+        if (spi_is_readable(SPI_PORT)) {
             last_readable = time_us_now;
-            spi_get_hw(spi1)->dr = process_data(spi_get_hw(spi1)->dr);
+            spi_get_hw(SPI_PORT)->dr = process_data(spi_get_hw(SPI_PORT)->dr);
         }
         if (time_us_now - last_readable > MS(200)) {
-            retrigger_spi(spi1);
+            retrigger_spi(SPI_PORT);
             last_readable = time_us_now;
         }
     }
