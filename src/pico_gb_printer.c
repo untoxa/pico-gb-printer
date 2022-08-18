@@ -86,7 +86,7 @@ enum printer_state {
 };
 
 bool debug_enable = ENABLE_DEBUG;
-bool speed_240_KHz = false;
+bool speed_240_MHz = false;
 
 volatile uint64_t time_us_now = 0;
 volatile uint64_t last_watchdog, last_print_moment;
@@ -311,7 +311,7 @@ int fs_open_custom(struct fs_file *file, const char *name) {
                                "\"system\":{\"fast\":%s,\"buffer_size\":%d}}",
                                on_off[debug_enable],
                                true_false[synchronized], receive_data_pointer,
-                               true_false[speed_240_KHz], sizeof(receive_data));
+                               true_false[speed_240_MHz], sizeof(receive_data));
         file->index = file->len;
         file->flags = FS_FILE_FLAGS_CUSTOM;
         return 1;
@@ -384,7 +384,7 @@ void core1_context() {
 #endif
 
 int main() {
-    speed_240_KHz = set_sys_clock_khz(240000, false);
+    speed_240_MHz = set_sys_clock_khz(240000, false);
 
     // For toggle_led
     gpio_init(LED_PIN);
