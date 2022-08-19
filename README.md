@@ -1,7 +1,8 @@
 # Pico GameBoy printer
 
 <p align="center">
-  <img src="https://github.com/untoxa/pico-gb-printer/blob/main/screenshot.png?raw=true"/>
+   <img src="https://github.com/untoxa/pico-gb-printer/blob/main/screenshot.png?raw=true"/><--
+--><img src="https://github.com/untoxa/pico-gb-printer/blob/main/usage.jpg?raw=true"/>
 </p>
 
 Based on the original webserver for the PI Pico repo: https://github.com/maxnet/pico-webserver
