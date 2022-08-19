@@ -16,7 +16,7 @@ Special thanks to Raphael-Boichot, please check this repo: https://github.com/Ra
 You will need a Raspberry Pi, 1/2 of the game boy link cable and a four-channel 5v to 3.3v level shifter. Connect parts as shown:
 
 <p align="center">
-  <img src="https://github.com/untoxa/pico-gb-printer/blob/main/screenshot.png?raw=true"/>
+  <img src="https://github.com/untoxa/pico-gb-printer/blob/main/schematics.png?raw=true"/>
 </p>
 
 This is the example of the ready-to-use device:
