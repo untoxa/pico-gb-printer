@@ -1,6 +1,6 @@
 #define USE_MULTICORE 1
 #define USE_KEY 1
-#define USE_SPI 0
+#define USE_SPI 1
 
 #include "pico/stdlib.h"
 #include "pico/bootrom.h"
@@ -11,8 +11,8 @@
 #include "hardware/spi.h"
 
 #include "lwip/apps/fs.h"
-
 #include "tusb_lwip_glue.h"
+#include "flasher.h"
 
 #define ENABLE_DEBUG            false
 #define BUFFER_SIZE_KB          176
@@ -33,12 +33,12 @@
 #define PIN_SOUT                2
 
 // SPI mode
-#define SPI_PORT                spi1
+#define SPI_PORT                spi0
 #define SPI_BAUDRATE            64 * 1024 * 8
 
-#define PIN_SPI_SCK             10
-#define PIN_SPI_SOUT            11
-#define PIN_SPI_SIN             12
+#define PIN_SPI_SCK             2
+#define PIN_SPI_SOUT            3
+#define PIN_SPI_SIN             0
 
 // "Tear" button
 #define PIN_KEY                 23
@@ -337,9 +337,14 @@ static inline void setup_sio() {
 }
 
 #if (USE_SPI==1)
-static inline void retrigger_spi(spi_inst_t *spi) {
+static inline void spi_off(spi_inst_t *spi) {
     hw_clear_bits(&spi_get_hw(spi)->cr1, SPI_SSPCR1_SSE_BITS);
+}
+static inline void spi_on(spi_inst_t *spi) {
     hw_set_bits(&spi_get_hw(spi)->cr1, SPI_SSPCR1_SSE_BITS);
+}
+static inline void retrigger_spi(spi_inst_t *spi) {
+    spi_off(spi), spi_on(spi);
 }
 #endif
 

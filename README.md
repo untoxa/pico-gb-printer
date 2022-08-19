@@ -9,9 +9,21 @@ Based on the original webserver for the PI Pico repo: https://github.com/maxnet/
 Webserver example that came with TinyUSB slightly modified to run on a Raspberry Pi Pico.
 Lets the Pico pretend to be a USB Ethernet device. Runs the webinterface at http://192.168.7.1/
 
-I suggest to use this board: https://stacksmashing.gumroad.com/l/gb-link with PI Pico.
-
 Special thanks to Raphael-Boichot, please check this repo: https://github.com/Raphael-Boichot/The-Arduino-SD-Game-Boy-Printer
+
+## Schematics
+
+You will need a Raspberry Pi, 1/2 of the game boy link cable and a four-channel 5v to 3.3v level shifter. Connect parts as shown:
+
+<p align="center">
+  <img src="https://github.com/untoxa/pico-gb-printer/blob/main/screenshot.png?raw=true"/>
+</p>
+
+This is the example of the ready-to-use device:
+
+<p align="center">
+  <img src="https://github.com/untoxa/pico-gb-printer/blob/main/device.jpg?raw=true"/>
+</p>
 
 ## Build dependencies
 
