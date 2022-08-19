@@ -28,17 +28,17 @@
 #define SEC(A)                  ((A) * 1000 * 1000)
 
 // GPIO mode
-#define PIN_SCK                 0
-#define PIN_SIN                 1
-#define PIN_SOUT                2
+#define PIN_SIN                 0
+#define PIN_SCK                 2
+#define PIN_SOUT                3
 
 // SPI mode
 #define SPI_PORT                spi0
 #define SPI_BAUDRATE            64 * 1024 * 8
 
+#define PIN_SPI_SIN             0
 #define PIN_SPI_SCK             2
 #define PIN_SPI_SOUT            3
-#define PIN_SPI_SIN             0
 
 // "Tear" button
 #define PIN_KEY                 23
