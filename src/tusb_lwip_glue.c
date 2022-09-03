@@ -1,4 +1,4 @@
-/* 
+/*
  * The MIT License (MIT)
  *
  * Based on tinyUSB example that is: Copyright (c) 2020 Peter Lawrence
@@ -38,7 +38,7 @@ static struct pbuf *received_frame = NULL;
 /* this is used by this code, ./class/net/net_driver.c, and usb_descriptors.c */
 /* ideally speaking, this should be generated from the hardware's unique ID (if available) */
 /* it is suggested that the first byte is 0x02 to indicate a link-local address */
-const uint8_t tud_network_mac_address[6] = {0x02,0x02,0x84,0x6A,0x96,0x00};
+const uint8_t tud_network_mac_address[6] = {0x00,0x02,0x84,0x6A,0x96,0x00};
 
 /* network parameters of this MCU */
 static const ip_addr_t ipaddr  = IPADDR4_INIT_BYTES(192, 168, 7, 1);
@@ -64,7 +64,7 @@ static const dhcp_config_t dhcp_config = {
 
 static err_t linkoutput_fn(struct netif *netif, struct pbuf *p) {
     (void)netif;
-    
+
     for (;;) {
         /* if TinyUSB isn't ready, we must signal back to lwip that there is nothing we can do */
         if (!tud_ready()) return ERR_USE;
@@ -98,24 +98,24 @@ static err_t netif_init_cb(struct netif *netif) {
 
 void init_lwip(void) {
     struct netif *netif = &netif_data;
-    
+
     /* Fixup MAC address based on flash serial */
     //pico_unique_board_id_t id;
     //pico_get_unique_board_id(&id);
     //memcpy( (tud_network_mac_address)+1, id.id, 5);
     // Fixing up does not work because tud_network_mac_address is const
-    
+
     /* Initialize tinyUSB */
     tusb_init();
-    
+
     /* Initialize lwip */
     lwip_init();
-    
+
     /* the lwip virtual MAC address must be different from the host's; to ensure this, we toggle the LSbit */
     netif->hwaddr_len = sizeof(tud_network_mac_address);
     memcpy(netif->hwaddr, tud_network_mac_address, sizeof(tud_network_mac_address));
     netif->hwaddr[5] ^= 0x01;
-    
+
     netif = netif_add(netif, &ipaddr, &netmask, &gateway, NULL, netif_init_cb, ip_input);
     netif_set_default(netif);
 }
@@ -129,17 +129,17 @@ void tud_network_init_cb(void) {
 }
 
 bool tud_network_recv_cb(const uint8_t *src, uint16_t size) {
-    /* this shouldn't happen, but if we get another packet before 
+    /* this shouldn't happen, but if we get another packet before
     parsing the previous, we must signal our inability to accept it */
     if (received_frame) return false;
-    
+
     if (size) {
         struct pbuf *p = pbuf_alloc(PBUF_RAW, size, PBUF_POOL);
 
         if (p) {
             /* pbuf_alloc() has already initialized struct; all we need to do is copy the data */
             memcpy(p->payload, src, size);
-        
+
             /* store away the pointer for service_traffic() to later handle */
             received_frame = p;
         }
@@ -176,11 +176,11 @@ void service_traffic(void) {
 }
 
 void dhcpd_init() {
-    while (dhserv_init(&dhcp_config) != ERR_OK);    
+    while (dhserv_init(&dhcp_config) != ERR_OK);
 }
 
 void wait_for_netif_is_up() {
-    while (!netif_is_up(&netif_data));    
+    while (!netif_is_up(&netif_data));
 }
 
 
@@ -196,12 +196,12 @@ sys_prot_t sys_arch_protect(void) {
             mutex_enter_blocking(&lwip_mutex);
         }
     }
-    lwip_mutex_count++;    
+    lwip_mutex_count++;
     return 0;
 }
 
 void sys_arch_unprotect(sys_prot_t pval) {
-    (void)pval;    
+    (void)pval;
     if (lwip_mutex_count) {
         lwip_mutex_count--;
         if (!lwip_mutex_count) {
