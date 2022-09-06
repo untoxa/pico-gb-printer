@@ -57,7 +57,7 @@ static inline bool spi_fifo_empty(spi_inst_t *spi) {
     return (spi_get_hw(spi)->sr & SPI_SSPSR_TFE_BITS);
 }
 
-void spi_slave_reinit(spi_inst_t *spi, uint baudrate) {
+void spi_slave_reinit(spi_inst_t *spi, uint32_t baudrate, uint8_t initial_value) {
     reset_block(spi == spi0 ? RESETS_RESET_SPI0_BITS : RESETS_RESET_SPI1_BITS);
     unreset_block_wait(spi == spi0 ? RESETS_RESET_SPI0_BITS : RESETS_RESET_SPI1_BITS);
 
@@ -65,6 +65,8 @@ void spi_slave_reinit(spi_inst_t *spi, uint baudrate) {
     spi_set_format(spi, 8, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
     hw_set_bits(&spi_get_hw(spi)->dmacr, SPI_SSPDMACR_TXDMAE_BITS | SPI_SSPDMACR_RXDMAE_BITS);
     spi_set_slave(spi, true);
+
+    spi_get_hw(spi)->dr = initial_value;
 
     hw_set_bits(&spi_get_hw(spi)->cr1, SPI_SSPCR1_SSE_BITS);
 }
@@ -78,7 +80,7 @@ void core1_context() {
     gpio_set_function(PIN_SPI_SIN, GPIO_FUNC_SPI);
     gpio_set_function(PIN_SPI_SOUT, GPIO_FUNC_SPI);
 
-    spi_slave_reinit(SPI_PORT, SPI_BAUDRATE);
+    spi_slave_reinit(SPI_PORT, SPI_BAUDRATE, protocol_data_init());
 
     uint64_t last_readable = time_us_64();
     while (true) {
@@ -87,7 +89,7 @@ void core1_context() {
             spi_get_hw(SPI_PORT)->dr = protocol_data_process(spi_get_hw(SPI_PORT)->dr);
             last_readable = time_us_now;
         } else if ((time_us_now - last_readable) > MS(300)) {
-            spi_slave_reinit(SPI_PORT, SPI_BAUDRATE);
+            spi_slave_reinit(SPI_PORT, SPI_BAUDRATE, protocol_data_init());
             last_readable = time_us_now;
         }
     }
