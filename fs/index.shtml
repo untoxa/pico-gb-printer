@@ -127,7 +127,7 @@
         }
         ctx.putImageData(imageData, 0, 0);
 
-        return (margin != 0);
+        return ((margin & 0x0f) != 0);
       }
 
       function decode(is_compressed, sour, sour_size, sour_data_len, sour_ptr, dest, dest_ptr) {
