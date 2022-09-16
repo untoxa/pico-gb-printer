@@ -190,13 +190,11 @@
 
               palette = (palette) ? palette : 0xE4;
 
-              render(canvas, processed_data, buffer_start, ptr, PRINTER_WIDTH, sheets, margins, palette, exposure);
-              buffer_start = ptr;
-
-              if (margins == 3) {
+              if (render(canvas, processed_data, buffer_start, ptr, PRINTER_WIDTH, sheets, margins, palette, exposure)) {
                 addCanvasToGallery(canvas);
                 reset_canvas(canvas);
               }
+              buffer_start = ptr;
 
               break;
             case COMMAND_TRANSFER: {

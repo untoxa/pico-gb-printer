@@ -18,13 +18,17 @@
 #endif
 
 // SPI
-#define SPI_PORT                spi0
 #define SPI_BAUDRATE            64 * 1024 * 8
 
+#define SPI_PORT                spi0
 #define PIN_SPI_SIN             0
-#define PIN_SPI_CS              1
 #define PIN_SPI_SCK             2
 #define PIN_SPI_SOUT            3
+
+//#define SPI_PORT                spi1
+//#define PIN_SPI_SCK             10
+//#define PIN_SPI_SOUT            11
+//#define PIN_SPI_SIN             12
 
 // "Tear" button pin, define to 0 to disable
 #define PIN_KEY                 23
