@@ -21,6 +21,7 @@ volatile uint32_t receive_data_pointer = 0;
 uint8_t receive_data[BUFFER_SIZE_KB * 1024];    // buffer length is 96K
 
 uint8_t status_buffer[1024] = {0};              // buffer for rendering of status json
+uint8_t list_buffer[512] = {0};                 // buffer for rendering of 2bit web app list json
 
 void receive_data_reset() {
     receive_data_pointer = 0;
@@ -99,6 +100,7 @@ void core1_context() {
 #define ROOT_PAGE   "/index.shtml"
 #define IMAGE_FILE  "/image.bin"
 #define STATUS_FILE "/status.json"
+#define LIST_FILE   "/list.json"
 
 static u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
     size_t printed = 0;
@@ -128,6 +130,10 @@ static const char *cgi_download(int iIndex, int iNumParams, char *pcParam[], cha
     return IMAGE_FILE;
 }
 
+static const char *cgi_list(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
+    return LIST_FILE;
+}
+
 static const char *cgi_reset(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
     receive_data_reset();
     protocol_reset();
@@ -142,6 +148,7 @@ static const char *cgi_reset_usb_boot(int iIndex, int iNumParams, char *pcParam[
 static const tCGI cgi_handlers[] = {
     { "/options",           cgi_options },
     { "/download",          cgi_download },
+    { "/dumps/list",        cgi_list },
     { "/reset",             cgi_reset },
     { "/reset_usb_boot",    cgi_reset_usb_boot }
 };
@@ -168,6 +175,15 @@ int fs_open_custom(struct fs_file *file, const char *name) {
                                on_off[debug_enable],
                                receive_data_pointer,
                                true_false[speed_240_MHz], sizeof(receive_data));
+        file->index = file->len;
+        file->flags = FS_FILE_FLAGS_CUSTOM;
+        return 1;
+    } else if (!strcmp(name, LIST_FILE)) {
+        memset(file, 0, sizeof(struct fs_file));
+        file->data  = list_buffer;
+        file->len   = snprintf(list_buffer, sizeof(list_buffer),
+                               "{\"dumps\": [%s]}",
+                               ((receive_data_pointer != 0) ? "\"/image.bin\"" : ""));
         file->index = file->len;
         file->flags = FS_FILE_FLAGS_CUSTOM;
         return 1;
