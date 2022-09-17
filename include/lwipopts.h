@@ -69,6 +69,6 @@
 
 #define LWIP_SINGLE_NETIF               1
 
-#define HTTPD_ADDITIONAL_CONTENT_TYPES {"bin", HTTP_CONTENT_TYPE("application/binary")}
+#define HTTPD_ADDITIONAL_CONTENT_TYPES {"bin", HTTP_CONTENT_TYPE("application/pico-printer-binary-log")}
 
 #endif /* __LWIPOPTS_H__ */
