@@ -20,8 +20,7 @@ bool speed_240_MHz = false;
 volatile uint32_t receive_data_pointer = 0;
 uint8_t receive_data[BUFFER_SIZE_KB * 1024];    // buffer length is 96K
 
-uint8_t status_buffer[1024] = {0};              // buffer for rendering of status json
-uint8_t list_buffer[512] = {0};                 // buffer for rendering of 2bit web app list json
+uint8_t json_buffer[1024] = {0};                // buffer for rendering of status json
 
 void receive_data_reset() {
     receive_data_pointer = 0;
@@ -166,8 +165,8 @@ int fs_open_custom(struct fs_file *file, const char *name) {
         return 1;
     } else if (!strcmp(name, STATUS_FILE)) {
         memset(file, 0, sizeof(struct fs_file));
-        file->data  = status_buffer;
-        file->len   = snprintf(status_buffer, sizeof(status_buffer),
+        file->data  = json_buffer;
+        file->len   = snprintf(json_buffer, sizeof(json_buffer),
                                "{\"result\":\"ok\"," \
                                "\"options\":{\"debug\":\"%s\"}," \
                                "\"status\":{\"received:\":%d},"\
@@ -180,8 +179,8 @@ int fs_open_custom(struct fs_file *file, const char *name) {
         return 1;
     } else if (!strcmp(name, LIST_FILE)) {
         memset(file, 0, sizeof(struct fs_file));
-        file->data  = list_buffer;
-        file->len   = snprintf(list_buffer, sizeof(list_buffer),
+        file->data  = json_buffer;
+        file->len   = snprintf(json_buffer, sizeof(json_buffer),
                                "{\"dumps\": [%s]}",
                                ((receive_data_pointer != 0) ? "\"/image.bin\"" : ""));
         file->index = file->len;
