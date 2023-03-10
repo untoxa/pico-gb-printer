@@ -12,10 +12,11 @@
 #include "lwip/timeouts.h"
 #include "lwip/apps/httpd.h"
 
-void init_lwip();
-void wait_for_netif_is_up();
-void dhcpd_init();
-void service_traffic();
+void init_lwip(void);
+void wait_for_netif_is_up(void);
+void dhcpd_init(void);
+void dns_init(void);
+void service_traffic(void);
 
 #ifdef __cplusplus
  }

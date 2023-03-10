@@ -54,12 +54,12 @@ static dhcp_entry_t entries[] = {
 };
 
 static const dhcp_config_t dhcp_config = {
-    .router = IPADDR4_INIT_BYTES(0, 0, 0, 0),  /* router address (if any) */
-    .port = 67,                                /* listen port */
-    .dns = IPADDR4_INIT_BYTES(0, 0, 0, 0),     /* dns server (if any) */
-    .domain = "picoprinter",                   /* dns suffix */
-    .num_entry = TU_ARRAY_SIZE(entries),       /* num entry */
-    .entries = entries                         /* entries */
+    .router = IPADDR4_INIT_BYTES(0, 0, 0, 0),   /* router address (if any) */
+    .port = 67,                                 /* listen port */
+    .dns = IPADDR4_INIT_BYTES(192, 168, 7, 1),  /* dns server (if any) */
+    .domain = "printer",                        /* dns suffix */
+    .num_entry = TU_ARRAY_SIZE(entries),        /* num entry */
+    .entries = entries                          /* entries */
 };
 
 static err_t linkoutput_fn(struct netif *netif, struct pbuf *p) {
@@ -70,7 +70,7 @@ static err_t linkoutput_fn(struct netif *netif, struct pbuf *p) {
         if (!tud_ready()) return ERR_USE;
 
         /* if the network driver can accept another packet, we make it happen */
-        if (tud_network_can_xmit()) {
+        if (tud_network_can_xmit(p->tot_len)) {
             tud_network_xmit(p, 0 /* unused for this example */);
             return ERR_OK;
         }
@@ -99,16 +99,10 @@ static err_t netif_init_cb(struct netif *netif) {
 void init_lwip(void) {
     struct netif *netif = &netif_data;
 
-    /* Fixup MAC address based on flash serial */
-    //pico_unique_board_id_t id;
-    //pico_get_unique_board_id(&id);
-    //memcpy( (tud_network_mac_address)+1, id.id, 5);
-    // Fixing up does not work because tud_network_mac_address is const
-
-    /* Initialize tinyUSB */
+    /* initialize TinyUSB */
     tusb_init();
 
-    /* Initialize lwip */
+    /* LWIP init */
     lwip_init();
 
     /* the lwip virtual MAC address must be different from the host's; to ensure this, we toggle the LSbit */
@@ -120,12 +114,13 @@ void init_lwip(void) {
     netif_set_default(netif);
 }
 
-void tud_network_init_cb(void) {
-    /* if the network is re-initializing and we have a leftover packet, we must do a cleanup */
-    if (received_frame) {
-        pbuf_free(received_frame);
-        received_frame = NULL;
+/* handle any DNS requests from dns-server */
+bool dns_query_proc(const char *name, ip4_addr_t *addr) {
+    if (strcmp(name, "gb.printer") == 0) {
+        *addr = ipaddr;
+        return true;
     }
+    return false;
 }
 
 bool tud_network_recv_cb(const uint8_t *src, uint16_t size) {
@@ -175,14 +170,26 @@ void service_traffic(void) {
     sys_check_timeouts();
 }
 
-void dhcpd_init() {
+void tud_network_init_cb(void)
+{
+    /* if the network is re-initializing and we have a leftover packet, we must do a cleanup */
+    if (received_frame) {
+        pbuf_free(received_frame);
+        received_frame = NULL;
+    }
+}
+
+void dhcpd_init(void) {
     while (dhserv_init(&dhcp_config) != ERR_OK);
 }
 
-void wait_for_netif_is_up() {
-    while (!netif_is_up(&netif_data));
+void dns_init(void) {
+  while (dnserv_init(IP_ADDR_ANY, 53, dns_query_proc) != ERR_OK);
 }
 
+void wait_for_netif_is_up(void) {
+    while (!netif_is_up(&netif_data));
+}
 
 /* lwip platform specific routines for Pico */
 auto_init_mutex(lwip_mutex);
