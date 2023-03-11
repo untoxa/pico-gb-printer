@@ -1,4 +1,5 @@
 #include "pico/stdlib.h"
+#include "time.h"
 #include "pico/bootrom.h"
 #include "hardware/timer.h"
 #include "hardware/gpio.h"
@@ -35,20 +36,22 @@ void receive_data_commit(void) {
 }
 
 // link cable
-uint64_t last_receive_ts;
+bool link_cable_data_received = false;
 void link_cable_ISR(void) {
     linkcable_send(protocol_data_process(linkcable_receive()));
-    last_receive_ts = time_us_64();
+    link_cable_data_received = true;
 }
 
-void link_cable_process_warchdog(void) {
-    // reset if idle more than 300ms
-    uint64_t current_time = time_us_64();
-    if ((current_time - last_receive_ts) > MS(300)) linkcable_reset(), last_receive_ts = current_time;
+int64_t link_cable_watchdog(alarm_id_t id, void *user_data) {
+    if (!link_cable_data_received) {
+        linkcable_reset();
+        protocol_reset();
+    } else link_cable_data_received = false;
+    return MS(300);
 }
 
 // key button
-#if (PIN_KEY!=0)
+#ifdef PIN_KEY
 static void key_callback(uint gpio, uint32_t events) {
     receive_data_reset();
     protocol_reset();
@@ -160,13 +163,13 @@ int main(void) {
     speed_240_MHz = set_sys_clock_khz(240000, false);
 
     // For toggle_led
-#if (LED_PIN!=0)
+#ifdef LED_PIN
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
 #endif
     LED_ON;
 
-#if (PIN_KEY!=0)
+#ifdef PIN_KEY
     // set up key
     gpio_init(PIN_KEY);
     gpio_set_dir(PIN_KEY, GPIO_IN);
@@ -185,6 +188,8 @@ int main(void) {
 
     linkcable_init(link_cable_ISR);
 
+    add_alarm_in_us(MS(300), link_cable_watchdog, NULL, true);
+
     LED_OFF;
 
     while (true) {
@@ -192,8 +197,6 @@ int main(void) {
         tud_task();
         // process WEB
         service_traffic();
-        // linkcable watchdog
-        link_cable_process_warchdog();
     }
 
     return 0;

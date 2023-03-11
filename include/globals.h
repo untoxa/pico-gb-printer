@@ -4,9 +4,9 @@
 #define ENABLE_DEBUG            false
 #define BUFFER_SIZE_KB          176
 
-// LED pin, define to 0 to disable
+// LED pin, undefine to disable
 #define LED_PIN                 25
-#if (LED_PIN != 0)
+#ifdef LED_PIN
     #define LED_SET(A)          (gpio_put(LED_PIN, (A)))
     #define LED_ON              LED_SET(true)
     #define LED_OFF             LED_SET(false)
@@ -17,7 +17,7 @@
     #define LED_TOGGLE
 #endif
 
-// "Tear" button pin, define to 0 to disable
+// "Tear" button pin, undefine to disable
 #define PIN_KEY                 23
 
 // time intervals
