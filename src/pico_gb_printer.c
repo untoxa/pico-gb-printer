@@ -53,8 +53,9 @@ int64_t link_cable_watchdog(alarm_id_t id, void *user_data) {
 // key button
 #ifdef PIN_KEY
 static void key_callback(uint gpio, uint32_t events) {
-    receive_data_reset();
+    linkcable_reset();
     protocol_reset();
+    receive_data_reset();
     LED_OFF;
 }
 #endif

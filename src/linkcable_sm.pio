@@ -2,40 +2,19 @@
 .program linkcable_sm
 
 .wrap_target
-    wait 0 gpio 0           ; wait for falling edge
-
+    set  x, 6
+    wait 0 gpio 0 [0]       ; wait for falling edge
     pull noblock            ; pull value for transmission from pico
     out null, 24            ; shift left by 24
-
-    nop [29]
-    nop [31]
-
     out pins, 1             ; out the MSB bit
-
-    wait 1 gpio 0           ; wait for rising edge
-
-    nop [31]
-    nop [31]
-
-    in pins, 1              ; input MSB bit
-
-    set  x, 6
+    wait 1 gpio 0 [2]       ; wait for rising edge
 bitloop:
-        wait 0 gpio 0       ; wait for falling edge
-
-        nop [31]
-        nop [31]
-
+        in pins, 1          ; input bit
+        wait 0 gpio 0 [2]   ; wait for falling edge
         out pins, 1         ; output rest of the bits one by one
-
-        wait 1 gpio 0       ; wait for rising edge
-
-        nop [31]
-        nop [31]
-
-        in pins, 1          ; input rest of the bits one by one
+        wait 1 gpio 0 [1]   ; wait for rising edge
     jmp x-- bitloop         ; loop through the rest of the bits
-
+    in pins, 1              ; input rest of the bits one by one
     push noblock            ; push the received value to pico
     irq 0
 .wrap

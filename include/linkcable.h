@@ -20,11 +20,7 @@ static inline void linkcable_send(uint8_t data) {
     pio_sm_put(LINKCABLE_PIO, LINKCABLE_SM, data);
 }
 
-static inline void linkcable_reset(void) {
-    pio_sm_restart(LINKCABLE_PIO, LINKCABLE_SM);
-    pio_sm_clear_fifos(LINKCABLE_PIO, LINKCABLE_SM);
-}
-
+void linkcable_reset(void);
 void linkcable_init(irq_handler_t onReceive);
 
 #endif
