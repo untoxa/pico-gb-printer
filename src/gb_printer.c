@@ -90,10 +90,20 @@ uint8_t protocol_data_process(uint8_t data_in) {
             receive_byte_counter = 0;
             break;
         case PRN_STATE_DATA:
-            if (!(receive_byte_counter & 0x3F)) LED_TOGGLE;
+            if ((receive_byte_counter & 0x3F) == 0) LED_TOGGLE;
             if(++receive_byte_counter == packet_data_length) printer_state = PRN_STATE_CHECKSUM_1;
             receive_data_write(data_in);
-            data_commit = ((printer_command == PRN_COMMAND_PRINT) && (receive_byte_counter == 2) && (data_in == 0x03));
+            switch (printer_command) {
+                case PRN_COMMAND_PRINT:
+                    data_commit = ((receive_byte_counter == 2) && (data_in == 0x03));
+                    break;
+                case CAM_COMMAND_TRANSFER:
+                    data_commit = true;
+                    break;
+                default:
+                    data_commit = false;
+                    break;
+            }
             break;
         case PRN_STATE_CHECKSUM_1:
             printer_checksum = data_in, printer_state = PRN_STATE_CHECKSUM_2;
@@ -107,7 +117,7 @@ uint8_t protocol_data_process(uint8_t data_in) {
             printer_state = PRN_STATE_STATUS;
             return printer_status;
         case PRN_STATE_STATUS:
-            receive_data_commit();
+            if (data_commit) receive_data_commit(), data_commit = false;
             printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
             break;
         default:

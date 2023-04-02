@@ -205,6 +205,7 @@
               render(canvas, processed_data, current_image_start, ptr, CAMERA_WIDTH, 1, 0x03, 0xE4, 0xFF);
               addCanvasToGallery(canvas);
               reset_canvas(canvas);
+              buffer_start = ptr;
               break;
             }
             case COMMAND_DATA: {
