@@ -1,5 +1,4 @@
 .vscode
 build
-makefsdata
 unused
 gen_build.bat
