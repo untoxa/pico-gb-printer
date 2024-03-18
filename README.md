@@ -28,7 +28,7 @@ This is the example of the ready-to-use device:
 As finding which is SIN and SOUT is sometimes tricky as signals are crossed within the serial cable, you can also make your own PCB with a Pi Zero and a GBC/GBA serial socket [following the guide here](https://github.com/Raphael-Boichot/Collection-of-PCB-for-Game-Boy-Printer-Emulators)
 
 <p align="center">
-  <img src="https://github.com/untoxa/pico-gb-printer/blob/main/PCB.png"/>
+  <img src="https://github.com/Raphael-Boichot/pico-gb-printer/blob/main/PCB.png?raw=true"/>
 </p>
 
 ## Build dependencies
