@@ -50,6 +50,7 @@ If not, compile [CMake from source](https://cmake.org/download/#latest) first.
 - Install the [Pi Pico SDK](https://github.com/raspberrypi/pico-sdk)
 
 Create a PICO_SDK_PATH pointing to C:\cygwin64\home\YOURNAME\pico-sdk
+
 Now from Cywin:
 ```
 git clone https://github.com/raspberrypi/pico-sdk
