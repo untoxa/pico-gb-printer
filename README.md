@@ -44,9 +44,14 @@ If not, compile [CMake from source](https://cmake.org/download/#latest) first.
 
 ### On Windows:
 
-- Install ARM GCC compiler: https://developer.arm.com/downloads/-/gnu-rm
-- Install MSYS
-- Install CMake
+- Install [Cygwin](https://www.cygwin.com/install.html)
+- Install [CMake](https://cmake.org/download/)
+- Install [ARM GCC compiler](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
+- Install the [Pi Pico SDK](https://github.com/raspberrypi/pico-sdk)
+Now from Cywin:
+```
+git clone https://github.com/raspberrypi/pico-sdk
+```
 
 Then use this command 
 ```
