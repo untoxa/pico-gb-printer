@@ -42,6 +42,15 @@ sudo apt install git build-essential cmake gcc-arm-none-eabi
 Your Linux distribution does need to provide a recent CMake (3.13+).
 If not, compile [CMake from source](https://cmake.org/download/#latest) first.
 
+### On OSX:
+
+```bash
+brew install cmake doxygen 
+brew tap ArmMbed/homebrew-formulae
+brew install arm-none-eabi-gcc
+```
+
+- Install the [Pi Pico SDK](https://github.com/raspberrypi/pico-sdk) and make sure to add the location to your path. 
 ### On Windows:
 
 - Install [Cygwin](https://www.cygwin.com/install.html)
