@@ -29,6 +29,7 @@ As finding which is SIN and SOUT is sometimes tricky as signals are crossed with
 
 <p align="center">
   <img src="https://github.com/Raphael-Boichot/pico-gb-printer/blob/main/PCB.png?raw=true"/>
+  <img src="https://github.com/Raphael-Boichot/pico-gb-printer/blob/main/Pi_Zero_shield.jpg?raw=true"/>
 </p>
 
 ## Build dependencies
