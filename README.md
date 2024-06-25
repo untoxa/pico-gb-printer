@@ -51,7 +51,7 @@ Windows is not a friendly system to compile the pico sdk. Unless you want to loo
 sudo apt update && sudo apt full-upgrade
 ```
 - Install the pico SDK by following the ["Quick Pico Setup"](https://datasheets.raspberrypi.com/pico/getting-started-with-pico.pdf)
-You can use the installation script written for Raspberry Pi, it works.
+You can use the installation script written for Raspberry Pi, it works. Your computer may require a boot at this step.
 - Continue installation like below.
 
 ## Build instructions
