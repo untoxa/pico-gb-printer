@@ -46,9 +46,9 @@ If not, compile [CMake from source](https://cmake.org/download/#latest) first.
 ### On Windows:
 
 Windows is not a friendly system to compile the pico sdk. Unless you want to loose your precious time, use the following method:
-- Install WSL (Windows Subsystem for Linux)  : https://learn.microsoft.com/en-us/windows/wsl/install
-- Install Ubuntu for WSL: https://ubuntu.com/desktop/wsl
-- Install the pico SDK by following the "Quick Pico Setup": https://datasheets.raspberrypi.com/pico/getting-started-with-pico.pdf
+- Install [WSL (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/install)
+- Install [Ubuntu for WSL](https://ubuntu.com/desktop/wsl) 
+- Install the pico SDK by following the ["Quick Pico Setup"](https://datasheets.raspberrypi.com/pico/getting-started-with-pico.pdf)
 You can use the installation script written for Raspberry Pi, it works.
 - Continue installation like below.
 
