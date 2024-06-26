@@ -45,27 +45,14 @@ If not, compile [CMake from source](https://cmake.org/download/#latest) first.
 
 ### On Windows:
 
-- Install [Cygwin](https://www.cygwin.com/install.html)
-- Install [CMake](https://cmake.org/download/)
-- Install [ARM GCC compiler](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads) ->Select "Add path to environment varaible"
-- Install the [Pi Pico SDK](https://github.com/raspberrypi/pico-sdk)
-
-Now from Cywin:
+Windows is not a friendly system to compile the pico sdk. Unless you want to loose your precious time, use the following method:
+- Install [WSL (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/install) (Ubuntu is default install) and update it
 ```
-git clone https://github.com/raspberrypi/pico-sdk
+sudo apt update && sudo apt full-upgrade
 ```
-Create a PICO_SDK_PATH pointing to C:\cygwin64\home\YOURNAME\pico-sdk
-
-Then use this command 
-```
-cmake .. -G "MSYS Makefiles"
-```
-
-instead of
-```
-cmake ..
-```
-in the build instructions below.
+- Install the pico SDK by following the ["Quick Pico Setup"](https://datasheets.raspberrypi.com/pico/getting-started-with-pico.pdf)
+You can use the installation script written for Raspberry Pi, it works. Your computer may require a boot at this step.
+- Continue installation like below.
 
 ## Build instructions
 
