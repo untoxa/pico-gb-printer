@@ -13,26 +13,55 @@
 #include "tusb_lwip_glue.h"
 #include "gb_printer.h"
 #include "linkcable.h"
+#include "datablocks.h"
 
 bool debug_enable = ENABLE_DEBUG;
 bool speed_240_MHz = false;
 
-// storage implementation
-volatile uint32_t receive_data_pointer = 0;
-uint8_t receive_data[BUFFER_SIZE_KB * 1024];    // buffer length is 96K
+uint8_t file_buffer[FILE_BUFFER_SIZE];              // buffer for rendering of status json
 
-uint8_t json_buffer[1024] = {0};                // buffer for rendering of status json
+datafile_t * allocated_file = NULL;
+uint32_t last_file_len = 0;
+uint32_t picture_count = 0;
 
 void receive_data_reset(void) {
-    receive_data_pointer = 0;
+    if (!allocated_file) return;
+    last_file_len = allocated_file->size;
+    if (push_file(allocated_file)) picture_count++;
+    allocated_file = NULL;
+}
+
+bool double_init = false;
+void receive_data_init(void) {
+    if (double_init) receive_data_reset();
+    double_init = true;
 }
 
 void receive_data_write(uint8_t b) {
-    if (receive_data_pointer < sizeof(receive_data))
-         receive_data[receive_data_pointer++] = b;
+    double_init = false;
+    datablock_t * block;
+    if (!allocated_file) {
+        allocated_file = allocate_file();
+        if (!allocated_file) return;
+    }
+    block = allocated_file->last;
+    if (!block) {
+        block = allocate_block();
+        if (!block) return;
+        allocated_file->first = allocated_file->last = block;
+    }
+    if (block->size >= DATABLOCK_SIZE) {
+        block = allocate_block();
+        if (!block) return;
+        allocated_file->last->next = block;
+        allocated_file->last = block;
+    }
+    block->data[block->size++] = b;
+    allocated_file->size++;
 }
 
-void receive_data_commit(void) {
+void receive_data_commit(uint8_t cmd) {
+    if (cmd == CAM_COMMAND_TRANSFER) receive_data_reset();
 }
 
 // link cable
@@ -46,6 +75,7 @@ int64_t link_cable_watchdog(alarm_id_t id, void *user_data) {
     if (!link_cable_data_received) {
         linkcable_reset();
         protocol_reset();
+        receive_data_reset();
     } else link_cable_data_received = false;
     return MS(300);
 }
@@ -61,27 +91,10 @@ static void key_callback(uint gpio, uint32_t events) {
 #endif
 
 // Webserver dynamic handling
-#define ROOT_PAGE   "/index.shtml"
+#define ROOT_PAGE   "/index.html"
 #define IMAGE_FILE  "/image.bin"
 #define STATUS_FILE "/status.json"
 #define LIST_FILE   "/list.json"
-
-static u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen) {
-    size_t printed = 0;
-    switch (iIndex) {
-        case 0:
-            if (debug_enable) printed = snprintf(pcInsert, iInsertLen, "<a href=\"/reset_usb_boot\">Reset</a>");
-            break;
-        case 1:
-            if (debug_enable) printed = snprintf(pcInsert, iInsertLen, "<a href=\"/image.bin\">Raw data</a>");
-            break;
-        default:
-            break;
-    }
-    return (u16_t)printed;
-}
-
-static const char * ssi_tags[] = {"RESET", "RAWDATA" };
 
 static const char *cgi_options(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
     for (int i = 0; i < iNumParams; i++) {
@@ -121,42 +134,56 @@ int fs_open_custom(struct fs_file *file, const char *name) {
     static const char *on_off[]     = {"off", "on"};
     static const char *true_false[] = {"false", "true"};
     if (!strcmp(name, IMAGE_FILE)) {
+        datafile_t * datafile = pop_last_file();
+        if (!datafile) return 0;
+        picture_count--;
+        datablock_t * data = datafile->first;
+        if (!data) {
+            free_file(datafile);
+            return 0;
+        }
+        uint32_t ofs = 0, max_len = sizeof(file_buffer);
+        for (uint32_t len; (data); data = data->next) {
+            len = MIN(data->size, max_len);
+            if (!len) break;
+            memcpy(file_buffer + ofs, data->data, len);
+            max_len -= len;
+            ofs += len;
+        }
+        free_file(datafile);
         // initialize fs_file correctly
         memset(file, 0, sizeof(struct fs_file));
-        file->data  = (const char *)receive_data;
-        file->len   = receive_data_pointer;
-        file->index = file->len;
-        file->flags = FS_FILE_FLAGS_CUSTOM;
+        file->data  = file_buffer;
+        file->len   = ofs;
+        file->index = ofs;
         return 1;
     } else if (!strcmp(name, STATUS_FILE)) {
         memset(file, 0, sizeof(struct fs_file));
-        file->data  = json_buffer;
-        file->len   = snprintf(json_buffer, sizeof(json_buffer),
+        file->data  = file_buffer;
+        file->len   = snprintf(file_buffer, sizeof(file_buffer),
                                "{\"result\":\"ok\"," \
                                "\"options\":{\"debug\":\"%s\"}," \
-                               "\"status\":{\"received:\":%d},"\
-                               "\"system\":{\"fast\":%s,\"buffer_size\":%d}}",
+                               "\"status\":{\"last_size\":%d,\"total_files\":%d},"\
+                               "\"system\":{\"fast\":%s}}",
                                on_off[debug_enable],
-                               receive_data_pointer,
-                               true_false[speed_240_MHz], sizeof(receive_data));
+                               last_file_len, picture_count,
+                               true_false[speed_240_MHz]);
         file->index = file->len;
-        file->flags = FS_FILE_FLAGS_CUSTOM;
         return 1;
     } else if (!strcmp(name, LIST_FILE)) {
         memset(file, 0, sizeof(struct fs_file));
-        file->data  = json_buffer;
-        file->len   = snprintf(json_buffer, sizeof(json_buffer),
+        file->data  = file_buffer;
+        file->len   = snprintf(file_buffer, sizeof(file_buffer),
                                "{\"dumps\": [%s]}",
-                               ((receive_data_pointer != 0) ? "\"/image.bin\"" : ""));
+                               ((picture_count) ? "\"/image.bin\"" : ""));
         file->index = file->len;
-        file->flags = FS_FILE_FLAGS_CUSTOM;
         return 1;
     }
     return 0;
 }
 
 void fs_close_custom(struct fs_file *file) {
-    LWIP_UNUSED_ARG(file);
+    (void)(file);
 }
 
 // main loop
@@ -169,6 +196,9 @@ int main(void) {
     gpio_set_dir(LED_PIN, GPIO_OUT);
 #endif
     LED_ON;
+
+    // reset file and block allocation
+    reset_data_blocks();
 
 #ifdef PIN_KEY
     // set up key
@@ -185,7 +215,6 @@ int main(void) {
     dns_init();
     httpd_init();
     http_set_cgi_handlers(cgi_handlers, LWIP_ARRAYSIZE(cgi_handlers));
-    http_set_ssi_handler(ssi_handler, ssi_tags, LWIP_ARRAYSIZE(ssi_tags));
 
     linkcable_init(link_cable_ISR);
 

@@ -22,7 +22,7 @@ set(TINYUSB_LIBNETWORKING_SOURCES
     ${PICO_TINYUSB_PATH}/lib/networking/rndis_reports.c
 )
 
-add_executable(${PROJECT_NAME} src/pico_gb_printer.c src/linkcable.c src/gb_printer.c src/tusb_lwip_glue.c src/usb_descriptors.c ${TINYUSB_LIBNETWORKING_SOURCES})
+add_executable(${PROJECT_NAME} src/pico_gb_printer.c src/linkcable.c src/gb_printer.c src/datablocks.c src/tusb_lwip_glue.c src/usb_descriptors.c ${TINYUSB_LIBNETWORKING_SOURCES})
 
 pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/src/linkcable.pio)
 pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/src/linkcable_sm.pio)

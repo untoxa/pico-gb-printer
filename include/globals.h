@@ -2,7 +2,8 @@
 #define _GLOBALS_H_INCLUDE_
 
 #define ENABLE_DEBUG            false
-#define BUFFER_SIZE_KB          176
+#define BUFFER_SIZE_KB          128
+#define FILE_BUFFER_SIZE        16384
 
 // LED pin, undefine to disable
 #define LED_PIN                 25

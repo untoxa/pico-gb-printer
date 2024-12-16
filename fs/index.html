@@ -28,13 +28,10 @@
     <div id="header">
       <h1>Pico Game Boy Printer</h1>
       <p>Start printing on your Game Boy. When the led stops blinking, press the "Get Images" button.</p>
-      <button id="get_image_btn">Get Images</button><!--
-   --><button id="tear_btn">Tear</button><!--
-   --><button id="select_all_btn" disabled>Select All</button><!--
+      <button id="select_all_btn" disabled>Select All</button><!--
    --><button id="delete_selected_btn" disabled>Delete</button><!--
    --><button id="average_selected_btn" disabled>Average</button><!--
    --><br>
-      <!--#RESET--> <!--#RAWDATA-->
       <br>
     </div>
     <div id="gallery" style="display: flex;flex-wrap: wrap;justify-content: center;align-items: flex-start;"></div>
@@ -58,9 +55,7 @@
 
 //      const canvas = document.getElementById("canvas");
       const canvas = document.createElement('canvas');
-      const getImageBtn = document.getElementById("get_image_btn");
       const gallery = document.getElementById("gallery");
-      const tearBtn = document.getElementById("tear_btn");
       const deleteSelectedBtn = document.getElementById("delete_selected_btn");
       const selectAllBtn = document.getElementById("select_all_btn");
       const averageSelectedBtn = document.getElementById("average_selected_btn");
@@ -226,6 +221,7 @@
           addCanvasToGallery(canvas);
           reset_canvas(canvas);
         }
+        return res.ok
       }
 
       function addCanvasToGallery(canvas) {
@@ -288,10 +284,6 @@
         xhr.send();
       }
 
-      getImageBtn.addEventListener("click", async function () {
-        await get_camera_image(canvas, imageBinPath);
-      });
-
       selectAllBtn.addEventListener("click", function () {
         var items = gallery.children;
         if (items.length != 0) {
@@ -316,26 +308,15 @@
         selectAllBtn.disabled = (items.length == 0);
       });
 
-      tearBtn.addEventListener("click", async function () {
-        fetch(resetPath)
-          .then((response) => {
-            return response.json();
-          })
-          .then((data) => {
-            if (data.result != "ok") return;
-            getImageBtn.click();
-          });
-      });
-
       averageSelectedBtn.addEventListener("click", function() {
         const items = gallery.children;
 
         const avgCanvas = document.createElement('canvas');
         const avgCtx = avgCanvas.getContext('2d');
-        
+
         const tmpCanvas = document.createElement('canvas');
         const tmpCtx = tmpCanvas.getContext('2d');
-        
+
         // Verify that image dimensions are the same
         const firstImg = items[0].querySelector("img");
         const tmpW = firstImg.width;
@@ -345,9 +326,9 @@
           if (tmpW != img.width || tmpH != img.height) {
             alert("Image dimensions should be the same to do an average");
             return;
-          } 
+          }
         }
-        
+
         tmpCanvas.width = tmpW;
         tmpCanvas.height = tmpH;
 
@@ -378,7 +359,26 @@
         }
         avgCtx.putImageData(avgImgData, 0, 0);
         addCanvasToGallery(avgCanvas);
-    });
+      });
+      // auto fetch images
+      var fetch_skip = false;
+      var fetch_ok = false;
+      function periodic_fetch() {
+        if (!fetch_skip) {
+          fetch_skip = true;
+          void (async () => {
+            fetch_ok = await get_camera_image(canvas, imageBinPath).catch(
+              function(err) {
+                fetch_ok = false;
+              }
+            );
+            fetch_skip = false;
+            clearInterval(fetch_interval);
+            fetch_interval = setInterval(periodic_fetch, (fetch_ok) ? 10 : 1000);
+          })();
+        }
+      }
+      var fetch_interval = setInterval(periodic_fetch, 1000);
     </script>
   </body>
 </html>

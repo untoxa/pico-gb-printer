@@ -8,9 +8,10 @@ volatile enum printer_state printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
 
 #define PRINTER_RESET           (printer_state = PRN_STATE_WAIT_FOR_SYNC_1)
 
+extern void receive_data_init();
 extern void receive_data_reset();
 extern void receive_data_write(uint8_t b);
-extern void receive_data_commit();
+extern void receive_data_commit(uint8_t cmd);
 
 // printer packet state machine
 void protocol_reset() {
@@ -44,7 +45,7 @@ uint8_t protocol_data_process(uint8_t data_in) {
             switch(printer_command) {
                 case PRN_COMMAND_INIT:
                     printer_status = next_printer_status = PRN_STATUS_OK;
-                    receive_data_write(printer_command);
+                    receive_data_init();
                     break;
                 case PRN_COMMAND_PRINT:
                     last_print_moment = time_us_64();
@@ -90,7 +91,9 @@ uint8_t protocol_data_process(uint8_t data_in) {
             receive_byte_counter = 0;
             break;
         case PRN_STATE_DATA:
+#ifdef PRINT_PROGRESS_LED
             if ((receive_byte_counter & 0x3F) == 0) LED_TOGGLE;
+#endif
             if(++receive_byte_counter == packet_data_length) printer_state = PRN_STATE_CHECKSUM_1;
             receive_data_write(data_in);
             switch (printer_command) {
@@ -107,7 +110,9 @@ uint8_t protocol_data_process(uint8_t data_in) {
             break;
         case PRN_STATE_CHECKSUM_1:
             printer_checksum = data_in, printer_state = PRN_STATE_CHECKSUM_2;
+#ifdef PRINT_PROGRESS_LED
             LED_OFF;
+#endif
             break;
         case PRN_STATE_CHECKSUM_2:
             printer_checksum |= ((uint16_t)data_in << 8);
@@ -117,7 +122,7 @@ uint8_t protocol_data_process(uint8_t data_in) {
             printer_state = PRN_STATE_STATUS;
             return printer_status;
         case PRN_STATE_STATUS:
-            if (data_commit) receive_data_commit(), data_commit = false;
+            if (data_commit) receive_data_commit(printer_command), data_commit = false;
             printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
             break;
         default:
