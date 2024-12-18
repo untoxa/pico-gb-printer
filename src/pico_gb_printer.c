@@ -2,6 +2,7 @@
 #include "time.h"
 #include "pico/bootrom.h"
 #include "hardware/timer.h"
+#include "hardware/clocks.h"
 #include "hardware/gpio.h"
 #include "hardware/irq.h"
 #include "hardware/resets.h"
