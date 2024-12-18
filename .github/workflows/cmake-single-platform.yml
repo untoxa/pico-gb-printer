@@ -45,5 +45,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: pico-build
-        path: build
+        name: pico-gb-printer-firmware
+        path: build/pico_gb_printer.uf2
