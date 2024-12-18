@@ -31,9 +31,11 @@ jobs:
         git clone -b master https://github.com/raspberrypi/pico-sdk.git
         cd pico-sdk
         git submodule update --init
-        export PICO_SDK_PATH=$(pwd)
+        echo "PICO_SDK_PATH=$PWD" >> $GITHUB_ENV
 
     - name: Build project
+      env:
+        PICO_SDK_PATH: ${{ env.PICO_SDK_PATH }}
       run: |
         mkdir -p build
         cd build
