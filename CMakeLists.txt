@@ -30,6 +30,6 @@ pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/src/linkcable
 pico_enable_stdio_usb(${PROJECT_NAME} 0)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
 target_include_directories(${PROJECT_NAME} PRIVATE ${LWIP_INCLUDE_DIRS} ${PICO_TINYUSB_PATH}/src ${PICO_TINYUSB_PATH}/lib/networking)
-target_link_libraries(${PROJECT_NAME} pico_stdlib hardware_pio pico_unique_id tinyusb_device lwipallapps lwipcore hardware_flash)
+target_link_libraries(${PROJECT_NAME} pico_stdlib hardware_pio pico_unique_id tinyusb_device lwipallapps lwipcore hardware_clocks)
 pico_add_extra_outputs(${PROJECT_NAME})
 target_compile_definitions(${PROJECT_NAME} PRIVATE PICO_ENTER_USB_BOOT_ON_EXIT=1)
