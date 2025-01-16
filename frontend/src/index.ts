@@ -4,6 +4,7 @@ import { initButtons } from "./functions/initButtons.js";
 import { initDb } from "./functions/database.js";
 
 const STATUS_POLL_DELAY = 1000;
+const STATUS_POLL_NEXT  = 10;
 
 interface StatusResponse {
   options: {
@@ -23,34 +24,30 @@ const store = await initDb();
 const workingCanvas = document.createElement('canvas');
 
 const getStatus = async () => {
-  const responseStatus = await fetch(STATUS_FILE);
-  const dataStatus: StatusResponse = await responseStatus.json();
-
-  if (dataStatus.status["received:"] > 0) {
+  try {
     const downloadResponse = await fetch(DOWNLOAD);
-    const downloadBody = await downloadResponse.blob();
-    const downloadBuffer = await downloadBody.arrayBuffer();
-    const downloadData = new Uint8Array(downloadBuffer);
+    if (downloadResponse.status === 200) {
+      const downloadBody = await downloadResponse.blob();
+      const downloadBuffer = await downloadBody.arrayBuffer();
+      const downloadData = new Uint8Array(downloadBuffer);
 
-    const dlData = {
-      timestamp: Date.now(),
-      data: downloadData,
+      const dlData = {
+        timestamp: Date.now(),
+        data: downloadData,
+      };
+
+      store.add(dlData);
+
+      getCameraImage(workingCanvas, dlData);
+
+      window.setTimeout(getStatus, STATUS_POLL_NEXT);
+    } else {
+      window.setTimeout(getStatus, STATUS_POLL_DELAY);
     }
-
-    store.add(dlData);
-
-    getCameraImage(workingCanvas, dlData);
-
-    const responseClear = await fetch(RESET);
-    const dataClear = await responseClear.json();
-    if (dataClear.result !== "ok") {
-      console.error('data not cleared', dataClear);
-    }
+  } catch {
+    window.setTimeout(getStatus, STATUS_POLL_DELAY);
   }
-
-  window.setTimeout(getStatus, STATUS_POLL_DELAY)
-}
-
+};
 
 const all = await store.getAll();
 all.forEach((dlData) => {
