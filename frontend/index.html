@@ -1,4 +1,4 @@
-
+<!doctype html>
 <html lang="en">
 <head>
   <title>Pico Game Boy Printer</title>
@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="manifest" href="/site.webmanifest">
+  <link rel="stylesheet" href="./src/style.css">
   <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#cc3366">
   <link rel="apple-touch-startup-image" media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/iPhone_14_Pro_Max__iPhone_14_Max__iPhone_13_Pro_Max__iPhone_12_Pro_Max_portrait.png">
   <link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/iPhone_14_Pro__iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_portrait.png">
@@ -17,24 +18,16 @@
   <meta name="msapplication-TileColor" content="#ece6e6">
   <meta name="theme-color" content="#ece6e6">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"; text-align: center; }
-    button { padding: 5px 10px; margin: 1px; font-size: 1rem; }
-    h1 { font-size: 2rem; }
-    .gallery-image { padding: 0 5px 10px 5px; }
-    .marked-for-action { background-color: #ddd; }
-  </style>
 </head>
 <body>
-<div id="header">
+<header>
   <h1>Pico Game Boy Printer</h1>
+  <span class="indicator"></span>
   <button id="select_all_btn" disabled>Select All</button>
   <button id="delete_selected_btn" disabled>Delete</button>
   <button id="average_selected_btn" disabled>Average</button>
-  <br>
-  <br>
-</div>
-<div id="gallery" style="display: flex;flex-wrap: wrap;justify-content: center;align-items: flex-start;"></div>
-<script type="module" src="./index.js"></script>
+</header>
+<div id="gallery" class="gallery"></div>
+<script type="module" src="./src/index.ts"></script>
 </body>
 </html>
