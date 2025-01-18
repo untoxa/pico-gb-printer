@@ -3,8 +3,8 @@ import { getCameraImage } from "./functions/getCameraImage.js";
 import { initButtons } from "./functions/initButtons.js";
 import { initDb } from "./functions/database.js";
 
-const STATUS_POLL_DELAY = 100000;
-const STATUS_POLL_NEXT = 10000;
+const STATUS_POLL_DELAY = 1000;
+const STATUS_POLL_NEXT  = 10;
 
 // interface StatusResponse {
 //   options: {
