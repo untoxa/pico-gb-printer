@@ -12,12 +12,12 @@ button {
   border: none;
   padding: 8px 16px;
   font-size: 1rem;
-  background: #cccccc;
+  background: #b7b7b7;
 }
 
 button:not(:disabled):hover {
   cursor: pointer;
-  background: #bbbbbb;
+  background: #a0a0a0;
 }
 
 h1 {

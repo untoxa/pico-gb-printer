@@ -44,7 +44,11 @@ export const initButtons = (store: DbAccess) => {
   });
 
   averageSelectedBtn.addEventListener("click", function() {
-    const items = gallery.children;
+    const items = gallery.querySelectorAll('.marked-for-action');
+
+    if (items.length < 2) {
+      return;
+    }
 
     const avgCanvas = document.createElement('canvas');
     const avgCtx = avgCanvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
