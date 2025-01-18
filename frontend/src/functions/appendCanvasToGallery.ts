@@ -5,7 +5,7 @@ const gallery = document.getElementById("gallery") as HTMLDivElement;
 
 export const appendCanvasToGallery = (canvas: HTMLCanvasElement, timestamp?: number): boolean => {
   if (canvas.height > 1) {
-    const imageContainer = document.createElement("div");
+    const imageContainer = document.createElement("label");
     imageContainer.classList.add("gallery-image");
 
     const img = new Image();
