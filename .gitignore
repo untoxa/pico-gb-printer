@@ -3,5 +3,5 @@
 build
 unused
 gen_build.bat
-fs/**/*.js
+fs/
 frontend/node_modules

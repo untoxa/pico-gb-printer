@@ -34,6 +34,8 @@ export async function getCameraImage(canvas: HTMLCanvasElement, dlData: Download
           idx = data_size;
           break;
         }
+
+        // @ts-ignore
         let sheets = resData[idx++];
         let margins = resData[idx++];
         let palette = resData[idx++];
@@ -41,7 +43,7 @@ export async function getCameraImage(canvas: HTMLCanvasElement, dlData: Download
 
         palette = (palette) ? palette : 0xE4;
 
-        if (render(canvas, processed_data, buffer_start, ptr, PRINTER_WIDTH, sheets, margins, palette, exposure)) {
+        if (render(canvas, processed_data, buffer_start, ptr, PRINTER_WIDTH, margins, palette, exposure)) {
           appendCanvasToGallery(canvas, dlData.timestamp);
           resetCanvas(canvas);
         }
@@ -55,7 +57,7 @@ export async function getCameraImage(canvas: HTMLCanvasElement, dlData: Download
         let current_image_start = ptr;
         ptr = decode(false, resData, data_size, len, idx, processed_data, ptr);
         idx += len;
-        render(canvas, processed_data, current_image_start, ptr, CAMERA_WIDTH, 1, 0x03, 0xE4, 0xFF);
+        render(canvas, processed_data, current_image_start, ptr, CAMERA_WIDTH, 0x03, 0xE4, 0xFF);
         appendCanvasToGallery(canvas, dlData.timestamp);
         resetCanvas(canvas);
         buffer_start = ptr;

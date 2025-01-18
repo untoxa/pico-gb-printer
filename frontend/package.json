@@ -1,27 +1,14 @@
 {
-  "name": "pico-gb-printer-js",
-  "version": "1.0.0",
-  "description": "",
-  "scripts": {
-    "dev": "npm run dev:prepare && npm run dev:watch",
-    "prepare": "rimraf ../fs/**/*.js --glob",
-    "dev:watch": "concurrently \"tsx server/index.ts --watch --esModuleInterop\" \"tsc --watch\"",
-    "build:build": "tsc",
-    "build": "npm run prepare && npm run build:build"
-  },
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
   "type": "module",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "concurrently": "^9.1.0",
-    "express": "^4.21.1",
-    "express-http-proxy": "^2.1.1"
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build"
   },
   "devDependencies": {
-    "rimraf": "^6.0.1",
-    "@types/node": "^22.10.1",
-    "typescript": "^5.7.2",
-    "tsx": "^4.19.2"
+    "typescript": "~5.6.2",
+    "vite": "^6.0.5"
   }
 }

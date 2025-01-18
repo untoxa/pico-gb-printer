@@ -1,59 +1,62 @@
-import {DOWNLOAD, RESET, STATUS_FILE} from "./consts.js";
+import { DOWNLOAD } from './consts.js';
 import { getCameraImage } from "./functions/getCameraImage.js";
 import { initButtons } from "./functions/initButtons.js";
 import { initDb } from "./functions/database.js";
 
-const STATUS_POLL_DELAY = 1000;
-const STATUS_POLL_NEXT  = 10;
+const STATUS_POLL_DELAY = 100000;
+const STATUS_POLL_NEXT = 10000;
 
-interface StatusResponse {
-  options: {
-    debug: 'on' | 'off'
-  },
-  result: string,
-  status: {
-    'received:' : number,
-  },
-  system: {
-    fast: boolean,
-    buffer_size: number,
-  },
-}
+// interface StatusResponse {
+//   options: {
+//     debug: 'on' | 'off'
+//   },
+//   result: string,
+//   status: {
+//     'received:' : number,
+//   },
+//   system: {
+//     fast: boolean,
+//     buffer_size: number,
+//   },
+// }
 
-const store = await initDb();
-const workingCanvas = document.createElement('canvas');
+(async () => {
 
-const getStatus = async () => {
-  try {
-    const downloadResponse = await fetch(DOWNLOAD);
-    if (downloadResponse.status === 200) {
-      const downloadBody = await downloadResponse.blob();
-      const downloadBuffer = await downloadBody.arrayBuffer();
-      const downloadData = new Uint8Array(downloadBuffer);
+  const store = await initDb();
+  const workingCanvas = document.createElement('canvas');
 
-      const dlData = {
-        timestamp: Date.now(),
-        data: downloadData,
-      };
+  const getStatus = async () => {
+    try {
+      const downloadResponse = await fetch(DOWNLOAD);
+      if (downloadResponse.status === 200) {
+        const downloadBody = await downloadResponse.blob();
+        const downloadBuffer = await downloadBody.arrayBuffer();
+        const downloadData = new Uint8Array(downloadBuffer);
 
-      store.add(dlData);
+        const dlData = {
+          timestamp: Date.now(),
+          data: downloadData,
+        };
 
-      getCameraImage(workingCanvas, dlData);
+        store.add(dlData);
 
-      window.setTimeout(getStatus, STATUS_POLL_NEXT);
-    } else {
+        getCameraImage(workingCanvas, dlData);
+
+        window.setTimeout(getStatus, STATUS_POLL_NEXT);
+      } else {
+        window.setTimeout(getStatus, STATUS_POLL_DELAY);
+      }
+    } catch {
       window.setTimeout(getStatus, STATUS_POLL_DELAY);
     }
-  } catch {
-    window.setTimeout(getStatus, STATUS_POLL_DELAY);
-  }
-};
+  };
 
-const all = await store.getAll();
-all.forEach((dlData) => {
-  console.log(dlData.data.byteLength)
-  getCameraImage(workingCanvas, dlData);
-});
+  const all = await store.getAll();
+  all.forEach((dlData) => {
+    console.log(dlData.data.byteLength)
+    getCameraImage(workingCanvas, dlData);
+  });
 
-getStatus();
-initButtons(store);
+  getStatus();
+  initButtons(store);
+})();

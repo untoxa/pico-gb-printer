@@ -1,0 +1,22 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  text-align: center;
+}
+
+button {
+  padding: 5px 10px;
+  margin: 1px;
+  font-size: 1rem;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+.gallery-image {
+  padding: 0 5px 10px 5px;
+}
+
+.marked-for-action {
+  background-color: #ddd;
+}

@@ -7,7 +7,6 @@ export const render = (
   image_start: number,
   image_end: number,
   image_tile_width: number,
-  sheets: number,
   margin: number,
   palette: number,
   exposure: number,
