@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   text-align: center;
@@ -13,10 +17,74 @@ h1 {
   font-size: 2rem;
 }
 
+:root {
+  --grid-gap: 8px;
+  --num-cols: 1;
+}
+
+@media screen and (min-width: 450px) {
+  :root {
+    --grid-gap: 16px;
+    --num-cols: 2;
+  }
+}
+
+@media screen and (min-width: 640px) {
+  :root {
+    --num-cols: 3;
+  }
+}
+
+@media screen and (min-width: 830px) {
+  :root {
+    --num-cols: 4;
+  }
+}
+
+@media screen and (min-width: 1020px) {
+  :root {
+    --num-cols: 5;
+  }
+}
+
+@media screen and (min-width: 1210px) {
+  :root {
+    --num-cols: 6;
+  }
+}
+
+@media screen and (min-width: 1400px) {
+  :root {
+    --num-cols: 7;
+  }
+}
+
+.gallery {
+  width: calc(calc(var(--num-cols) * 176px) + calc(var(--num-cols) * var(--grid-gap)) - var(--grid-gap));
+  grid-template-columns: repeat(var(--num-cols), 176px);
+  display: grid;
+  grid-column-gap: var(--grid-gap);
+  grid-row-gap: var(--grid-gap);
+  margin: 0 auto;
+}
+
 .gallery-image {
-  padding: 0 5px 10px 5px;
+  padding: 8px;
+  background-color: #eeeeee;
+  border-radius: 8px;
+  border: 1px solid #d0d0d0;
+  box-shadow: 0 7px 6px -6px #444;
+  cursor: pointer;
+}
+
+.gallery-image:hover {
+  background-color: #dedede;
+}
+
+.gallery-image input {
+  display: none;
 }
 
 .marked-for-action {
-  background-color: #ddd;
+  background-color: #d0d0d0;
 }
