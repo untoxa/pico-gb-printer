@@ -18,3 +18,7 @@ export const CAMERA_WIDTH  = 16;
 export const TILE_SIZE     = 0x10;
 export const TILE_HEIGHT   = 8;
 export const TILE_WIDTH    = 8;
+
+export const MAX_POLL_DELAY = 2000;
+export const BASIC_POLL_DELAY  = 10;
+
