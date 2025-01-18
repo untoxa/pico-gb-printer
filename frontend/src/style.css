@@ -25,7 +25,7 @@ h1 {
 }
 
 :root { --grid-gap: 16px;--num-cols: 1; }
-@media screen and (min-width: 450px) { :root { --num-cols: 2 } }
+@media screen and (min-width: 450px) { :root { --num-cols: 2; } }
 @media screen and (min-width: 640px) { :root { --num-cols: 3; } }
 @media screen and (min-width: 830px) { :root { --num-cols: 4; } }
 @media screen and (min-width: 1020px) { :root { --num-cols: 5; } }
