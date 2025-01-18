@@ -1,4 +1,4 @@
-
+<!doctype html>
 <html lang="en">
 <head>
   <title>Pico Game Boy Printer</title>
@@ -20,14 +20,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-<div id="header">
+<header>
   <h1>Pico Game Boy Printer</h1>
+  <span class="indicator"></span>
   <button id="select_all_btn" disabled>Select All</button>
   <button id="delete_selected_btn" disabled>Delete</button>
   <button id="average_selected_btn" disabled>Average</button>
-  <br>
-  <br>
-</div>
+</header>
 <div id="gallery" class="gallery"></div>
 <script type="module" src="./src/index.ts"></script>
 </body>

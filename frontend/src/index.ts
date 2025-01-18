@@ -26,15 +26,20 @@ interface StatusResponse {
   const store = await initDb();
   const workingCanvas = document.createElement('canvas');
 
+  const indicator = document.querySelector('.indicator') as HTMLSpanElement;
   let pollDelay = BASIC_POLL_DELAY;
 
   const pollDownload = async () => {
     try {
-      const status = await ofetch<StatusResponse>(STATUS_FILE, { method: 'GET' });
+      const status = await ofetch<StatusResponse>(STATUS_FILE, { method: 'GET', timeout: 1000 });
+      indicator.classList.remove('red');
+      indicator.classList.add('green');
+      indicator.title = 'Device is connected';
 
       if (status.status.total_files > 0) {
         const downloadResponse = await ofetch.raw(DOWNLOAD, {
           method: 'GET',
+          timeout: 1000,
           responseType: 'arrayBuffer',
           ignoreResponseError: true,
         });
@@ -58,6 +63,9 @@ interface StatusResponse {
       }
     } catch { // network error case
       pollDelay = Math.min(MAX_POLL_DELAY, Math.ceil(pollDelay * 5));
+      indicator.classList.add('red');
+      indicator.classList.remove('green');
+      indicator.title = 'Device is disconnected';
     }
 
     window.setTimeout(pollDownload, pollDelay);
