@@ -1,19 +1,37 @@
 import { defineConfig } from 'vite';
+import { $fetch } from 'ofetch';
 
 export default defineConfig({
   build: {
     outDir: '../fs/',
     emptyOutDir: true,
   },
+  plugins: [
+    {
+      name: 'custom-fetch-proxy',
+      configureServer(server) {
+        server.middlewares.use(async (req, res, next) => {
+          const targetUrl = 'http://192.168.7.1';
+          if (req.url === '/list.json' || req.url === '/download') {
+            try {
+              const url = `${targetUrl}${req.url}`;
+              const targetResponse = await $fetch.raw(url, { method: 'GET', responseType: 'arrayBuffer', ignoreResponseError: true });
+              res.statusCode = targetResponse.status;
+              targetResponse.headers.forEach((value, name) => res.setHeader(name, value));
+              res.end(new Uint8Array(targetResponse._data));
+            } catch (error) {
+              console.error('Fetch proxy error:', error);
+              res.statusCode = 500;
+              res.end('Internal Server Error');
+            }
+          } else {
+            next();
+          }
+        });
+      },
+    },
+  ],
   server: {
     port: 3000,
-    proxy: {
-      '/options': 'http://192.168.7.1/options',
-      '/download': 'http://192.168.7.1/download',
-      '/reset': 'http://192.168.7.1/reset',
-      '/reset_usb_boot': 'http://192.168.7.1/reset_usb_boot',
-      '/status.json': 'http://192.168.7.1/status.json',
-      '/list.json': 'http://192.168.7.1/list.json',
-    }
   },
 });
