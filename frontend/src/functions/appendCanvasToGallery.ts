@@ -11,7 +11,6 @@ export const appendCanvasToGallery = (canvas: HTMLCanvasElement, timestamp?: num
     const img = new Image();
     img.src = canvas.toDataURL();
     imageContainer.appendChild(img);
-    imageContainer.appendChild(document.createElement("br"));
 
     if (timestamp) {
       imageContainer.dataset.timestamp = timestamp.toString(10);
