@@ -75,6 +75,8 @@ h1 {
 .marked-for-action {
   background-color: #d0d0d0;
   border-color: #707070;
+  border-width: 2px;
+  margin: -1px;
 }
 
 .marked-for-action:hover {
