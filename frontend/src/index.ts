@@ -1,10 +1,11 @@
+import { ofetch } from 'ofetch';
 import { DOWNLOAD } from './consts.js';
 import { getCameraImage } from "./functions/getCameraImage.js";
 import { initButtons } from "./functions/initButtons.js";
 import { initDb } from "./functions/database.js";
 
-const STATUS_POLL_DELAY = 1000;
-const STATUS_POLL_NEXT  = 10;
+const MAX_POLL_DELAY = 1000;
+const BASIC_POLL_DELAY  = 10;
 
 // interface StatusResponse {
 //   options: {
@@ -25,38 +26,47 @@ const STATUS_POLL_NEXT  = 10;
   const store = await initDb();
   const workingCanvas = document.createElement('canvas');
 
-  const getStatus = async () => {
-    try {
-      const downloadResponse = await fetch(DOWNLOAD);
-      if (downloadResponse.status === 200) {
-        const downloadBody = await downloadResponse.blob();
-        const downloadBuffer = await downloadBody.arrayBuffer();
-        const downloadData = new Uint8Array(downloadBuffer);
+  let pollDelay = BASIC_POLL_DELAY;
 
+  const pollDownload = async () => {
+    try {
+      const downloadResponse = await ofetch.raw(DOWNLOAD, {
+        method: 'GET',
+        responseType: 'arrayBuffer',
+        ignoreResponseError: true,
+      });
+
+      if (downloadResponse.status === 200 && downloadResponse._data?.byteLength) {
         const dlData = {
           timestamp: Date.now(),
-          data: downloadData,
+          data: new Uint8Array(downloadResponse._data),
         };
 
         store.add(dlData);
 
         getCameraImage(workingCanvas, dlData);
 
-        window.setTimeout(getStatus, STATUS_POLL_NEXT);
-      } else {
-        window.setTimeout(getStatus, STATUS_POLL_DELAY);
+        pollDelay = BASIC_POLL_DELAY;
+      } else { // 404 case
+        pollDelay = Math.min(MAX_POLL_DELAY, Math.ceil(pollDelay * 1.5));
       }
-    } catch {
-      window.setTimeout(getStatus, STATUS_POLL_DELAY);
+    } catch { // network error case
+      pollDelay = Math.min(MAX_POLL_DELAY, Math.ceil(pollDelay * 5));
     }
+
+    console.log(pollDelay);
+    window.setTimeout(pollDownload, pollDelay);
   };
 
   const all = await store.getAll();
-  all.forEach((dlData) => {
-    console.log(dlData.data.byteLength)
-    getCameraImage(workingCanvas, dlData);
-  });
 
-  getStatus();
+  for (const dlData of all) {
+    const validImage = await getCameraImage(workingCanvas, dlData);
+    if (!validImage) {
+      store.delete(dlData.timestamp);
+    }
+  }
+
+  pollDownload();
   initButtons(store);
 })();

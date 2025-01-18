@@ -12,7 +12,7 @@ import {decode} from "./decode.js";
 import {render} from "./render.js";
 import type { DownloadData } from "./database.js";
 
-export async function getCameraImage(canvas: HTMLCanvasElement, dlData: DownloadData) {
+export async function getCameraImage(canvas: HTMLCanvasElement, dlData: DownloadData): Promise<boolean> {
   const resData = dlData.data;
   const data_size = resData.byteLength;
 
@@ -80,5 +80,8 @@ export async function getCameraImage(canvas: HTMLCanvasElement, dlData: Download
   if (canvas.height > 1) {
     appendCanvasToGallery(canvas, dlData.timestamp);
     resetCanvas(canvas);
+    return true;
   }
+
+  return false;
 }
