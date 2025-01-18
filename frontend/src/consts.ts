@@ -1,8 +1,8 @@
 // Api URLs
-export const OPTIONS =  "/options";
-export const DOWNLOAD =  "/download";
-export const RESET =  "/reset";
-export const RESET_USB_BOOT =  "/reset_usb_boot";
+export const OPTIONS = "/options";
+export const DOWNLOAD = "/download";
+export const RESET = "/reset";
+export const RESET_USB_BOOT = "/reset_usb_boot";
 export const STATUS_FILE = "/status.json"
 export const LIST_FILE = "/list.json"
 
