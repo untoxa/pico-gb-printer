@@ -11,12 +11,16 @@ const averageSelectedBtn = document.getElementById("average_selected_btn") as HT
 
 export const initButtons = (store: DbAccess) => {
   selectAllBtn.addEventListener("click", function () {
-    var items = gallery.children;
+    const items = gallery.children;
+    const markedItems = gallery.querySelectorAll('.marked-for-action');
+
+    const unselect = markedItems.length === items.length;
+
     if (items.length != 0) {
       [...items].forEach(item => {
         const checkbox = item.querySelector("input") as HTMLInputElement;
-        checkbox.checked = true;
-        item.classList.add('marked-for-action');
+        checkbox.checked = !unselect;
+        item.classList[unselect ? 'remove' : 'add']('marked-for-action');
       });
     }
 
