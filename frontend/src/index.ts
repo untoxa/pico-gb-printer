@@ -29,11 +29,10 @@ interface StatusResponse {
   let pollDelay = BASIC_POLL_DELAY;
 
   const pollDownload = async () => {
-    const status = await ofetch<StatusResponse>(STATUS_FILE, { method: 'GET' });
+    try {
+      const status = await ofetch<StatusResponse>(STATUS_FILE, { method: 'GET' });
 
-    if (status.status.total_files > 0) {
-      console.log(status.status);
-      try {
+      if (status.status.total_files > 0) {
         const downloadResponse = await ofetch.raw(DOWNLOAD, {
           method: 'GET',
           responseType: 'arrayBuffer',
@@ -54,14 +53,13 @@ interface StatusResponse {
         } else { // 404 case
           pollDelay = Math.min(MAX_POLL_DELAY, Math.ceil(pollDelay * 1.5));
         }
-      } catch { // network error case
-        pollDelay = Math.min(MAX_POLL_DELAY, Math.ceil(pollDelay * 5));
+      } else {
+        pollDelay = Math.min(MAX_POLL_DELAY, Math.ceil(pollDelay * 1.5));
       }
-    } else {
-      pollDelay = Math.min(MAX_POLL_DELAY, Math.ceil(pollDelay * 1.5));
+    } catch { // network error case
+      pollDelay = Math.min(MAX_POLL_DELAY, Math.ceil(pollDelay * 5));
     }
 
-    console.log(pollDelay);
     window.setTimeout(pollDownload, pollDelay);
   };
 
