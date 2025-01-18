@@ -3,7 +3,7 @@ import { downloadImage } from "./saveImage.js";
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
 
-export const appendCanvasToGallery = (canvas: HTMLCanvasElement, timestamp?: number) => {
+export const appendCanvasToGallery = (canvas: HTMLCanvasElement, timestamp?: number): boolean => {
   if (canvas.height > 1) {
     const imageContainer = document.createElement("div");
     imageContainer.classList.add("gallery-image");
@@ -41,5 +41,9 @@ export const appendCanvasToGallery = (canvas: HTMLCanvasElement, timestamp?: num
 
     gallery.appendChild(imageContainer);
     updateButtons();
+
+    return true;
   }
+
+  return false;
 }

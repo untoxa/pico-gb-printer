@@ -15,6 +15,7 @@ import type { DownloadData } from "./database.js";
 export async function getCameraImage(canvas: HTMLCanvasElement, dlData: DownloadData): Promise<boolean> {
   const resData = dlData.data;
   const data_size = resData.byteLength;
+  let rendered = 0;
 
   const processed_data = new Uint8Array(Math.max(1024*1024, data_size));
 
@@ -44,7 +45,9 @@ export async function getCameraImage(canvas: HTMLCanvasElement, dlData: Download
         palette = (palette) ? palette : 0xE4;
 
         if (render(canvas, processed_data, buffer_start, ptr, PRINTER_WIDTH, margins, palette, exposure)) {
-          appendCanvasToGallery(canvas, dlData.timestamp);
+          if (appendCanvasToGallery(canvas, dlData.timestamp)) {
+            rendered += 1;
+          }
           resetCanvas(canvas);
         }
         buffer_start = ptr;
@@ -58,7 +61,9 @@ export async function getCameraImage(canvas: HTMLCanvasElement, dlData: Download
         ptr = decode(false, resData, data_size, len, idx, processed_data, ptr);
         idx += len;
         render(canvas, processed_data, current_image_start, ptr, CAMERA_WIDTH, 0x03, 0xE4, 0xFF);
-        appendCanvasToGallery(canvas, dlData.timestamp);
+        if (appendCanvasToGallery(canvas, dlData.timestamp)) {
+          rendered += 1;
+        }
         resetCanvas(canvas);
         buffer_start = ptr;
         break;
@@ -78,10 +83,11 @@ export async function getCameraImage(canvas: HTMLCanvasElement, dlData: Download
   }
 
   if (canvas.height > 1) {
-    appendCanvasToGallery(canvas, dlData.timestamp);
+    if (appendCanvasToGallery(canvas, dlData.timestamp)) {
+      rendered += 1;
+    }
     resetCanvas(canvas);
-    return true;
   }
 
-  return false;
+  return rendered > 0;
 }
