@@ -1,4 +1,4 @@
-import { RemotePrinterEvent } from './types.ts';
+import { RemotePrinterEvent } from './types';
 
 const startHeartbeat = (targetWindow: Window, commands: string[]) => {
 

@@ -1,5 +1,5 @@
-import { DbAccess } from '../database.ts';
-import { CheckPrinterStatus } from './types.ts';
+import { DbAccess } from '../database';
+import { CheckPrinterStatus } from './types';
 
 const checkPrinter = (store: DbAccess) => async (): Promise<CheckPrinterStatus> => {
 

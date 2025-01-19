@@ -1,5 +1,5 @@
-import { DbAccess } from '../database.ts';
-import { BlobResponse, PrinterImages } from './types.ts';
+import { DbAccess } from '../database';
+import { BlobResponse, PrinterImages } from './types';
 
 
 const fetchImages = (store: DbAccess) => async (dumps: string[]): Promise<PrinterImages> => {

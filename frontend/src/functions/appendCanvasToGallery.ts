@@ -1,5 +1,5 @@
-import { updateButtons } from "./updateButtons.js";
-import { downloadImage } from "./saveImage.js";
+import { updateButtons } from './updateButtons';
+import { downloadImage } from './saveImage';
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
 

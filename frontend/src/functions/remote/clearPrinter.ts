@@ -1,6 +1,6 @@
-import { DbAccess } from '../database.ts';
+import { DbAccess } from '../database';
 import checkPrinter from './checkPrinter';
-import { CheckPrinterStatus } from './types.ts';
+import { CheckPrinterStatus } from './types';
 
 const clearPrinter = (store: DbAccess) => async (): Promise<CheckPrinterStatus> => {
   const allDumps = await store.getAll();

@@ -1,6 +1,6 @@
-import { getCameraImage } from "./functions/getCameraImage.js";
-import { initButtons } from "./functions/initButtons.js";
-import { initDb } from "./functions/database.js";
+import { getCameraImage } from './functions/getCameraImage';
+import { initButtons } from './functions/initButtons';
+import { initDb } from './functions/database';
 import { startPolling } from './functions/pollLoop.ts';
 import { webappConnect } from './functions/remote/webappConnect.ts';
 

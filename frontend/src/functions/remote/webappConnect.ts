@@ -1,8 +1,8 @@
-import { DbAccess } from '../database.ts';
-import checkPrinter from './checkPrinter.ts';
-import clearPrinter from './clearPrinter.ts';
-import fetchImages from './fetchImages.ts';
-import startHeartbeat from './startHeartbeat.ts';
+import { DbAccess } from '../database';
+import checkPrinter from './checkPrinter';
+import clearPrinter from './clearPrinter';
+import fetchImages from './fetchImages';
+import startHeartbeat from './startHeartbeat';
 import {
   CheckPrinterStatus,
   ImagesFn,
@@ -12,7 +12,7 @@ import {
   PrinterParams,
   RemotePrinterEvent,
   StatusFn,
-} from './types.ts';
+} from './types';
 
 export const webappConnect = (store: DbAccess, targetWindow: Window) => {
   const content = [...document.querySelectorAll('#header h1,#header button,#gallery')] as HTMLElement[];
