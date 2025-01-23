@@ -1,4 +1,4 @@
-import { DbAccess } from '../database';
+import { DbAccess } from '../storage/database.ts';
 import checkPrinter from './checkPrinter';
 import clearPrinter from './clearPrinter';
 import fetchImages from './fetchImages';

@@ -1,6 +1,6 @@
-import { updateButtons } from './updateButtons';
-import { appendCanvasToGallery } from './appendCanvasToGallery';
-import { DbAccess } from './database';
+import { updateButtons } from './updateButtons.ts';
+import { appendCanvasToGallery } from './appendCanvasToGallery.ts';
+import { DbAccess } from '../storage/database.ts';
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
 // const getImageBtn = document.getElementById("get_image_btn") as HTMLButtonElement;

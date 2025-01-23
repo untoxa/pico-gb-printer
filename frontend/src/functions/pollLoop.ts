@@ -1,7 +1,7 @@
 import { ofetch } from 'ofetch';
 import { BASIC_POLL_DELAY, DOWNLOAD, MAX_POLL_DELAY, STATUS_FILE } from '../consts';
-import { DbAccess } from './database';
-import { getCameraImage } from './getCameraImage';
+import { DbAccess } from './storage/database.ts';
+import { getCameraImage } from './decoding/getCameraImage.ts';
 
 interface StatusResponse {
   options: {

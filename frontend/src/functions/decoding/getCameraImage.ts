@@ -5,12 +5,18 @@ import {
   COMMAND_PRINT,
   COMMAND_TRANSFER,
   PRINTER_WIDTH
-} from '../consts';
-import { appendCanvasToGallery } from './appendCanvasToGallery';
-import { resetCanvas } from './resetCanvas';
-import {decode} from './decode';
-import {render} from './render';
-import type { DownloadData } from './database';
+} from '../../consts.ts';
+import { appendCanvasToGallery } from '../gallery/appendCanvasToGallery.ts';
+
+import {decode} from './decode.ts';
+import {render} from './render.ts';
+import type { DownloadData } from '../storage/database.ts';
+
+const resetCanvas = (canvas: HTMLCanvasElement) => {
+  canvas.height = 1;
+  canvas.width = 1;
+}
+
 
 export async function getCameraImage(canvas: HTMLCanvasElement, dlData: DownloadData): Promise<boolean> {
   const resData = dlData.data;

@@ -1,5 +1,5 @@
-import {TILE_HEIGHT, TILE_SIZE} from '../consts';
-import {resizeCanvas} from './resizeCanvas';
+import {TILE_HEIGHT, TILE_SIZE} from '../../consts.ts';
+import {resizeCanvas} from './resizeCanvas.ts';
 
 export const render = (
   canvas: HTMLCanvasElement,
