@@ -44,13 +44,18 @@ export const  downloadImage = async (image: HTMLImageElement) => {
   const fileName = `image_${today(datetime, "-")}_${timeNow(datetime, "-")}_${scale}x.png`;
 
   const canvas = getScaledCanvas(image, scale);
-  const canvasUrl = canvas.toDataURL('png');
 
-  const a = document.createElement("a");
-  a.href = canvasUrl;
-  a.download = fileName;
-  a.style.display = "none";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  canvas.toBlob((blob: Blob | null): void => {
+    if (blob) {
+      const a = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      a.href = url;
+      a.download = fileName;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+  }, 'png');
 }
