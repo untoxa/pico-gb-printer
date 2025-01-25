@@ -1,85 +1,17 @@
-import { ofetch } from 'ofetch';
-import { DOWNLOAD, STATUS_FILE } from './consts.js';
-import { getCameraImage } from "./functions/getCameraImage.js";
-import { initButtons } from "./functions/initButtons.js";
-import { initDb } from "./functions/database.js";
-
-const MAX_POLL_DELAY = 2000;
-const BASIC_POLL_DELAY  = 10;
-
-interface StatusResponse {
-  options: {
-    debug: 'on' | 'off'
-  },
-  result: string,
-  status: {
-    last_size: number,
-    total_files: number,
-  },
-  system: {
-    fast: boolean,
-  },
-}
+import { initGallery } from './functions/gallery';
+import { initDb } from './functions/storage/database.ts';
+import { startPolling } from './functions/pollLoop.ts';
+import { webappConnect } from './functions/remote/webappConnect.ts';
 
 (async () => {
-
   const store = await initDb();
-  const workingCanvas = document.createElement('canvas');
+  startPolling(store);
 
-  const indicator = document.querySelector('.indicator') as HTMLSpanElement;
-  let pollDelay = BASIC_POLL_DELAY;
-
-  const pollDownload = async () => {
-    try {
-      const status = await ofetch<StatusResponse>(STATUS_FILE, { method: 'GET', timeout: 1000 });
-      indicator.classList.remove('red');
-      indicator.classList.add('green');
-      indicator.title = 'Device is connected';
-
-      if (status.status.total_files > 0) {
-        const downloadResponse = await ofetch.raw(DOWNLOAD, {
-          method: 'GET',
-          timeout: 1000,
-          responseType: 'arrayBuffer',
-          ignoreResponseError: true,
-        });
-
-        if (downloadResponse.status === 200 && downloadResponse._data?.byteLength) {
-          const dlData = {
-            timestamp: Date.now(),
-            data: new Uint8Array(downloadResponse._data),
-          };
-
-          store.add(dlData);
-
-          getCameraImage(workingCanvas, dlData);
-
-          pollDelay = BASIC_POLL_DELAY;
-        } else { // 404 case
-          pollDelay = Math.min(MAX_POLL_DELAY, Math.ceil(pollDelay * 1.5));
-        }
-      } else {
-        pollDelay = Math.min(MAX_POLL_DELAY, Math.ceil(pollDelay * 1.5));
-      }
-    } catch { // network error case
-      pollDelay = Math.min(MAX_POLL_DELAY, Math.ceil(pollDelay * 5));
-      indicator.classList.add('red');
-      indicator.classList.remove('green');
-      indicator.title = 'Device is disconnected';
+  if (window.location.pathname === '/remote.html') {
+    if (window.opener) {
+      webappConnect(store, window.opener);
     }
-
-    window.setTimeout(pollDownload, pollDelay);
-  };
-
-  const all = await store.getAll();
-
-  for (const dlData of all) {
-    const validImage = await getCameraImage(workingCanvas, dlData);
-    if (!validImage) {
-      store.delete(dlData.timestamp);
-    }
+  } else {
+    initGallery(store);
   }
-
-  pollDownload();
-  initButtons(store);
 })();

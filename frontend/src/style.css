@@ -11,14 +11,41 @@ header {
   margin-bottom: 24px;
 }
 
-button {
-  border-radius: 4px;
-  border: none;
-  padding: 8px 16px;
-  font-size: 1rem;
-  background: #b7b7b7;
+.buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 8px;
 }
 
+button,
+.select {
+  display: inline-flex;
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+  border: none;
+  background: #b7b7b7;
+  height: 32px;
+  font-size: 16px;
+  line-height: 12px;
+  gap: 8px
+}
+
+button span,
+.select select {
+  padding: 0 16px;
+}
+
+#download_size {
+  height: 32px;
+  background: none;
+  border: none;
+  font-size: 16px;
+}
+
+.select:hover,
 button:not(:disabled):hover {
   cursor: pointer;
   background: #a0a0a0;
@@ -58,6 +85,7 @@ h1 {
   gap: 8px;
   align-items: center;
   justify-content: space-between;
+  user-select: none;
 }
 
 .gallery-image:hover {

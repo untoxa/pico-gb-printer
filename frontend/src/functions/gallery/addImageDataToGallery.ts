@@ -1,10 +1,16 @@
-import { updateButtons } from "./updateButtons.js";
-import { downloadImage } from "./saveImage.js";
+import { updateButtons } from './buttons.ts';
+import { downloadImage } from '../saveImage.ts';
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
 
-export const appendCanvasToGallery = (canvas: HTMLCanvasElement, timestamp?: number): boolean => {
-  if (canvas.height > 1) {
+export const addImageDataToGallery = (imageData: ImageData, timestamp: number): boolean => {
+  if (imageData.height * imageData.width > 1) {
+    const canvas = document.createElement('canvas') as HTMLCanvasElement;
+    canvas.width = imageData.width;
+    canvas.height = imageData.height;
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+    ctx.putImageData(imageData, 0, 0)
+
     const imageContainer = document.createElement("label");
     imageContainer.classList.add("gallery-image");
 
@@ -12,9 +18,7 @@ export const appendCanvasToGallery = (canvas: HTMLCanvasElement, timestamp?: num
     img.src = canvas.toDataURL();
     imageContainer.appendChild(img);
 
-    if (timestamp) {
-      imageContainer.dataset.timestamp = timestamp.toString(10);
-    }
+    imageContainer.dataset.timestamp = timestamp.toString(10);
 
     const input = document.createElement("input");
     input.setAttribute("type", "checkbox");
@@ -32,7 +36,7 @@ export const appendCanvasToGallery = (canvas: HTMLCanvasElement, timestamp?: num
     imageContainer.appendChild(input);
 
     const btn = document.createElement("button");
-    btn.textContent = "Save";
+    btn.innerHTML = "<span>Save</span>";
     btn.addEventListener("click", function () {
       downloadImage(img);
     });

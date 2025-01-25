@@ -1,16 +1,23 @@
-import { updateButtons } from "./updateButtons.js";
-import { appendCanvasToGallery } from "./appendCanvasToGallery.js";
-import { DbAccess } from "./database.js";
+import { LOCALSTORAGE_SCALE_KEY } from '../../consts.ts';
+import { DataType, DbAccess } from '../storage/database.ts';
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
-// const getImageBtn = document.getElementById("get_image_btn") as HTMLButtonElement;
-// const tearBtn = document.getElementById("tear_btn") as HTMLButtonElement;
 const deleteSelectedBtn = document.getElementById("delete_selected_btn") as HTMLButtonElement;
 const selectAllBtn = document.getElementById("select_all_btn") as HTMLButtonElement;
 const averageSelectedBtn = document.getElementById("average_selected_btn") as HTMLButtonElement;
+const scaleSelect = document.getElementById("download_size") as HTMLSelectElement;
+
+export const updateButtons = () => {
+  const numSelectedItems = document.querySelectorAll('.marked-for-action').length;
+  selectAllBtn.disabled = !gallery.children.length;
+  deleteSelectedBtn.disabled = !numSelectedItems;
+  averageSelectedBtn.disabled = numSelectedItems < 2;
+  scaleSelect.value = localStorage.getItem(LOCALSTORAGE_SCALE_KEY) || '1';
+}
+
 
 export const initButtons = (store: DbAccess) => {
-  selectAllBtn.addEventListener("click", function () {
+  selectAllBtn.addEventListener('click', () => {
     const items = gallery.children;
     const markedItems = gallery.querySelectorAll('.marked-for-action');
 
@@ -27,24 +34,21 @@ export const initButtons = (store: DbAccess) => {
     updateButtons();
   });
 
-  deleteSelectedBtn.addEventListener("click", function () {
-    const items = gallery.children;
+  deleteSelectedBtn.addEventListener('click', () => {
+    const items = [...gallery.querySelectorAll('.marked-for-action')] as HTMLLabelElement[];
     for (let i = items.length - 1; i >= 0; i--) {
-      const item = items[i] as HTMLDivElement;
-      if (item.classList.contains('marked-for-action')) {
-        const imageTime = item.dataset.timestamp;
-        if (imageTime) {
-          store.delete(parseInt(imageTime, 10))
-        }
-        item.remove();
+      const item = items[i] as HTMLLabelElement;
+      const imageTime = item.dataset.timestamp;
+      if (imageTime) {
+        store.delete(parseInt(imageTime, 10))
       }
     }
 
     updateButtons();
   });
 
-  averageSelectedBtn.addEventListener("click", function() {
-    const items = gallery.querySelectorAll('.marked-for-action');
+  averageSelectedBtn.addEventListener('click', () => {
+    const items = [...gallery.querySelectorAll('.marked-for-action')] as HTMLLabelElement[];
 
     if (items.length < 2) {
       return;
@@ -80,43 +84,36 @@ export const initButtons = (store: DbAccess) => {
 
     const sumImgData = [];
     const avgImgData = avgCtx.createImageData(avgCanvas.width, avgCanvas.height);
-    let selectedItems = 0;
+
     // Generate average image
-    for (let i = items.length - 1; i >= 0; i--) {
-      if (items[i].classList.contains('marked-for-action')) {
-        selectedItems++;
-        const item = items[i];
-        const img = item.querySelector("img");
-        if (!img) return;
-        tmpCtx.drawImage(img,0,0);
-        const tmpImgData = tmpCtx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height);
-        for (let j = 0; j < tmpImgData.data.length; j += 1) {
-          if (!sumImgData[j]) {
-            sumImgData.push(0);
-          }
-          sumImgData[j] += tmpImgData.data[j];
+    for (const item of items) {
+      item.classList.remove('marked-for-action');
+      const img = item.querySelector('img') as HTMLImageElement;
+      tmpCtx.drawImage(img,0,0);
+      const tmpImgData = tmpCtx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height);
+      for (let j = 0; j < tmpImgData.data.length; j += 1) {
+        if (!sumImgData[j]) {
+          sumImgData.push(0);
         }
+        sumImgData[j] += tmpImgData.data[j];
       }
     }
+
     for (let i = 0; i < avgImgData.data.length; i += 1) {
-      avgImgData.data[i] = (sumImgData[i] / selectedItems);
+      avgImgData.data[i] = (sumImgData[i] / items.length);
     }
-    avgCtx.putImageData(avgImgData, 0, 0);
-    appendCanvasToGallery(avgCanvas);
+
+    store.add({
+      type: DataType.IMAGE_DATA,
+      timestamp: Date.now(),
+      data: avgImgData,
+    });
   });
 
-
-  // tearBtn.addEventListener("click", async function () {
-  //   fetch(resetPath)
-  //     .then((response) => {
-  //       return response.json();
-  //     })
-  //     .then((data) => {
-  //       console.log(data);
-  //       if (data.result != "ok") return;
-  //       getImageBtn.click();
-  //     });
-  // });
+  scaleSelect.addEventListener('change', () => {
+    const scale = parseInt(scaleSelect.value || '0', 10) || 1;
+    localStorage.setItem(LOCALSTORAGE_SCALE_KEY, scale.toString(10));
+  });
 
   updateButtons();
 }

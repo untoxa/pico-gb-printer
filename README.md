@@ -78,5 +78,10 @@ make
 Copy the resulting pico_gb_printer.uf2 file to the Pi Pico mass storage device manually.
 Webserver will be available at http://192.168.7.1/
 
-Content it is serving is in /fs
-If you change any files there, run ./regen-fsdata.sh
+## Developing the Frontend
+Frontend code development requires node.js (>=20)  
+* Navigate to the `frontend` folder.
+* run `npm install` to install all dependencies
+* run `npm run dev` to start a local dev server on [127.0.0.1:3000](http://127.0.0.1:3000/). The server also does proxy the `/list.json`, `/status.json` and `/download` endpoints from a Pico which must be connected to the same machine.
+* run `npm run build` to build the static files (html/css/js). Files will be built to `./fs` 
+* When building the rom file locally, also run `./regen-fsdata.sh`
