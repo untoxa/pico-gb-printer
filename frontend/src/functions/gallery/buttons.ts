@@ -1,20 +1,23 @@
+import { LOCALSTORAGE_SCALE_KEY } from '../../consts.ts';
 import { DataType, DbAccess } from '../storage/database.ts';
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
 const deleteSelectedBtn = document.getElementById("delete_selected_btn") as HTMLButtonElement;
 const selectAllBtn = document.getElementById("select_all_btn") as HTMLButtonElement;
 const averageSelectedBtn = document.getElementById("average_selected_btn") as HTMLButtonElement;
+const scaleSelect = document.getElementById("download_size") as HTMLSelectElement;
 
 export const updateButtons = () => {
   const numSelectedItems = document.querySelectorAll('.marked-for-action').length;
   selectAllBtn.disabled = !gallery.children.length;
   deleteSelectedBtn.disabled = !numSelectedItems;
   averageSelectedBtn.disabled = numSelectedItems < 2;
+  scaleSelect.value = localStorage.getItem(LOCALSTORAGE_SCALE_KEY) || '1';
 }
 
 
 export const initButtons = (store: DbAccess) => {
-  selectAllBtn.addEventListener("click", function () {
+  selectAllBtn.addEventListener('click', () => {
     const items = gallery.children;
     const markedItems = gallery.querySelectorAll('.marked-for-action');
 
@@ -31,7 +34,7 @@ export const initButtons = (store: DbAccess) => {
     updateButtons();
   });
 
-  deleteSelectedBtn.addEventListener("click", function () {
+  deleteSelectedBtn.addEventListener('click', () => {
     const items = [...gallery.querySelectorAll('.marked-for-action')] as HTMLLabelElement[];
     for (let i = items.length - 1; i >= 0; i--) {
       const item = items[i] as HTMLLabelElement;
@@ -44,7 +47,7 @@ export const initButtons = (store: DbAccess) => {
     updateButtons();
   });
 
-  averageSelectedBtn.addEventListener("click", function() {
+  averageSelectedBtn.addEventListener('click', () => {
     const items = [...gallery.querySelectorAll('.marked-for-action')] as HTMLLabelElement[];
 
     if (items.length < 2) {
@@ -105,6 +108,11 @@ export const initButtons = (store: DbAccess) => {
       timestamp: Date.now(),
       data: avgImgData,
     });
+  });
+
+  scaleSelect.addEventListener('change', () => {
+    const scale = parseInt(scaleSelect.value || '0', 10) || 1;
+    localStorage.setItem(LOCALSTORAGE_SCALE_KEY, scale.toString(10));
   });
 
   updateButtons();

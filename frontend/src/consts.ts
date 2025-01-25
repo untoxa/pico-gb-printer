@@ -18,3 +18,4 @@ export const TILE_WIDTH    = 8;
 export const MAX_POLL_DELAY = 2000;
 export const BASIC_POLL_DELAY  = 10;
 
+export const LOCALSTORAGE_SCALE_KEY = 'pico-printer-save-scale';

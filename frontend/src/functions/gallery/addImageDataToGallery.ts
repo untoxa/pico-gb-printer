@@ -36,7 +36,7 @@ export const addImageDataToGallery = (imageData: ImageData, timestamp: number): 
     imageContainer.appendChild(input);
 
     const btn = document.createElement("button");
-    btn.textContent = "Save";
+    btn.innerHTML = "<span>Save</span>";
     btn.addEventListener("click", function () {
       downloadImage(img);
     });
