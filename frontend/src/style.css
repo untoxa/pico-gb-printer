@@ -58,6 +58,7 @@ h1 {
   gap: 8px;
   align-items: center;
   justify-content: space-between;
+  user-select: none;
 }
 
 .gallery-image:hover {

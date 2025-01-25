@@ -1,4 +1,4 @@
-import { DbAccess } from '../storage/database.ts';
+import { DataType, DbAccess } from '../storage/database.ts';
 import { CheckPrinterStatus } from './types';
 
 const checkPrinter = (store: DbAccess) => async (): Promise<CheckPrinterStatus> => {
@@ -7,7 +7,9 @@ const checkPrinter = (store: DbAccess) => async (): Promise<CheckPrinterStatus> 
 
   return {
     printerData: {
-      dumps: allImages.map(({ timestamp }) => timestamp.toString(10)),
+      dumps: allImages
+        .filter(({ type }) => type === DataType.RAW)
+        .map(({ timestamp }) => timestamp.toString(10)),
     },
   };
 };

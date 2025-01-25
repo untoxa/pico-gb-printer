@@ -1,4 +1,4 @@
-import { DbAccess } from '../storage/database.ts';
+import { DataType, DbAccess, DownloadDataRaw } from '../storage/database.ts';
 import { BlobResponse, PrinterImages } from './types';
 
 
@@ -7,11 +7,13 @@ const fetchImages = (store: DbAccess) => async (dumps: string[]): Promise<Printe
   const blobsdone: BlobResponse[] = [];
 
   for (const dump of dumps) {
-    const dlData = allDumps.find(({ timestamp }) => timestamp.toString(10) === dump)
+    const dlData = allDumps
+      .filter(({ type }) => type === DataType.RAW)
+      .find(({ timestamp }) => timestamp.toString(10) === dump)
     if (dlData) {
       blobsdone.push({
         ok: true,
-        blob: new Blob([dlData.data]),
+        blob: new Blob([(dlData as DownloadDataRaw).data]),
         contentType: 'application/pico-printer-binary-log',
         status: 200,
       });

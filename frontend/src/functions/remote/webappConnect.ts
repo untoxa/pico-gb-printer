@@ -15,16 +15,6 @@ import {
 } from './types';
 
 export const webappConnect = (store: DbAccess, targetWindow: Window) => {
-  const content = [...document.querySelectorAll('#header h1,#header button,#gallery')] as HTMLElement[];
-  for (const node of content) {
-    node.style.display = 'none';
-  }
-
-  const remoteText = document.createElement('div');
-  remoteText.innerHTML = '<h1>You are connected to a remote application.</h1><p>Do not close this window during the process</p>';
-
-  document.querySelector('#header')?.appendChild(remoteText);
-
   const commands: PrinterCommand[] = [
     {
       name: PrinterFunction.CHECKPRINTER,

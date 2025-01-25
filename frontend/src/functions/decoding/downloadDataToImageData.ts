@@ -4,13 +4,13 @@ import {
   COMMAND_INIT,
   COMMAND_PRINT,
   COMMAND_TRANSFER,
-  PRINTER_WIDTH
+  PRINTER_WIDTH,
 } from '../../consts.ts';
-import { appendCanvasToGallery } from '../gallery/appendCanvasToGallery.ts';
+import type { DownloadData, DownloadDataRaw } from '../storage/database.ts';
+import { DataType } from '../storage/database.ts';
 
-import {decode} from './decode.ts';
-import {render} from './render.ts';
-import type { DownloadData } from '../storage/database.ts';
+import { decode } from './decode.ts';
+import { render } from './render.ts';
 
 const resetCanvas = (canvas: HTMLCanvasElement) => {
   canvas.height = 1;
@@ -18,10 +18,21 @@ const resetCanvas = (canvas: HTMLCanvasElement) => {
 }
 
 
-export async function getCameraImage(canvas: HTMLCanvasElement, dlData: DownloadData): Promise<boolean> {
+export const downloadDataToImageData = async (downloadData: DownloadData): Promise<ImageData[]> => {
+
+  if (downloadData.type === DataType.IMAGE_DATA) {
+    return [downloadData.data as ImageData];
+  }
+
+  const dlData = downloadData as DownloadDataRaw;
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext("2d", { willReadFrequently: true }) as CanvasRenderingContext2D;
+
   const resData = dlData.data;
   const data_size = resData.byteLength;
-  let rendered = 0;
+
+  const imageDatas: ImageData[] = [];
 
   const processed_data = new Uint8Array(Math.max(1024*1024, data_size));
 
@@ -51,9 +62,8 @@ export async function getCameraImage(canvas: HTMLCanvasElement, dlData: Download
         palette = (palette) ? palette : 0xE4;
 
         if (render(canvas, processed_data, buffer_start, ptr, PRINTER_WIDTH, margins, palette, exposure)) {
-          if (appendCanvasToGallery(canvas, dlData.timestamp)) {
-            rendered += 1;
-          }
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          imageDatas.push(imageData);
           resetCanvas(canvas);
         }
         buffer_start = ptr;
@@ -67,9 +77,8 @@ export async function getCameraImage(canvas: HTMLCanvasElement, dlData: Download
         ptr = decode(false, resData, data_size, len, idx, processed_data, ptr);
         idx += len;
         render(canvas, processed_data, current_image_start, ptr, CAMERA_WIDTH, 0x03, 0xE4, 0xFF);
-        if (appendCanvasToGallery(canvas, dlData.timestamp)) {
-          rendered += 1;
-        }
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        imageDatas.push(imageData);
         resetCanvas(canvas);
         buffer_start = ptr;
         break;
@@ -89,11 +98,10 @@ export async function getCameraImage(canvas: HTMLCanvasElement, dlData: Download
   }
 
   if (canvas.height > 1) {
-    if (appendCanvasToGallery(canvas, dlData.timestamp)) {
-      rendered += 1;
-    }
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    imageDatas.push(imageData);
     resetCanvas(canvas);
   }
 
-  return rendered > 0;
+  return imageDatas;
 }

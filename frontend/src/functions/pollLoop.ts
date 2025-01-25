@@ -1,7 +1,6 @@
 import { ofetch } from 'ofetch';
 import { BASIC_POLL_DELAY, DOWNLOAD, MAX_POLL_DELAY, STATUS_FILE } from '../consts';
-import { DbAccess } from './storage/database.ts';
-import { getCameraImage } from './decoding/getCameraImage.ts';
+import { DataType, DbAccess, DownloadDataRaw } from './storage/database.ts';
 
 interface StatusResponse {
   options: {
@@ -17,7 +16,7 @@ interface StatusResponse {
   },
 }
 
-export const startPolling = async (workingCanvas: HTMLCanvasElement, store: DbAccess) => {
+export const startPolling = async (store: DbAccess) => {
   const indicator = document.querySelector('.indicator') as HTMLSpanElement;
   let pollDelay = BASIC_POLL_DELAY;
 
@@ -37,14 +36,13 @@ export const startPolling = async (workingCanvas: HTMLCanvasElement, store: DbAc
         });
 
         if (downloadResponse.status === 200 && downloadResponse._data?.byteLength) {
-          const dlData = {
+          const dlData: DownloadDataRaw = {
             timestamp: Date.now(),
+            type: DataType.RAW,
             data: new Uint8Array(downloadResponse._data),
           };
 
           store.add(dlData);
-
-          getCameraImage(workingCanvas, dlData);
 
           pollDelay = BASIC_POLL_DELAY;
         } else { // 404 case
