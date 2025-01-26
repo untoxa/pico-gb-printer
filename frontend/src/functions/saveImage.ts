@@ -74,10 +74,14 @@ const getScaledGif = async (url: string): Promise<Blob> => {
     canvas.height = height;
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
+    console.log(frame.pixels);
+
     const imageDataData: number[] = frame.pixels.map((value) => {
       const [r, g, b] = frame.colorTable[value];
       return [r, g, b, value === frame.transparentIndex ? 0 : 255];
     }).flat(1);
+
+    console.log(imageDataData);
 
     ctx.putImageData(new ImageData(new Uint8ClampedArray(imageDataData), width, height), 0, 0);
     accCtx.drawImage(canvas, 0, 0);
