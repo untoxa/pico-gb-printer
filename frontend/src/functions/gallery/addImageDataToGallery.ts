@@ -3,50 +3,71 @@ import { downloadImage } from '../saveImage.ts';
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
 
-export const addImageDataToGallery = (imageData: ImageData, timestamp: number): boolean => {
-  if (imageData.height * imageData.width > 1) {
-    const canvas = document.createElement('canvas') as HTMLCanvasElement;
-    canvas.width = imageData.width;
-    canvas.height = imageData.height;
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-    ctx.putImageData(imageData, 0, 0)
+const createGalleryItem = (imgSrc: string, timestamp: number, isFinal: boolean) => {
+  const imageContainer = document.createElement('div');
+  imageContainer.classList.add('gallery-image');
+  imageContainer.dataset.timestamp = timestamp.toString(10);
 
-    const imageContainer = document.createElement("label");
-    imageContainer.classList.add("gallery-image");
-
-    const img = new Image();
-    img.src = canvas.toDataURL();
-    imageContainer.appendChild(img);
-
-    imageContainer.dataset.timestamp = timestamp.toString(10);
-
-    const input = document.createElement("input");
-    input.setAttribute("type", "checkbox");
-
-    input.addEventListener("change", function() {
-      if (input.checked) {
-        imageContainer.classList.add('marked-for-action');
-      } else {
-        imageContainer.classList.remove('marked-for-action');
-      }
-
-      updateButtons();
-    });
-
-    imageContainer.appendChild(input);
-
-    const btn = document.createElement("button");
-    btn.innerHTML = "<span>Save</span>";
-    btn.addEventListener("click", function () {
-      downloadImage(img);
-    });
-    imageContainer.appendChild(btn);
-
-    gallery.appendChild(imageContainer);
-    updateButtons();
-
-    return true;
+  if (isFinal) {
+    imageContainer.classList.add('final');
   }
 
-  return false;
+  const img = new Image();
+  img.src = imgSrc;
+
+  const label = document.createElement('label');
+  label.appendChild(img);
+
+  imageContainer.appendChild(label);
+
+  const input = document.createElement('input');
+  input.setAttribute("type", "checkbox");
+
+  input.addEventListener("change", function() {
+    if (input.checked) {
+      imageContainer.classList.add('marked-for-action');
+    } else {
+      imageContainer.classList.remove('marked-for-action');
+    }
+
+    updateButtons();
+  });
+
+  label.appendChild(input);
+
+  const btn = document.createElement("button");
+  btn.innerHTML = "<span>Save</span>";
+  btn.addEventListener("click", function () {
+    downloadImage(img, isFinal);
+  });
+  imageContainer.appendChild(btn);
+
+  gallery.appendChild(imageContainer);
+  updateButtons();
+}
+
+export const addImageDataToGallery = async (imageData: ImageData, timestamp: number): Promise<void> => (
+  new Promise((resolve) => {
+
+    if (imageData.height * imageData.width > 1) {
+      const canvas = document.createElement('canvas') as HTMLCanvasElement;
+      canvas.width = imageData.width;
+      canvas.height = imageData.height;
+      const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+      ctx.putImageData(imageData, 0, 0)
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          createGalleryItem(url, timestamp, false);
+        }
+
+        resolve();
+      });
+    }
+  })
+);
+
+export const addFileToGallery = async (file: File, timestamp: number): Promise<void> => {
+  const url = URL.createObjectURL(file);
+  createGalleryItem(url, timestamp, true);
 }

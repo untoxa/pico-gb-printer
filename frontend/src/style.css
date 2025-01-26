@@ -39,6 +39,7 @@ button span,
   padding: 0 16px;
 }
 
+#download_fps,
 #download_size {
   height: 32px;
   background: none;
@@ -81,13 +82,16 @@ h1 {
   border-radius: 8px;
   border: 1px solid #d0d0d0;
   box-shadow: 0 7px 6px -6px #404040;
-  cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 8px;
   align-items: center;
   justify-content: space-between;
   user-select: none;
+}
+
+.gallery-image label {
+  cursor: pointer;
 }
 
 .gallery-image:hover {

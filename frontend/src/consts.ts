@@ -19,3 +19,4 @@ export const MAX_POLL_DELAY = 1500;
 export const BASIC_POLL_DELAY  = 10;
 
 export const LOCALSTORAGE_SCALE_KEY = 'pico-printer-save-scale';
+export const LOCALSTORAGE_FPS_KEY = 'pico-printer-save-fps';

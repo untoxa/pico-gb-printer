@@ -6,8 +6,7 @@ import {
   COMMAND_TRANSFER,
   PRINTER_WIDTH,
 } from '../../consts.ts';
-import type { DownloadData, DownloadDataRaw } from '../storage/database.ts';
-import { DataType } from '../storage/database.ts';
+import type { DownloadDataRaw } from '../storage/database.ts';
 
 import { decode } from './decode.ts';
 import { render } from './render.ts';
@@ -18,12 +17,7 @@ const resetCanvas = (canvas: HTMLCanvasElement) => {
 }
 
 
-export const downloadDataToImageData = async (downloadData: DownloadData): Promise<ImageData[]> => {
-
-  if (downloadData.type === DataType.IMAGE_DATA) {
-    return [downloadData.data as ImageData];
-  }
-
+export const downloadDataToImageData = async (downloadData: DownloadDataRaw): Promise<ImageData[]> => {
   const dlData = downloadData as DownloadDataRaw;
 
   const canvas = document.createElement('canvas');

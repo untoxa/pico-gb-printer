@@ -1,11 +1,13 @@
+
 export enum DataType {
   RAW = 'RAW',
   IMAGE_DATA = 'IMAGE_DATA',
+  FILE = 'FILE',
 }
 
 export interface DownloadData {
   timestamp: number,
-  data: Uint8Array | ImageData,
+  data: Uint8Array | ImageData | File,
   type: DataType,
 }
 
@@ -17,6 +19,11 @@ export interface DownloadDataRaw extends DownloadData {
 export interface DownloadDataImageData extends DownloadData {
   type: DataType.IMAGE_DATA,
   data: ImageData,
+}
+
+export interface DownloadDataFile extends DownloadData {
+  type: DataType.FILE,
+  data: File,
 }
 
 interface StorageData {
@@ -34,6 +41,30 @@ export interface DbAccess {
   onUpdate: (callback: UpdateCallbackFn) => void,
   offUpdate: (callback: UpdateCallbackFn) => void,
 }
+
+interface SerializedFile {
+  name: string,
+  type: string,
+  lastModified: number,
+  data: number[],
+}
+
+const serializeFile = async (file: File): Promise<string> => {
+  const serializedFile: SerializedFile = {
+    name: file.name,
+    type: file.type,
+    lastModified: file.lastModified,
+    data: [...new Uint8Array(await file.arrayBuffer())],
+  };
+
+  return JSON.stringify(serializedFile);
+};
+
+const deserializeFile = (rawString: string): File => {
+  const rawObject = JSON.parse(rawString) as SerializedFile;
+  const data = new Uint8Array(rawObject.data)
+  return new File([data], rawObject.name, { type: rawObject.type, lastModified: rawObject.lastModified });
+};
 
 export const initDb = async (): Promise<DbAccess> => {
   const dbName = "pico_printer";
@@ -60,16 +91,16 @@ export const initDb = async (): Promise<DbAccess> => {
             const stored = ev.target?.result.map(({ timestamp, data, type }: StorageData): DownloadData | null => {
               switch (type) {
                 case DataType.RAW: {
-                  return ({
+                  return {
                     timestamp,
                     type: DataType.RAW,
                     data: new Uint8Array(data.split(',').map((i: string) => parseInt(i, 10))),
-                  });
+                  };
                 }
 
                 case DataType.IMAGE_DATA: {
                   const rawImageData = JSON.parse(data);
-                  return ({
+                  return {
                     timestamp,
                     type: DataType.IMAGE_DATA,
                     data: new ImageData(
@@ -77,7 +108,15 @@ export const initDb = async (): Promise<DbAccess> => {
                       rawImageData.width as number,
                       rawImageData.height as number,
                     ),
-                  });
+                  };
+                }
+
+                case DataType.FILE: {
+                  return {
+                    timestamp,
+                    type: DataType.FILE,
+                    data: deserializeFile(data),
+                  };
                 }
 
                 default:
@@ -85,7 +124,21 @@ export const initDb = async (): Promise<DbAccess> => {
               }
             });
 
-            res(stored.filter(Boolean));
+            res(
+              stored
+                .filter(Boolean)
+                .sort((a: DownloadData, b: DownloadData) => {
+                  if (a.timestamp < b.timestamp) {
+                    return -1;
+                  }
+
+                  if (a.timestamp > b.timestamp) {
+                    return 1;
+                  }
+
+                  return 0;
+                })
+            );
           };
         });
       };
@@ -105,54 +158,65 @@ export const initDb = async (): Promise<DbAccess> => {
 
       resolve({
         add: async (dlData: DownloadData) => {
-          return new Promise((res) => {
-            const objectStore = request.result.transaction('downloads', 'readwrite').objectStore('downloads')
-            let storageData: StorageData;
+          let storageData: StorageData;
 
-            switch (dlData.type) {
-              case DataType.RAW: {
-                storageData = {
-                  timestamp: dlData.timestamp,
-                  type: dlData.type,
-                  data: (dlData.data as Uint8Array).join(',')
-                }
-                break;
+          switch (dlData.type) {
+            case DataType.RAW: {
+              storageData = {
+                timestamp: dlData.timestamp,
+                type: dlData.type,
+                data: (dlData.data as Uint8Array).join(',')
               }
-
-              case DataType.IMAGE_DATA: {
-                const imageData = dlData.data as ImageData;
-                storageData = {
-                  timestamp: dlData.timestamp,
-                  type: dlData.type,
-                  data: JSON.stringify({
-                    data: [...imageData.data].join(','),
-                    width: imageData.width,
-                    height: imageData.height,
-                  }),
-                };
-                break;
-              }
-
-              default:
-                throw new Error(`unknown datatype ${dlData.type}`);
+              break;
             }
 
+            case DataType.IMAGE_DATA: {
+              const imageData = dlData.data as ImageData;
+              storageData = {
+                timestamp: dlData.timestamp,
+                type: dlData.type,
+                data: JSON.stringify({
+                  data: [...imageData.data].join(','),
+                  width: imageData.width,
+                  height: imageData.height,
+                }),
+              };
+              break;
+            }
+
+            case DataType.FILE: {
+              const file = dlData.data as File;
+              storageData = {
+                timestamp: dlData.timestamp,
+                type: dlData.type,
+                data: await serializeFile(file),
+              }
+              break;
+            }
+
+            default:
+              throw new Error(`unknown datatype ${dlData.type}`);
+          }
+
+          await new Promise((res) => {
+            const objectStore = request.result.transaction('downloads', 'readwrite').objectStore('downloads')
             const rq = objectStore.add(storageData);
-            rq.onsuccess = () => res();
-            runCallbacks();
-            channel.postMessage({ type: 'UPDATE_DB' });
-          })
+            rq.onsuccess = res;
+          });
+
+          await runCallbacks();
+          channel.postMessage({ type: 'UPDATE_DB' });
         },
         getAll,
         delete: async (timestamp: number) => {
-          return new Promise((res) => {
+          await new Promise((res) => {
             const objectStore = request.result.transaction('downloads', 'readwrite').objectStore('downloads')
             const rq = objectStore.delete(timestamp)
+            rq.onsuccess = res;
+          });
 
-            rq.onsuccess = () => res();
-            runCallbacks();
-            channel.postMessage({ type: 'UPDATE_DB' });
-          })
+          await runCallbacks();
+          channel.postMessage({ type: 'UPDATE_DB' });
         },
         onUpdate: (cbFn: UpdateCallbackFn) => {
           callbacks.push(cbFn);

@@ -1,27 +1,58 @@
 import { downloadDataToImageData } from '../decoding/downloadDataToImageData.ts';
-import { DbAccess, DownloadData } from '../storage/database.ts';
-import { addImageDataToGallery } from './addImageDataToGallery.ts';
+import {
+  DataType,
+  DbAccess,
+  DownloadData,
+  DownloadDataFile,
+  DownloadDataImageData,
+  DownloadDataRaw,
+} from '../storage/database.ts';
+import { addFileToGallery, addImageDataToGallery } from './addImageDataToGallery.ts';
 import { initButtons } from './buttons.ts';
 
 export const initGallery = async (store: DbAccess) => {
 
   const gallery = document.getElementById("gallery") as HTMLDivElement;
 
-  const storedImages = await store.getAll();
+  const storedImages = (await store.getAll())
+    ;
 
-  const handleImageDatas = (imageDatas: ImageData[], timestamp: number,) => {
+  const handleImageDatas = async (imageDatas: ImageData[], timestamp: number,) => {
     for(const imageData of imageDatas) {
-      addImageDataToGallery(imageData, timestamp);
+      await addImageDataToGallery(imageData, timestamp);
+    }
+  }
+
+  const handleDownloadData = async (dlData: DownloadData) => {
+    switch (dlData.type) {
+      case DataType.RAW: {
+        const data = dlData as DownloadDataRaw;
+        const imageDatas = await downloadDataToImageData(data);
+        if (!imageDatas.length) {
+          await store.delete(dlData.timestamp);
+          console.log('del', dlData.timestamp);
+        } else {
+          await handleImageDatas(imageDatas, dlData.timestamp);
+        }
+
+        break;
+      }
+
+      case DataType.IMAGE_DATA: {
+        const data = dlData as DownloadDataImageData;
+        await addImageDataToGallery(data.data, dlData.timestamp);
+        break;
+      }
+
+      case DataType.FILE: {
+        const data = dlData as DownloadDataFile;
+        await addFileToGallery(data.data, dlData.timestamp)
+      }
     }
   }
 
   for (const dlData of storedImages) {
-    const imageDatas = await downloadDataToImageData(dlData);
-    if (!imageDatas.length) {
-      store.delete(dlData.timestamp);
-    } else {
-      handleImageDatas(imageDatas, dlData.timestamp);
-    }
+    await handleDownloadData(dlData);
   }
 
   initButtons(store);
@@ -30,8 +61,7 @@ export const initGallery = async (store: DbAccess) => {
     // Add new ones
     for (const dlData of allImages) {
       if (!gallery.querySelector(`[data-timestamp="${dlData.timestamp}"]`)) {
-        const imageDatas = await downloadDataToImageData(dlData);
-        handleImageDatas(imageDatas, dlData.timestamp);
+        await handleDownloadData(dlData);
       }
     }
 
