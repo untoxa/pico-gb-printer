@@ -99,7 +99,7 @@ h1 {
 }
 
 .gallery-image input {
-  /*display: none;*/
+  display: none;
 }
 
 .marked-for-action {
