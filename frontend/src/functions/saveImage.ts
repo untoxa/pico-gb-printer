@@ -8,15 +8,6 @@ const timeNow = (date: Date, delim: string): string  => {
   return ((date.getHours() < 10)?"0":"") + date.getHours() + delim + ((date.getMinutes() < 10)?"0":"") + date.getMinutes() + delim + ((date.getSeconds() < 10)?"0":"") + date.getSeconds();
 }
 
-const format = (str: string, ...rest: string[]): string => {
-  var formatted = str;
-  for (var i = 0; i < rest.length; i++) {
-    var regexp = new RegExp('\\{'+i+'\\}', 'gi');
-    formatted = formatted.replace(regexp, rest[i]);
-  }
-  return formatted;
-};
-
 const getScaledCanvas = (
   imageSource: HTMLImageElement,
   scaleFactor: number
@@ -50,22 +41,21 @@ const getScaledCanvas = (
 export const  downloadImage = async (image: HTMLImageElement) => {
   const scale = parseInt(localStorage.getItem(LOCALSTORAGE_SCALE_KEY) || '1', 10);
   const datetime = new Date();
-  const file_name = format("image_{0}_{1}.png", today(datetime, "-"), timeNow(datetime, "-"));
+  const fileName = `image_${today(datetime, "-")}_${timeNow(datetime, "-")}_${scale}x.png`;
 
   const canvas = getScaledCanvas(image, scale);
 
-  // Fallback to simple download
-  const xhr = new XMLHttpRequest();
-  xhr.responseType = "blob";
-  xhr.onload = function () {
-    const a = document.createElement("a");
-    a.href = window.URL.createObjectURL(xhr.response);
-    a.download = file_name;
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
-  xhr.open("GET", canvas.toDataURL());
-  xhr.send();
+  canvas.toBlob((blob: Blob | null): void => {
+    if (blob) {
+      const a = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      a.href = url;
+      a.download = fileName;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+  }, 'png');
 }
