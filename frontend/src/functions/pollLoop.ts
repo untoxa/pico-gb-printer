@@ -42,7 +42,7 @@ export const startPolling = async (store: DbAccess) => {
             data: new Uint8Array(downloadResponse._data),
           };
 
-          store.add(dlData);
+          await store.add(dlData);
 
           pollDelay = BASIC_POLL_DELAY;
         } else { // 404 case
