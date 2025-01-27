@@ -88,6 +88,24 @@ h1 {
   align-items: center;
   justify-content: space-between;
   user-select: none;
+  position: relative;
+}
+
+.gallery-image.marked-for-action::after {
+  --order-text: attr(data-order);
+  content: var(--order-text);
+  display: block;
+  position: absolute;
+  right: -16px;
+  top: -16px;
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  font-weight: bold;
+  border-radius: 50%;
+  background-color: #0077ff;
+  color: #cae3ff;
+  border: 2px solid currentColor;
 }
 
 .gallery-image label {

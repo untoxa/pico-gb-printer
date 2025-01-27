@@ -1,5 +1,6 @@
 import { updateButtons } from './buttons.ts';
 import { downloadImage } from '../saveImage.ts';
+import { updateSelectionOrder } from './selectionOrder.ts';
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
 
@@ -31,6 +32,7 @@ const createGalleryItem = (imgSrc: string, timestamp: number, isFinal: boolean) 
     }
 
     updateButtons();
+    updateSelectionOrder(imageContainer);
   });
 
   label.appendChild(input);

@@ -1,6 +1,7 @@
 import { LOCALSTORAGE_FPS_KEY, LOCALSTORAGE_SCALE_KEY } from '../../consts.ts';
 import { imageDatasToBlob } from '../canvas/imageDatasToBlob.ts';
 import { DataType, DbAccess } from '../storage/database.ts';
+import { sortBySelectionOrder, updateSelectionOrder } from './selectionOrder.ts';
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
 const deleteSelectedBtn = document.getElementById("delete_selected_btn") as HTMLButtonElement;
@@ -82,6 +83,7 @@ export const initButtons = (store: DbAccess) => {
     }
 
     updateButtons();
+    updateSelectionOrder();
   });
 
   deleteSelectedBtn.addEventListener('click', () => {
@@ -152,21 +154,25 @@ export const initButtons = (store: DbAccess) => {
   });
 
   gifSelectedBtn.addEventListener('click', async () => {
-    const items = [...gallery.querySelectorAll('.marked-for-action img')] as HTMLImageElement[];
+    const items = [...gallery.querySelectorAll('.marked-for-action')] as HTMLDivElement[];
     const fps = parseInt(localStorage.getItem(LOCALSTORAGE_FPS_KEY) || '12', 10);
 
     if (items.length < 2) {
       return;
     }
 
-    const dimensions = getCommonSize(items);
+    items.sort(sortBySelectionOrder((gallery.children.length + 1).toString(10)));
+
+    const images = items.map((item) => item.querySelector('img'))  as HTMLImageElement[];
+
+    const dimensions = getCommonSize(images);
 
     if (!dimensions) {
       alert("Image dimensions must be the same to create an animation");
       return;
     }
 
-    const frames: ImageData[] = items.map((imageSource): ImageData => {
+    const frames: ImageData[] = images.map((imageSource): ImageData => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
       canvas.width = imageSource.naturalWidth;
