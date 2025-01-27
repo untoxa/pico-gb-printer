@@ -5,13 +5,14 @@ import { webappConnect } from './functions/remote/webappConnect.ts';
 
 (async () => {
   const store = await initDb();
-  startPolling(store);
 
   if (window.location.pathname === '/remote.html') {
     if (window.opener) {
-      webappConnect(store, window.opener);
+      await webappConnect(store, window.opener);
     }
   } else {
-    initGallery(store);
+    await initGallery(store);
   }
+
+  startPolling(store);
 })();

@@ -39,6 +39,7 @@ button span,
   padding: 0 16px;
 }
 
+#download_fps,
 #download_size {
   height: 32px;
   background: none;
@@ -57,8 +58,9 @@ h1 {
   position: relative;
 }
 
-:root { --grid-gap: 8px;--num-cols: 2; }
-@media screen and (min-width: 450px) { :root { --grid-gap: 16px; --num-cols: 2; } }
+:root { --grid-gap: 6px; --num-cols: 1; }
+@media screen and (min-width: 370px) { :root { --num-cols: 2; } }
+@media screen and (min-width: 390px) { :root { --grid-gap: 16px; } }
 @media screen and (min-width: 640px) { :root { --num-cols: 3; } }
 @media screen and (min-width: 830px) { :root { --num-cols: 4; } }
 @media screen and (min-width: 1020px) { :root { --num-cols: 5; } }
@@ -80,13 +82,34 @@ h1 {
   border-radius: 8px;
   border: 1px solid #d0d0d0;
   box-shadow: 0 7px 6px -6px #404040;
-  cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 8px;
   align-items: center;
   justify-content: space-between;
   user-select: none;
+  position: relative;
+}
+
+.gallery-image.marked-for-action::after {
+  --order-text: attr(data-order);
+  content: var(--order-text);
+  display: block;
+  position: absolute;
+  right: -16px;
+  top: -16px;
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  font-weight: bold;
+  border-radius: 50%;
+  background-color: #0077ff;
+  color: #cae3ff;
+  border: 2px solid currentColor;
+}
+
+.gallery-image label {
+  cursor: pointer;
 }
 
 .gallery-image:hover {
