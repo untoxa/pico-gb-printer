@@ -1,7 +1,5 @@
-import { encode } from 'modern-gif'
-import workerUrl from 'modern-gif/worker?url'
 import { LOCALSTORAGE_FPS_KEY, LOCALSTORAGE_SCALE_KEY } from '../../consts.ts';
-import { getScaledCanvas } from '../saveImage.ts';
+import { imageDatasToFile } from '../canvas/imageDatasToFile.ts';
 import { DataType, DbAccess } from '../storage/database.ts';
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
@@ -22,13 +20,6 @@ export const updateButtons = () => {
 
   scaleSelect.value = localStorage.getItem(LOCALSTORAGE_SCALE_KEY) || '1';
   fpsSelect.value = localStorage.getItem(LOCALSTORAGE_FPS_KEY) || '12';
-}
-
-export interface GifFrame {
-  data: ArrayBufferLike,
-  width: number,
-  height: number,
-  delay: number,
 }
 
 interface Dimensions {
@@ -163,7 +154,6 @@ export const initButtons = (store: DbAccess) => {
   gifSelectedBtn.addEventListener('click', async () => {
     const items = [...gallery.querySelectorAll('.marked-for-action img')] as HTMLImageElement[];
     const fps = parseInt(localStorage.getItem(LOCALSTORAGE_FPS_KEY) || '12', 10);
-    const delay = Math.floor(1000 / fps);
 
     if (items.length < 2) {
       return;
@@ -176,25 +166,13 @@ export const initButtons = (store: DbAccess) => {
       return;
     }
 
-    const frames: GifFrame[] = items.map((imageSource): GifFrame => {
-      const canvas = getScaledCanvas(imageSource, 1)
+    const frames: ImageData[] = items.map((imageSource): ImageData => {
+      const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-      return {
-        // need to create imageBuffer here, because a pure canvas cannot be transferred to the worker with modern-gif library
-        data: imgData.data.buffer,
-        width: canvas.width,
-        height: canvas.height,
-        delay,
-      };
-    });
-
-    const output = await encode({
-      workerUrl,
-      width: dimensions.width,
-      height: dimensions.height,
-      frames,
+      canvas.width = imageSource.naturalWidth;
+      canvas.height = imageSource.naturalHeight;
+      ctx.drawImage(imageSource, 0, 0);
+      return ctx.getImageData(0, 0, canvas.width, canvas.height);
     });
 
     unselectAll();
@@ -203,7 +181,7 @@ export const initButtons = (store: DbAccess) => {
     store.add({
       type: DataType.FILE,
       timestamp,
-      data: new File([output], `${timestamp}.gif`, { type: 'image/gif' }),
+      data: imageDatasToFile(frames, fps),
     });
   });
 
