@@ -1,3 +1,4 @@
+import chunk from 'chunk';
 import { LOCALSTORAGE_FPS_KEY, LOCALSTORAGE_SCALE_KEY } from '../../consts.ts';
 import { imageDatasToBlob } from '../canvas/imageDatasToBlob.ts';
 import { DataType, DbAccess } from '../storage/database.ts';
@@ -8,6 +9,7 @@ const deleteSelectedBtn = document.getElementById("delete_selected_btn") as HTML
 const selectAllBtn = document.getElementById("select_all_btn") as HTMLButtonElement;
 const averageSelectedBtn = document.getElementById("average_selected_btn") as HTMLButtonElement;
 const gifSelectedBtn = document.getElementById("gif_selected_btn") as HTMLButtonElement;
+const rgbSelectedBtn = document.getElementById("rgb_selected_btn") as HTMLButtonElement;
 const scaleSelect = document.getElementById("download_size") as HTMLSelectElement;
 const fpsSelect = document.getElementById("download_fps") as HTMLSelectElement;
 
@@ -18,6 +20,7 @@ export const updateButtons = () => {
   deleteSelectedBtn.disabled = numSelectedItems < 1;
   averageSelectedBtn.disabled = numSelectedItems < 2 || numSelectedItemsFinal !== 0;
   gifSelectedBtn.disabled = numSelectedItems < 2 || numSelectedItemsFinal !== 0;
+  rgbSelectedBtn.disabled = numSelectedItems !== 3 || numSelectedItemsFinal !== 0;
 
   scaleSelect.value = localStorage.getItem(LOCALSTORAGE_SCALE_KEY) || '1';
   fpsSelect.value = localStorage.getItem(LOCALSTORAGE_FPS_KEY) || '12';
@@ -190,6 +193,61 @@ export const initButtons = (store: DbAccess) => {
       data: imageDatasToBlob(frames, fps),
     });
   });
+
+  rgbSelectedBtn.addEventListener('click', async () => {
+    const items = [...gallery.querySelectorAll('.marked-for-action')] as HTMLDivElement[];
+
+    if (items.length !== 3) {
+      return;
+    }
+
+    items.sort(sortBySelectionOrder((gallery.children.length + 1).toString(10)));
+
+    const images = items.map((item) => item.querySelector('img'))  as HTMLImageElement[];
+
+    const dimensions = getCommonSize(images);
+
+    if (!dimensions) {
+      alert("Image dimensions must be the same to create a RGB image");
+      return;
+    }
+
+    const [pixelsR, pixelsG, pixelsB]: number[][][] = images.map((imageSource): number[][] => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+      canvas.width = dimensions.width;
+      canvas.height = dimensions.height;
+      ctx.drawImage(imageSource, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      return chunk(imageData.data, 4);
+    });
+
+    const pixels = new Array(dimensions.width * dimensions.height)
+      .fill(null)
+      .map((_, pixelIndex) => {
+        const [rr, rg, rb] = pixelsR[pixelIndex];
+        const [gr, gg, gb] = pixelsG[pixelIndex];
+        const [br, bg, bb] = pixelsB[pixelIndex];
+
+        const r = Math.floor((rr + rg + rb) / 3);
+        const g = Math.floor((gr + gg + gb) / 3);
+        const b = Math.floor((br + bg + bb) / 3);
+
+        return [r, g, b, 255];
+      })
+      .flat(1);
+
+    const rgbImageData = new ImageData(new Uint8ClampedArray(pixels), dimensions.width, dimensions.height);
+
+    store.add({
+      type: DataType.IMAGE_DATA,
+      timestamp: Date.now(),
+      data: rgbImageData,
+    });
+
+    unselectAll();
+  });
+
 
   scaleSelect.addEventListener('change', () => {
     const scale = parseInt(scaleSelect.value || '0', 10) || 1;

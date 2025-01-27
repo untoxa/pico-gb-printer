@@ -82,6 +82,6 @@ Webserver will be available at http://192.168.7.1/
 Frontend code development requires node.js (>=20)  
 * Navigate to the `frontend` folder.
 * run `npm install` to install all dependencies
-* run `npm run dev` to start a local dev server on [127.0.0.1:3000](http://127.0.0.1:3000/). The server also does proxy the `/list.json`, `/status.json` and `/download` endpoints from a Pico which must be connected to the same machine.
+* run `npm run dev` to start a local dev server on [127.0.0.1:3000](http://127.0.0.1:3000/). The server also does proxy the `/status.json` and `/download` endpoints from a Pico which must be connected to the same machine.
 * run `npm run build` to build the static files (html/css/js). Files will be built to `./fs` 
 * When building the rom file locally, also run `./regen-fsdata.sh`
