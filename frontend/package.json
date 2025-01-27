@@ -4,11 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "tsc && vite build"
   },
   "devDependencies": {
+    "@types/chunk": "^0.0.2",
+    "@types/omggif": "^1.0.5",
+    "chunk": "^0.0.3",
     "ofetch": "^1.4.1",
+    "omggif": "^1.0.10",
     "typescript": "~5.6.2",
     "vite": "^6.0.5"
   }
