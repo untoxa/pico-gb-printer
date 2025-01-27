@@ -6,7 +6,7 @@ export interface GifFrameData {
   pixels: number[],
 }
 
-export const imageDatasToFile = (frames: ImageData[], fps: number): File => {
+export const imageDatasToBlob = (frames: ImageData[], fps: number): Blob => {
   const buf: number[] = [];
   const gifWriter: GifWriter = new GifWriter(buf, frames[0].width, frames[0].height, { loop: 0xffff });
 
@@ -35,11 +35,9 @@ export const imageDatasToFile = (frames: ImageData[], fps: number): File => {
   }
 
   const bufferSize = gifWriter.end();
-  const timestamp = Date.now();
 
-  const file = new File(
+  const file = new Blob(
     [new Uint8Array(buf.slice(0, bufferSize)).buffer],
-    `${timestamp}.gif`,
     { type: 'image/gif' },
   );
 

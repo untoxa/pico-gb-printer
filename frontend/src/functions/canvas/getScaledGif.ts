@@ -1,10 +1,10 @@
 import { ofetch } from 'ofetch';
 import { GifReader } from 'omggif';
 import { LOCALSTORAGE_SCALE_KEY } from '../../consts.ts';
-import { imageDatasToFile } from './imageDatasToFile.ts';
+import { imageDatasToBlob } from './imageDatasToBlob.ts';
 import { scaleImageData } from './scaleImageData.ts';
 
-export const getScaledGif = async (url: string): Promise<File> => {
+export const getScaledGif = async (url: string): Promise<Blob> => {
   const scale = parseInt(localStorage.getItem(LOCALSTORAGE_SCALE_KEY) || '1', 10);
 
   const gifBlob = await ofetch<Blob>(url);
@@ -21,5 +21,5 @@ export const getScaledGif = async (url: string): Promise<File> => {
     return scaleImageData(scale, image);
   });
 
-  return imageDatasToFile(frames, fps);
+  return imageDatasToBlob(frames, fps);
 }

@@ -3,11 +3,11 @@ import {
   DataType,
   DbAccess,
   DownloadData,
-  DownloadDataFile,
+  DownloadDataBlob,
   DownloadDataImageData,
   DownloadDataRaw,
 } from '../storage/database.ts';
-import { addFileToGallery, addImageDataToGallery } from './addImageDataToGallery.ts';
+import { addBlobToGallery, addImageDataToGallery } from './addImageDataToGallery.ts';
 import { initButtons } from './buttons.ts';
 
 export const initGallery = async (store: DbAccess) => {
@@ -44,9 +44,9 @@ export const initGallery = async (store: DbAccess) => {
         break;
       }
 
-      case DataType.FILE: {
-        const data = dlData as DownloadDataFile;
-        await addFileToGallery(data.data, dlData.timestamp)
+      case DataType.BLOB: {
+        const data = dlData as DownloadDataBlob;
+        await addBlobToGallery(data.data, dlData.timestamp)
       }
     }
   }

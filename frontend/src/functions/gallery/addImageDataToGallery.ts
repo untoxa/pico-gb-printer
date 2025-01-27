@@ -67,7 +67,7 @@ export const addImageDataToGallery = async (imageData: ImageData, timestamp: num
   })
 );
 
-export const addFileToGallery = async (file: File, timestamp: number): Promise<void> => {
-  const url = URL.createObjectURL(file);
+export const addBlobToGallery = async (blob: Blob, timestamp: number): Promise<void> => {
+  const url = URL.createObjectURL(blob);
   createGalleryItem(url, timestamp, true);
 }

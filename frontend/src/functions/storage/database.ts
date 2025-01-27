@@ -2,12 +2,12 @@
 export enum DataType {
   RAW = 'RAW',
   IMAGE_DATA = 'IMAGE_DATA',
-  FILE = 'FILE',
+  BLOB = 'BLOB',
 }
 
 export interface DownloadData {
   timestamp: number,
-  data: Uint8Array | ImageData | File,
+  data: Uint8Array | ImageData | Blob,
   type: DataType,
 }
 
@@ -21,9 +21,9 @@ export interface DownloadDataImageData extends DownloadData {
   data: ImageData,
 }
 
-export interface DownloadDataFile extends DownloadData {
-  type: DataType.FILE,
-  data: File,
+export interface DownloadDataBlob extends DownloadData {
+  type: DataType.BLOB,
+  data: Blob,
 }
 
 interface StorageData {
@@ -42,28 +42,24 @@ export interface DbAccess {
   offUpdate: (callback: UpdateCallbackFn) => void,
 }
 
-interface SerializedFile {
-  name: string,
+interface SerializedBlob {
   type: string,
-  lastModified: number,
   data: number[],
 }
 
-const serializeFile = async (file: File): Promise<string> => {
-  const serializedFile: SerializedFile = {
-    name: file.name,
-    type: file.type,
-    lastModified: file.lastModified,
-    data: [...new Uint8Array(await file.arrayBuffer())],
+const serializeBlob = async (blob: Blob): Promise<string> => {
+  const serializedBlob: SerializedBlob = {
+    type: blob.type,
+    data: [...new Uint8Array(await blob.arrayBuffer())],
   };
 
-  return JSON.stringify(serializedFile);
+  return JSON.stringify(serializedBlob);
 };
 
-const deserializeFile = (rawString: string): File => {
-  const rawObject = JSON.parse(rawString) as SerializedFile;
+const deserializeBlob = (rawString: string): Blob => {
+  const rawObject = JSON.parse(rawString) as SerializedBlob;
   const data = new Uint8Array(rawObject.data)
-  return new File([data], rawObject.name, { type: rawObject.type, lastModified: rawObject.lastModified });
+  return new Blob([data], { type: rawObject.type });
 };
 
 export const initDb = async (): Promise<DbAccess> => {
@@ -111,11 +107,11 @@ export const initDb = async (): Promise<DbAccess> => {
                   };
                 }
 
-                case DataType.FILE: {
+                case DataType.BLOB: {
                   return {
                     timestamp,
-                    type: DataType.FILE,
-                    data: deserializeFile(data),
+                    type: DataType.BLOB,
+                    data: deserializeBlob(data),
                   };
                 }
 
@@ -184,12 +180,12 @@ export const initDb = async (): Promise<DbAccess> => {
               break;
             }
 
-            case DataType.FILE: {
+            case DataType.BLOB: {
               const file = dlData.data as File;
               storageData = {
                 timestamp: dlData.timestamp,
                 type: dlData.type,
-                data: await serializeFile(file),
+                data: await serializeBlob(file),
               }
               break;
             }

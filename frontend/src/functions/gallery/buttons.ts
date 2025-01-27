@@ -1,5 +1,5 @@
 import { LOCALSTORAGE_FPS_KEY, LOCALSTORAGE_SCALE_KEY } from '../../consts.ts';
-import { imageDatasToFile } from '../canvas/imageDatasToFile.ts';
+import { imageDatasToBlob } from '../canvas/imageDatasToBlob.ts';
 import { DataType, DbAccess } from '../storage/database.ts';
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
@@ -179,9 +179,9 @@ export const initButtons = (store: DbAccess) => {
 
     const timestamp = Date.now();
     store.add({
-      type: DataType.FILE,
+      type: DataType.BLOB,
       timestamp,
-      data: imageDatasToFile(frames, fps),
+      data: imageDatasToBlob(frames, fps),
     });
   });
 
