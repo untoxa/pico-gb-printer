@@ -6,7 +6,6 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="manifest" href="/site.webmanifest">
-  <link rel="stylesheet" href="./src/style.css">
   <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#cc3366">
   <link rel="apple-touch-startup-image" media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/iPhone_14_Pro_Max__iPhone_14_Max__iPhone_13_Pro_Max__iPhone_12_Pro_Max_portrait.png">
   <link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/iPhone_14_Pro__iPhone_14__iPhone_13_Pro__iPhone_13__iPhone_12_Pro__iPhone_12_portrait.png">
@@ -23,34 +22,61 @@
 <header id="header">
   <h1>Pico Game Boy Printer</h1>
   <span class="indicator"></span>
-  <div class="buttons">
-    <button id="select_all_btn"><span>Select All</span></button>
-    <button id="delete_selected_btn" disabled><span>Delete</span></button>
-    <button id="average_selected_btn" disabled><span>Average</span></button>
-    <button id="gif_selected_btn" disabled><span>Animate</span></button>
-    <button id="rgb_selected_btn" disabled><span>RGB</span></button>
-    <label class="select">
-      <select id="download_size">
-        <option value="1">Scale: 1x</option>
-        <option value="2">Scale: 2x</option>
-        <option value="4">Scale: 4x</option>
-        <option value="8">Scale: 8x</option>
-      </select>
-    </label>
-    <label class="select">
-      <select id="download_fps">
-        <option value="1">FPS: 1x</option>
-        <option value="2">FPS: 2x</option>
-        <option value="4">FPS: 4x</option>
-        <option value="8">FPS: 8x</option>
-        <option value="12">FPS: 12x</option>
-        <option value="18">FPS: 18x</option>
-        <option value="24">FPS: 24x</option>
-      </select>
-    </label>
-  </div>
 </header>
+<div class="buttons">
+  <button title="Select All" id="select_all_btn"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M268-240 42-466l57-56 170 170 56 56-57 56Zm226 0L268-466l56-57 170 170 368-368 56 57-424 424Zm0-226-57-56 198-198 57 56-198 198Z"/></svg></span><span class="title">Select All</span></button>
+  <button title="Delete" id="delete_selected_btn" disabled><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm80-160h80v-360h-80v360Zm160 0h80v-360h-80v360Z"/></svg></span><span class="title">Delete</span></button>
+  <button title="Average" id="average_selected_btn" disabled><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-400 40-640l440-240 440 240-440 240Zm0 160L63-467l84-46 333 182 333-182 84 46-417 227Zm0 160L63-307l84-46 333 182 333-182 84 46L480-80Z"/></svg></span><span class="title">Average</span></button>
+  <button title="Animate" id="gif_selected_btn" disabled><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M160-280q-33 0-56.5-23.5T80-360v-240q0-33 23.5-56.5T160-680h160q33 0 56.5 23.5T400-600H160v240h160v-80h-80v-80h160v160q0 33-23.5 56.5T320-280H160Zm320 0v-400h80v400h-80Zm160 0v-400h280v80H720v80h160v80H720v160h-80Z"/></svg></span><span class="title">Animate</span></button>
+  <button title="RGB" id="rgb_selected_btn" disabled><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-80q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-83 32.5-156t88-127Q256-817 330-848.5T488-880q80 0 151 27.5t124.5 76q53.5 48.5 85 115T880-518q0 115-70 176.5T640-280h-74q-9 0-12.5 5t-3.5 11q0 12 15 34.5t15 51.5q0 50-27.5 74T480-80ZM260-440q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm120-160q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm200 0q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm120 160q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Z"/></svg></span><span class="title">RGB</span></button>
+  <button title="Settings" id="open_settings" class="button"><span class="icon"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm112-260q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Z"/></svg></span><span class="title">Settings</span></button>
+</div>
+<div id="settings">
+  <div class="box">
+    <button id="settings_close"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></button>
+  </div>
+  <div class="settings-options">
+    <div class="select">
+      <label for="download_size">Download size</label>
+      <div class="box">
+        <select id="download_size" class="setting-select">
+          <option value="1">Scale: 1x</option>
+          <option value="2">Scale: 2x</option>
+          <option value="4">Scale: 4x</option>
+          <option value="8">Scale: 8x</option>
+        </select>
+      </div>
+    </div>
+    <div class="select">
+      <label for="download_fps">Animation speed</label>
+      <div class="box">
+        <select id="download_fps" class="setting-select">
+          <option value="1">1 fps</option>
+          <option value="2">2 fps</option>
+          <option value="4">4 fps</option>
+          <option value="8">8 fps</option>
+          <option value="12">12 fps</option>
+          <option value="18">18 fps</option>
+          <option value="24">24 fps</option>
+        </select>
+      </div>
+    </div>
+    <div class="select">
+      <label for="gif_direction">Animation direction</label>
+      <div class="box">
+        <select id="gif_direction" class="setting-select">
+          <option value="fwd">Forward</option>
+          <option value="rev">Reverse</option>
+          <option value="yoyo">YoYo</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <a href="https://github.com/untoxa/pico-gb-printer/" class="about-link" target="_blank">this project on GitHub</a>
+</div>
+<button id="settings_backdrop"></button>
 <div id="gallery" class="gallery"></div>
+<div class="toast-target"></div>
 <script type="module" src="./src/index.ts"></script>
 </body>
 </html>

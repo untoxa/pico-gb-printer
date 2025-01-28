@@ -1,14 +1,25 @@
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
+button { font-family: inherit; }
+a { color: inherit; }
+svg { fill: currentColor; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   text-align: center;
+  margin: 0 0 16px 0;
+  min-width: 250px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body.fixed {
+  overflow: hidden;
 }
 
 header {
-  margin-bottom: 24px;
+  margin: 0;
+  padding: 8px;
+  position: relative;
 }
 
 .buttons {
@@ -17,11 +28,17 @@ header {
   flex-direction: row;
   justify-content: center;
   gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 8px;
+  background: #ffffffe0;
 }
 
 button,
-.select {
-  display: inline-flex;
+a.button {
+  display: flex;
+  flex-direction: column;
   padding: 0;
   justify-content: center;
   align-items: center;
@@ -30,32 +47,124 @@ button,
   background: #b7b7b7;
   height: 32px;
   font-size: 16px;
-  line-height: 12px;
-  gap: 8px
+  line-height: 14px;
+  gap: 8px;
+  text-decoration: none;
 }
 
-button span,
-.select select {
-  padding: 0 16px;
+.buttons button,
+.buttons a.button {
+  height: 60px;
+  width: 60px;
+  padding: 4px;
+  gap: 2px;
 }
 
-#download_fps,
-#download_size {
+button span.title,
+a.button span.title {
+  font-size: 12px;
+}
+
+#settings {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  left: -300px;
+  z-index: 3;
+  background: #fff;
+  padding: 48px 0 0 0;
+  max-width: 300px;
+  width: 100%;
+  height: 100vh;
+  border-right: 2px solid #eeeeee;
+  transition: left 300ms ease-in-out;
+}
+
+#settings.visible {
+  left: 0;
+}
+
+#settings_backdrop {
+  z-index: 2;
+  position: absolute;
+  top: 0;
+  left: -100vw;
+  width: 100vw;
+  height: 100vh;
+  background: #333333;
+  opacity: 0;
+  transition: opacity 300ms ease-in-out, left 0ms linear 300ms;
+}
+
+#settings_backdrop.visible {
+  opacity: 30%;
+  left: 0;
+  transition: opacity 300ms ease-in-out, left 0ms linear 0ms;
+}
+
+#settings_close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  width: 48px;
+  height: 48px;
+}
+
+#settings_close:hover {
+  color: #999999;
+}
+
+.settings-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding: 16px;
+  flex-grow: 2;
+}
+
+.select label {
+  font-size: 14px;
+  text-align: left;
+  padding-bottom: 4px;
+}
+
+.select .box {
+  border-radius: 4px;
+  background: #b7b7b7;
+}
+
+.select * {
+  display: block;
+  width: 100%;
+}
+
+.setting-select {
+  border: none;
+  display: block;
   height: 32px;
   background: none;
-  border: none;
   font-size: 16px;
+  line-height: 14px;
+  padding: 0 8px;
 }
 
-.select:hover,
+a.button:not(:disabled):hover,
 button:not(:disabled):hover {
   cursor: pointer;
   background: #a0a0a0;
 }
 
 h1 {
-  font-size: 2rem;
+  font-weight: bold;
+  font-size: 28px;
+  line-height: 34px;
   position: relative;
+  margin: 0;
+  padding: 0 28px;
 }
 
 :root { --grid-gap: 6px; --num-cols: 1; }
@@ -73,7 +182,7 @@ h1 {
   display: grid;
   grid-column-gap: var(--grid-gap);
   grid-row-gap: var(--grid-gap);
-  margin: 0 auto;
+  margin: 16px auto 0;
 }
 
 .gallery-image {
@@ -165,3 +274,41 @@ h1 {
   --color-light: #ff9c9c;
   --color-dark: #440606;
 }
+
+.about-link {
+  font-size: 12px;
+  display: block;
+  width: 100%;
+  text-align: right;
+  padding: 16px;
+}
+
+.toast-target {
+  padding: 40px;
+  position: fixed;
+  z-index: 4;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.toast {
+  color: #ff9898;
+  background: #770000;
+  padding: 16px;
+  text-align: left;
+  border-radius: 8px;
+  border: 2px solid currentColor;
+  font-size: 16px;
+  line-height: 18px;
+  max-width: 300px;
+  cursor: pointer;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #dddddde0; }
+::-webkit-scrollbar-thumb { background: #888888e0; }
+::-webkit-scrollbar-thumb:hover { background: #aaaaaae0; }

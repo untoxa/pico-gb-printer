@@ -20,3 +20,10 @@ export const BASIC_POLL_DELAY  = 10;
 
 export const LOCALSTORAGE_SCALE_KEY = 'pico-printer-save-scale';
 export const LOCALSTORAGE_FPS_KEY = 'pico-printer-save-fps';
+export const LOCALSTORAGE_GIF_DIR_KEY = 'pico-printer-gif-direction';
+
+export enum Direction {
+  FORWARD = 'fwd',
+  REVERSE = 'rev',
+  YOYO = 'yoyo',
+}

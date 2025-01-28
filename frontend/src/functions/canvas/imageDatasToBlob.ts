@@ -1,5 +1,6 @@
 import chunk from 'chunk';
 import { GifWriter } from 'omggif';
+import { showToast } from '../settings/toast.ts';
 
 export interface GifFrameData {
   palette: number[],
@@ -50,7 +51,7 @@ export const imageDatasToBlob = (frames: ImageData[], fps: number): Blob => {
 
   if (frameCount !== frames.length) {
     const msg = 'Some frames in your image contain more than 256 colors, which makes creating a GIF impossible';
-    alert(msg);
+    showToast(msg);
     throw new Error(msg);
   }
 
