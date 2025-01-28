@@ -10,6 +10,8 @@ export const imageDatasToBlob = (frames: ImageData[], fps: number): Blob => {
   const buf: number[] = [];
   const gifWriter: GifWriter = new GifWriter(buf, frames[0].width, frames[0].height, { loop: 0xffff });
 
+  let frameCount = 0;
+
   for (const frame of frames) {
     const {
       palette,
@@ -23,15 +25,33 @@ export const imageDatasToBlob = (frames: ImageData[], fps: number): Blob => {
         acc.palette.push(color);
       }
 
+      if (colorIndex > 256) {
+        colorIndex = 0;
+      }
+
       acc.pixels.push(colorIndex);
 
       return acc;
     }, { pixels: [], palette: [] });
 
-    gifWriter.addFrame(0, 0, frame.width, frame.height, pixels, {
-      delay: Math.round(100 / fps),
-      palette,
-    });
+    const p = [
+      ...palette,
+      ...(new Array(256).fill(0)),
+    ].slice(0, 256);
+
+    if (palette.length <= 256) {
+      frameCount += 1;
+      gifWriter.addFrame(0, 0, frame.width, frame.height, pixels, {
+        delay: Math.round(100 / fps),
+        palette: p,
+      });
+    }
+  }
+
+  if (frameCount !== frames.length) {
+    const msg = 'Some frames in your image contain more than 256 colors, which makes creating a GIF impossible';
+    alert(msg);
+    throw new Error(msg);
   }
 
   const bufferSize = gifWriter.end();
