@@ -1,6 +1,7 @@
 import chunk from 'chunk';
-import { LOCALSTORAGE_FPS_KEY, LOCALSTORAGE_SCALE_KEY } from '../../consts.ts';
+import { Direction, LOCALSTORAGE_FPS_KEY, LOCALSTORAGE_GIF_DIR_KEY } from '../../consts.ts';
 import { imageDatasToBlob } from '../canvas/imageDatasToBlob.ts';
+import { showToast } from '../settings/toast.ts';
 import { DataType, DbAccess } from '../storage/database.ts';
 import { sortBySelectionOrder, updateSelectionOrder } from './selectionOrder.ts';
 
@@ -10,8 +11,7 @@ const selectAllBtn = document.getElementById("select_all_btn") as HTMLButtonElem
 const averageSelectedBtn = document.getElementById("average_selected_btn") as HTMLButtonElement;
 const gifSelectedBtn = document.getElementById("gif_selected_btn") as HTMLButtonElement;
 const rgbSelectedBtn = document.getElementById("rgb_selected_btn") as HTMLButtonElement;
-const scaleSelect = document.getElementById("download_size") as HTMLSelectElement;
-const fpsSelect = document.getElementById("download_fps") as HTMLSelectElement;
+
 
 export const updateButtons = () => {
   const numSelectedItems = document.querySelectorAll('.marked-for-action').length;
@@ -21,9 +21,6 @@ export const updateButtons = () => {
   averageSelectedBtn.disabled = numSelectedItems < 2 || numSelectedItemsFinal !== 0;
   gifSelectedBtn.disabled = numSelectedItems < 2 || numSelectedItemsFinal !== 0;
   rgbSelectedBtn.disabled = numSelectedItems !== 3 || numSelectedItemsFinal !== 0;
-
-  scaleSelect.value = localStorage.getItem(LOCALSTORAGE_SCALE_KEY) || '1';
-  fpsSelect.value = localStorage.getItem(LOCALSTORAGE_FPS_KEY) || '12';
 }
 
 interface Dimensions {
@@ -112,7 +109,7 @@ export const initButtons = (store: DbAccess) => {
     const dimensions = getCommonSize(items);
 
     if (!dimensions) {
-      alert("Image dimensions must be the same to create an average");
+      showToast('Image dimensions must be the same for all selected images to create an average');
       return;
     }
 
@@ -159,6 +156,7 @@ export const initButtons = (store: DbAccess) => {
   gifSelectedBtn.addEventListener('click', async () => {
     const items = [...gallery.querySelectorAll('.marked-for-action')] as HTMLDivElement[];
     const fps = parseInt(localStorage.getItem(LOCALSTORAGE_FPS_KEY) || '12', 10);
+    const dir = localStorage.getItem(LOCALSTORAGE_GIF_DIR_KEY) as Direction || Direction.FORWARD;
 
     if (items.length < 2) {
       return;
@@ -171,7 +169,7 @@ export const initButtons = (store: DbAccess) => {
     const dimensions = getCommonSize(images);
 
     if (!dimensions) {
-      alert("Image dimensions must be the same to create an animation");
+      showToast('Image dimensions must be the same for all selected images to create an animation');
       return;
     }
 
@@ -184,7 +182,27 @@ export const initButtons = (store: DbAccess) => {
       return ctx.getImageData(0, 0, canvas.width, canvas.height);
     });
 
-    unselectAll();
+    switch (dir) {
+      case Direction.FORWARD:
+        break;
+
+      case Direction.REVERSE:
+        frames.reverse();
+        break;
+
+      case Direction.YOYO: {
+        console.log(frames);
+        if (frames.length > 2) {
+          frames.push(...frames.slice(1, -1).reverse());
+        }
+        console.log(frames);
+        break;
+      }
+
+      default:
+        break;
+    }
+
 
     const timestamp = Date.now();
     store.add({
@@ -192,6 +210,8 @@ export const initButtons = (store: DbAccess) => {
       timestamp,
       data: imageDatasToBlob(frames, fps),
     });
+
+    unselectAll();
   });
 
   rgbSelectedBtn.addEventListener('click', async () => {
@@ -208,7 +228,7 @@ export const initButtons = (store: DbAccess) => {
     const dimensions = getCommonSize(images);
 
     if (!dimensions) {
-      alert("Image dimensions must be the same to create a RGB image");
+      showToast('Image dimensions must be the same for all selected images to create a RGB image');
       return;
     }
 
@@ -246,17 +266,6 @@ export const initButtons = (store: DbAccess) => {
     });
 
     unselectAll();
-  });
-
-
-  scaleSelect.addEventListener('change', () => {
-    const scale = parseInt(scaleSelect.value || '0', 10) || 1;
-    localStorage.setItem(LOCALSTORAGE_SCALE_KEY, scale.toString(10));
-  });
-
-  fpsSelect.addEventListener('change', () => {
-    const fps = parseInt(fpsSelect.value || '0', 10) || 12;
-    localStorage.setItem(LOCALSTORAGE_FPS_KEY, fps.toString(10));
   });
 
   updateButtons();
