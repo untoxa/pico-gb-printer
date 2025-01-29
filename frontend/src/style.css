@@ -27,7 +27,7 @@ header {
   flex-wrap: wrap;
   flex-direction: row;
   justify-content: center;
-  gap: 8px;
+  gap: 5px;
   position: sticky;
   top: 0;
   z-index: 1;
@@ -54,15 +54,15 @@ a.button {
 
 .buttons button,
 .buttons a.button {
-  height: 60px;
-  width: 60px;
+  height: 56px;
+  width: 56px;
   padding: 4px;
   gap: 2px;
 }
 
 button span.title,
 a.button span.title {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 #settings {
