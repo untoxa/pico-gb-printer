@@ -191,11 +191,9 @@ export const initButtons = (store: DbAccess) => {
         break;
 
       case Direction.YOYO: {
-        console.log(frames);
         if (frames.length > 2) {
           frames.push(...frames.slice(1, -1).reverse());
         }
-        console.log(frames);
         break;
       }
 
