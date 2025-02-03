@@ -206,7 +206,7 @@ export const initButtons = (store: DbAccess) => {
     store.add({
       type: DataType.BLOB,
       timestamp,
-      data: imageDatasToBlob(frames, fps),
+      data: await imageDatasToBlob(frames, fps),
     });
 
     unselectAll();
