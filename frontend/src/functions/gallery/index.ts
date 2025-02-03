@@ -14,8 +14,7 @@ export const initGallery = async (store: DbAccess) => {
 
   const gallery = document.getElementById("gallery") as HTMLDivElement;
 
-  const storedImages = (await store.getAll())
-    ;
+  const storedImages = await store.getAll();
 
   const handleImageDatas = async (imageDatas: ImageData[], timestamp: number,) => {
     for(const imageData of imageDatas) {
