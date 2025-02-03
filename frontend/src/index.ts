@@ -15,7 +15,7 @@ import './style.css';
       await webappConnect(store, window.opener);
     }
   } else {
-    await initSettings();
+    await initSettings(store);
     await initGallery(store);
   }
 

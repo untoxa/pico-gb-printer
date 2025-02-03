@@ -1,4 +1,9 @@
-import {TILE_HEIGHT, TILE_SIZE} from '../../consts.ts';
+import {
+  ExposureMode,
+  LOCALSTORAGE_EXPOSURE_MODE_KEY,
+  TILE_HEIGHT,
+  TILE_SIZE,
+} from '../../consts.ts';
 
 export const resizeCanvas = (canvas: HTMLCanvasElement, new_w: number, new_h: number) => {
   const ctx = canvas.getContext("2d", { willReadFrequently: true }) as CanvasRenderingContext2D;
@@ -18,11 +23,38 @@ export const render = (
   palette: number,
   exposure: number,
 ): boolean => {
+
+  let usedExposure: number;
+
+  switch ((localStorage.getItem(LOCALSTORAGE_EXPOSURE_MODE_KEY) || ExposureMode.PRINTED) as ExposureMode) {
+    case ExposureMode.LIGHT:
+      usedExposure = 128;
+      break;
+
+    case ExposureMode.MEDIUM:
+      usedExposure = 169;
+      break;
+
+    case ExposureMode.DARK:
+      usedExposure = 216;
+      break;
+
+    case ExposureMode.BLACK:
+      usedExposure = 255;
+      break;
+
+
+    case ExposureMode.PRINTED:
+    default:
+      usedExposure = exposure;
+      break;
+  }
+
   const pal = new Uint8Array(4);
-  pal[0] = ((exposure * ((palette >> 0) & 0x03)) / 3) >> 0;
-  pal[1] = ((exposure * ((palette >> 2) & 0x03)) / 3) >> 0;
-  pal[2] = ((exposure * ((palette >> 4) & 0x03)) / 3) >> 0;
-  pal[3] = ((exposure * ((palette >> 6) & 0x03)) / 3) >> 0;
+  pal[0] = ((usedExposure * ((palette >> 0) & 0x03)) / 3) >> 0;
+  pal[1] = ((usedExposure * ((palette >> 2) & 0x03)) / 3) >> 0;
+  pal[2] = ((usedExposure * ((palette >> 4) & 0x03)) / 3) >> 0;
+  pal[3] = ((usedExposure * ((palette >> 6) & 0x03)) / 3) >> 0;
 
   let tile_y = ((canvas.height / TILE_HEIGHT) >> 0);
   let tile_x = 0;
