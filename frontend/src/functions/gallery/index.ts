@@ -47,15 +47,14 @@ const handleDownloadData = async (dlData: DownloadData, store: DbAccess) => {
 export const updateGallery = async (allImages: DownloadData[], store: DbAccess, forceAll: boolean): Promise<void> => {
   const gallery = document.getElementById('gallery') as HTMLDivElement;
 
+  if (forceAll) {
+    gallery.innerHTML = '';
+  }
+
   // Add new ones
   for (const dlData of allImages) {
     const existingNode = gallery.querySelector(`[data-timestamp="${dlData.timestamp}"]`);
-
-    if (forceAll && existingNode) {
-      existingNode.remove();
-    }
-
-    if ((forceAll && existingNode) || !existingNode) {
+    if (forceAll || !existingNode) {
       await handleDownloadData(dlData, store);
     }
   }
