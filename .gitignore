@@ -5,3 +5,4 @@ unused
 gen_build.bat
 fs/
 frontend/node_modules
+.artifacts

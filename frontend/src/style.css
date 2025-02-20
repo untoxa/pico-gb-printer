@@ -66,7 +66,7 @@ a.button span.title {
 }
 
 #settings {
-  position: absolute;
+  position: fixed;
   top: 0;
   display: flex;
   flex-direction: column;
@@ -86,9 +86,9 @@ a.button span.title {
   left: 0;
 }
 
-#settings_backdrop {
+.backdrop {
   z-index: 2;
-  position: absolute;
+  position: fixed;
   top: 0;
   left: -100vw;
   width: 100vw;
@@ -98,7 +98,7 @@ a.button span.title {
   transition: opacity 300ms ease-in-out, left 0ms linear 300ms;
 }
 
-#settings_backdrop.visible {
+.backdrop.visible {
   opacity: 30%;
   left: 0;
   transition: opacity 300ms ease-in-out, left 0ms linear 0ms;
@@ -306,6 +306,30 @@ h1 {
   line-height: 18px;
   max-width: 300px;
   cursor: pointer;
+}
+
+#progress {
+  width: 200px;
+  height: 20px;
+  position: fixed;
+  background: #ffffff;
+  top: 30vh;
+  left: calc(50vw - 100px);
+  z-index: 3;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid #999999;
+  display: none;
+}
+
+#progress_backdrop.visible ~ #progress {
+  display: block;
+}
+
+.progress-inner {
+  width: 0;
+  height: 100%;
+  background: #333333;
 }
 
 ::-webkit-scrollbar { width: 8px; }
