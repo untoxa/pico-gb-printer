@@ -1,8 +1,19 @@
-import { updateButtons } from './buttons.ts';
+import { SortOrder } from '../../consts.ts';
 import { downloadImage } from '../saveImage.ts';
+import { getSortOrder } from '../settings';
+import { updateButtons } from './buttons.ts';
 import { updateSelectionOrder } from './selectionOrder.ts';
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
+
+const addImage = (image: HTMLDivElement): void => {
+  console.log(gallery.firstElementChild);
+  if (getSortOrder() === SortOrder.ASCENDING && gallery.firstElementChild) {
+    gallery.insertBefore(image, gallery.firstElementChild);
+  } else {
+    gallery.appendChild(image);
+  }
+};
 
 const createGalleryItem = (imgSrc: string, timestamp: number, isFinal: boolean) => {
   const imageContainer = document.createElement('div');
@@ -44,7 +55,7 @@ const createGalleryItem = (imgSrc: string, timestamp: number, isFinal: boolean) 
   });
   imageContainer.appendChild(btn);
 
-  gallery.appendChild(imageContainer);
+  addImage(imageContainer);
   updateButtons();
 }
 

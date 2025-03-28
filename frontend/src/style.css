@@ -153,7 +153,7 @@ a.button span.title {
 }
 
 a.button:not(:disabled):hover,
-button:not(:disabled):hover {
+button:not(:disabled, .backdrop):hover {
   cursor: pointer;
   background: #a0a0a0;
 }
