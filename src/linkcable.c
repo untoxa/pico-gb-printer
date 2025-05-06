@@ -5,11 +5,7 @@
 
 #include "linkcable.h"
 
-#ifdef STACKSMASHING
-    #include "linkcable_sm.pio.h"
-#else
-    #include "linkcable.pio.h"
-#endif
+#include "linkcable.pio.h"
 
 static irq_handler_t linkcable_irq_handler = NULL;
 static uint32_t linkcable_pio_initial_pc = 0;
@@ -29,11 +25,8 @@ void linkcable_reset(void) {
 }
 
 void linkcable_init(irq_handler_t onDataReceive) {
-#ifdef STACKSMASHING
-    linkcable_sm_program_init(LINKCABLE_PIO, LINKCABLE_SM, linkcable_pio_initial_pc = pio_add_program(LINKCABLE_PIO, &linkcable_sm_program));
-#else
-    linkcable_program_init(LINKCABLE_PIO, LINKCABLE_SM, linkcable_pio_initial_pc = pio_add_program(LINKCABLE_PIO, &linkcable_program), CABLE_PINS_START);
-#endif
+    linkcable_program_init(LINKCABLE_PIO, LINKCABLE_SM, linkcable_pio_initial_pc = pio_add_program(LINKCABLE_PIO, &linkcable_program));
+
 //    pio_sm_put_blocking(LINKCABLE_PIO, LINKCABLE_SM, LINKCABLE_BITS - 1);
     pio_enable_sm_mask_in_sync(LINKCABLE_PIO, (1u << LINKCABLE_SM));
 

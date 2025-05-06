@@ -1,44 +1,54 @@
+// Default pin configuration
+.define PUBLIC PIN_SCK     2
+.define PUBLIC PIN_SIN     0
+.define PUBLIC PIN_SOUT    3
+
+//// STACKSMASHING BOARD
+// .define PUBLIC PIN_SCK     0
+// .define PUBLIC PIN_SIN     1
+// .define PUBLIC PIN_SOUT    2
+
 ; Program name
 .program linkcable
 
 .wrap_target
     set  x, 6
-    wait 0 pin 2 [0]        ; wait for falling edge
-    pull noblock            ; pull value for transmission from pico
-    out null, 24            ; shift left by 24
-    out pins, 1             ; out the MSB bit
-    wait 1 pin 2 [2]        ; wait for rising edge
+    wait 0 gpio PIN_SCK [0]     ; wait for falling edge
+    pull noblock                ; pull value for transmission from pico
+    out null, 24                ; shift left by 24
+    out pins, 1                 ; out the MSB bit
+    wait 1 gpio PIN_SCK [2]     ; wait for rising edge
 bitloop:
-        in pins, 1          ; input rest of the bits one by one
-        wait 0 pin 2 [2]    ; wait for falling edge
-        out pins, 1         ; output rest of the bits one by one
-        wait 1 pin 2 [1]    ; wait for rising edge
-    jmp x-- bitloop         ; loop through the rest of the bits
-    in pins, 1              ; input MSB bit
-    push noblock            ; push the received value to pico
+        in pins, 1              ; input bit
+        wait 0 gpio PIN_SCK [2] ; wait for falling edge
+        out pins, 1             ; output rest of the bits one by one
+        wait 1 gpio PIN_SCK [1] ; wait for rising edge
+    jmp x-- bitloop             ; loop through the rest of the bits
+    in pins, 1                  ; input rest of the bits one by one
+    push noblock                ; push the received value to pico
     irq 0
 .wrap
 
 % c-sdk {
-/*
-#define PIN_SIN             0
-#define PIN_SCK             2
-#define PIN_SOUT            3
-*/
-static inline void linkcable_program_init(PIO pio, uint sm, uint offset, uint pin) {
+
+static inline void linkcable_program_init(PIO pio, uint sm, uint offset) {
     pio_sm_config c = linkcable_program_get_default_config(offset);
 
-    sm_config_set_in_pins(&c, pin);
-    pio_sm_set_consecutive_pindirs(pio, sm, pin, 3, false);
+    pio_sm_set_consecutive_pindirs(pio, sm, PIN_SCK, 1, false);
+
+    sm_config_set_in_pins(&c, PIN_SIN);
+    pio_sm_set_consecutive_pindirs(pio, sm, PIN_SIN, 1, false);
     sm_config_set_in_shift(&c, false, false, LINKCABLE_BITS);
 
-    sm_config_set_out_pins(&c, pin + 3, 1);
-    pio_sm_set_consecutive_pindirs(pio, sm, pin + 3, 1, true);
+    sm_config_set_out_pins(&c, PIN_SOUT, 1);
+    pio_sm_set_consecutive_pindirs(pio, sm, PIN_SOUT, 1, true);
     sm_config_set_out_shift(&c, false, false, LINKCABLE_BITS);
 
 //    sm_config_set_clkdiv(&c, 5);                // Set clock division (Commented out, this one runs at full speed)
 
-    for (uint i = 0; i != 4; i++) pio_gpio_init(pio, pin + i);
+    pio_gpio_init(pio, PIN_SCK);
+    pio_gpio_init(pio, PIN_SIN);
+    pio_gpio_init(pio, PIN_SOUT);
 
     pio_sm_init(pio, sm, offset, &c);
 
