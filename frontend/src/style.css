@@ -27,11 +27,11 @@ header {
   flex-wrap: wrap;
   flex-direction: row;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
   position: sticky;
   top: 0;
   z-index: 1;
-  padding: 8px;
+  padding: 8px 2px;
   background: #ffffffe0;
 }
 
@@ -54,9 +54,9 @@ a.button {
 
 .buttons button,
 .buttons a.button {
-  height: 56px;
-  width: 56px;
-  padding: 4px;
+  height: 51px;
+  width: 51px;
+  padding: 1px;
   gap: 2px;
 }
 
@@ -330,6 +330,67 @@ h1 {
   width: 0;
   height: 100%;
   background: #333333;
+}
+
+#live_view {
+  padding: 48px 8px 8px 8px;
+  position: fixed;
+  background: #ffffff;
+  top: 30vh;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0 auto;
+  z-index: 3;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid #999999;
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#live_view_close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  width: 48px;
+  height: 48px;
+}
+
+#live_view canvas {
+  image-rendering: pixelated;
+  background: black;
+  display: block;
+  margin: 0 auto;
+}
+
+#live_view_buttons {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
+
+#live_view_buttons svg {
+  display: block;
+}
+
+#live_view_buttons button {
+  flex: auto 1 1;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  font-size: 14px;
+}
+
+#live_view_record .record { display: block; }
+#live_view_record .pause { display: none; }
+#live_view_record.recording .record { display: none; }
+#live_view_record.recording .pause { display: block; }
+
+#live_view_backdrop.visible ~ #live_view {
+  display: flex;
 }
 
 ::-webkit-scrollbar { width: 8px; }

@@ -71,8 +71,12 @@ export const downloadDataToImageData = async (downloadData: DownloadDataRaw): Pr
         ptr = decode(false, resData, data_size, len, idx, processed_data, ptr);
         idx += len;
         render(canvas, processed_data, current_image_start, ptr, CAMERA_WIDTH, 0x03, 0xE4, 0xFF);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        imageDatas.push(imageData);
+
+        if (canvas.width * canvas.height !== 0) {
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          imageDatas.push(imageData);
+        }
+
         resetCanvas(canvas);
         buffer_start = ptr;
         break;

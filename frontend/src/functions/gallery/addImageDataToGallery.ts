@@ -7,7 +7,6 @@ import { updateSelectionOrder } from './selectionOrder.ts';
 const gallery = document.getElementById("gallery") as HTMLDivElement;
 
 const addImage = (image: HTMLDivElement): void => {
-  console.log(gallery.firstElementChild);
   if (getSortOrder() === SortOrder.ASCENDING && gallery.firstElementChild) {
     gallery.insertBefore(image, gallery.firstElementChild);
   } else {
