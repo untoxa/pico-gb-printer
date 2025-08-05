@@ -365,13 +365,29 @@ h1 {
   margin: 0 auto;
 }
 
-#live_view_capture {
+#live_view_buttons {
   width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
+
+#live_view_buttons svg {
+  display: block;
+}
+
+#live_view_buttons button {
+  flex: auto 1 1;
   display: flex;
   flex-direction: row;
   gap: 8px;
   font-size: 14px;
 }
+
+#live_view_record .record { display: block; }
+#live_view_record .pause { display: none; }
+#live_view_record.recording .record { display: none; }
+#live_view_record.recording .pause { display: block; }
 
 #live_view_backdrop.visible ~ #live_view {
   display: flex;
