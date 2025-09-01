@@ -42,10 +42,11 @@ bitloop:
     set pindirs, 1
 bitloop:
         set pins, 0
-        out pins, 1 [10]
+        out pins, 1 [8]
         set pins, 1
-        in pins, 1 [8]
+        in pins, 1 [7]
     jmp x-- bitloop             ; loop through the rest of the bits
+    nop [10]
     set pindirs, 0
     push noblock
 .wrap

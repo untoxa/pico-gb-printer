@@ -17,7 +17,7 @@ void linkcable_init(irq_handler_t onReceive);
 void linkcable_reset(bool enable);
 
 static inline void linkcable_slave_suspend(bool suspend) {
-    linkcable_slave_enabled = !suspend;
+    linkcable_reset(linkcable_slave_enabled = !suspend);
 }
 
 static inline uint8_t linkcable_slave_receive(void) {
