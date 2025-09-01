@@ -29,10 +29,7 @@
 // PXLR-Studio-next transfer
 #define CAM_COMMAND_TRANSFER    0x10
 
-// blink led
-#define PRINT_PROGRESS_LED
-
-enum printer_state {
+typedef enum {
     PRN_STATE_WAIT_FOR_SYNC_1,
     PRN_STATE_WAIT_FOR_SYNC_2,
     PRN_STATE_COMMAND,
@@ -44,7 +41,7 @@ enum printer_state {
     PRN_STATE_CHECKSUM_2,
     PRN_STATE_DEVICE_ID,
     PRN_STATE_STATUS
-};
+} printer_state_e;
 
 uint8_t protocol_data_init();
 uint8_t protocol_data_process(uint8_t data_in);

@@ -4,7 +4,7 @@
 #include "gb_printer.h"
 #include "globals.h"
 
-volatile enum printer_state printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
+volatile printer_state_e printer_state = PRN_STATE_WAIT_FOR_SYNC_1;
 
 #define PRINTER_RESET           (printer_state = PRN_STATE_WAIT_FOR_SYNC_1)
 
@@ -91,9 +91,6 @@ uint8_t protocol_data_process(uint8_t data_in) {
             receive_byte_counter = 0;
             break;
         case PRN_STATE_DATA:
-#ifdef PRINT_PROGRESS_LED
-            if ((receive_byte_counter & 0x3F) == 0) LED_TOGGLE;
-#endif
             if(++receive_byte_counter == packet_data_length) printer_state = PRN_STATE_CHECKSUM_1;
             receive_data_write(data_in);
             switch (printer_command) {
@@ -110,9 +107,6 @@ uint8_t protocol_data_process(uint8_t data_in) {
             break;
         case PRN_STATE_CHECKSUM_1:
             printer_checksum = data_in, printer_state = PRN_STATE_CHECKSUM_2;
-#ifdef PRINT_PROGRESS_LED
-            LED_OFF;
-#endif
             break;
         case PRN_STATE_CHECKSUM_2:
             printer_checksum |= ((uint16_t)data_in << 8);

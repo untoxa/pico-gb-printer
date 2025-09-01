@@ -1,5 +1,5 @@
 #include "pico/stdlib.h"
-#include "time.h"
+#include "pico/time.h"
 #include "pico/bootrom.h"
 #include "hardware/timer.h"
 #include "hardware/clocks.h"
@@ -15,17 +15,19 @@
 #include "gb_printer.h"
 #include "linkcable.h"
 #include "datablocks.h"
+#include "remote.h"
 
 bool debug_enable = ENABLE_DEBUG;
-bool speed_240_MHz = false;
 
 uint8_t file_buffer[FILE_BUFFER_SIZE];              // buffer for rendering of status json
 
 datafile_t * allocated_file = NULL;
 uint32_t last_file_len = 0;
 uint32_t picture_count = 0;
+bool is_printing = false;
 
 void receive_data_reset(void) {
+    is_printing = false;
     if (!allocated_file) return;
     last_file_len = allocated_file->size;
     if (push_file(allocated_file)) picture_count++;
@@ -66,28 +68,34 @@ void receive_data_commit(uint8_t cmd) {
 }
 
 // link cable
+bool next_reset = false;
 bool link_cable_data_received = false;
 void link_cable_ISR(void) {
-    linkcable_send(protocol_data_process(linkcable_receive()));
-    link_cable_data_received = true;
+    if (linkcable_slave_enabled) {
+        linkcable_slave_send(protocol_data_process(linkcable_slave_receive()));
+        link_cable_data_received = true;
+        is_printing = true;
+    }
 }
 
 int64_t link_cable_watchdog(alarm_id_t id, void *user_data) {
-    if (!link_cable_data_received) {
-        linkcable_reset();
-        protocol_reset();
-        receive_data_reset();
-    } else link_cable_data_received = false;
+    next_reset = true;
     return MS(300);
+}
+
+bool next_key = false;
+int64_t remote_control(alarm_id_t id, void *user_data) {
+    next_key = true;
+    return MS(17);
 }
 
 // key button
 #ifdef PIN_KEY
+uint8_t keyboard = 0;
 static void key_callback(uint gpio, uint32_t events) {
-    linkcable_reset();
-    protocol_reset();
-    receive_data_reset();
-    LED_OFF;
+    if (events & GPIO_IRQ_EDGE_RISE) keyboard |= J_A;
+    if (events & GPIO_IRQ_EDGE_FALL) keyboard &= ~J_A;
+    keys_push(keyboard);
 }
 #endif
 
@@ -123,12 +131,24 @@ static const char *cgi_reset_usb_boot(int iIndex, int iNumParams, char *pcParam[
     return ROOT_PAGE;
 }
 
+static const char *cgi_click(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
+    for (uint32_t i = 0; i != iNumParams; ++i) {
+        if (strcmp(pcParam[i], "btn") == 0) {
+            keys_push(atoi(pcValue[i]));
+            keys_push(J_NONE);
+            break;
+        }
+    }
+    return STATUS_FILE;
+}
+
 static const tCGI cgi_handlers[] = {
     { "/options",           cgi_options },
     { "/download",          cgi_download },
     { "/dumps/list",        cgi_list },
     { "/reset",             cgi_reset },
-    { "/reset_usb_boot",    cgi_reset_usb_boot }
+    { "/reset_usb_boot",    cgi_reset_usb_boot },
+    { "/click",             cgi_click }
 };
 
 int fs_open_custom(struct fs_file *file, const char *name) {
@@ -205,7 +225,7 @@ int main(void) {
     // set up key
     gpio_init(PIN_KEY);
     gpio_set_dir(PIN_KEY, GPIO_IN);
-    gpio_set_irq_enabled_with_callback(PIN_KEY, GPIO_IRQ_EDGE_RISE, true, &key_callback);
+    gpio_set_irq_enabled_with_callback(PIN_KEY, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &key_callback);
 #endif
 
     // Initialize tinyusb, lwip, dhcpd, dnsd and httpd
@@ -220,10 +240,28 @@ int main(void) {
     linkcable_init(link_cable_ISR);
 
     add_alarm_in_us(MS(300), link_cable_watchdog, NULL, true);
+    add_alarm_in_us(MS(17), remote_control, NULL, true);
 
     LED_OFF;
 
     while (true) {
+        // print status
+        if (is_printing) LED_ON; else LED_OFF;
+        // process remote control
+        static uint8_t keys;
+        if (next_key) {
+            if (!is_printing && keys_pop(&keys)) remote_send(keys);
+            next_key = false;
+        }
+        // process linkcable reset watchdog
+        if (next_reset) {
+            if (!link_cable_data_received) {
+                linkcable_reset(true);
+                protocol_reset();
+                receive_data_reset();
+            } else link_cable_data_received = false;
+            next_reset = false;
+        }
         // process USB
         tud_task();
         // process WEB
