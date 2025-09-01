@@ -8,14 +8,14 @@
 #include "linkcable.pio.h"
 
 bool speed_240_MHz = false;
-bool linkcable_slave_enabled = true;
+volatile bool linkcable_slave_enabled = true;
 
 static irq_handler_t linkcable_irq_handler = NULL;
 static uint32_t linkcable_pio_slave_pc = 0;
 static uint32_t linkcable_pio_master_pc = 0;
 
 static void linkcable_isr(void) {
-    if (linkcable_irq_handler) linkcable_irq_handler();
+    if ((linkcable_irq_handler) && (linkcable_slave_enabled)) linkcable_irq_handler();
     if (pio_interrupt_get(LINKCABLE_PIO, 0)) pio_interrupt_clear(LINKCABLE_PIO, 0);
 }
 

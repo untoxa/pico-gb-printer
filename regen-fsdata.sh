@@ -1,5 +1,10 @@
 #!/bin/sh
 
+echo Compiling frontend
+cd frontend
+npm run build
+cd ..
+
 if [ ! -f makefsdata ]; then
     # Doing this outside cmake as we don't want it cross-compiled but for host
     echo Compiling makefsdata

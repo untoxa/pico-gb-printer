@@ -51,8 +51,6 @@ void remote_send(uint8_t keys) {
         data = STOP | ID_PAD | (keys & 0x0f);
         data |= (((keys >> 0) ^ (keys >> 1) ^ (keys >> 2) ^ (keys >> 3)) & 0x01) << 4;
         transmit_data(data);
-
-        if ((keys ^ old_keys) & 0xf0) sleep_ms(4);
     }
     if ((keys ^ old_keys) & 0xf0) {
         data = STOP | ID_KEY | ((keys >> 4) & 0x0f);

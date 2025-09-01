@@ -71,11 +71,9 @@ void receive_data_commit(uint8_t cmd) {
 bool next_reset = false;
 bool link_cable_data_received = false;
 void link_cable_ISR(void) {
-    if (linkcable_slave_enabled) {
-        linkcable_slave_send(protocol_data_process(linkcable_slave_receive()));
-        link_cable_data_received = true;
-        is_printing = true;
-    }
+    linkcable_slave_send(protocol_data_process(linkcable_slave_receive()));
+    link_cable_data_received = true;
+    is_printing = true;
 }
 
 int64_t link_cable_watchdog(alarm_id_t id, void *user_data) {
@@ -91,11 +89,9 @@ int64_t remote_control(alarm_id_t id, void *user_data) {
 
 // key button
 #ifdef PIN_KEY
-uint8_t keyboard = 0;
 static void key_callback(uint gpio, uint32_t events) {
-    if (events & GPIO_IRQ_EDGE_RISE) keyboard |= J_A;
-    if (events & GPIO_IRQ_EDGE_FALL) keyboard &= ~J_A;
-    keys_push(keyboard);
+    keys_push(J_A);
+    keys_push(J_NONE);
 }
 #endif
 
@@ -215,8 +211,8 @@ int main(void) {
 #ifdef LED_PIN
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
-#endif
     LED_ON;
+#endif
 
     // reset file and block allocation
     reset_data_blocks();
@@ -225,7 +221,7 @@ int main(void) {
     // set up key
     gpio_init(PIN_KEY);
     gpio_set_dir(PIN_KEY, GPIO_IN);
-    gpio_set_irq_enabled_with_callback(PIN_KEY, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &key_callback);
+    gpio_set_irq_enabled_with_callback(PIN_KEY, GPIO_IRQ_EDGE_FALL, true, &key_callback);
 #endif
 
     // Initialize tinyusb, lwip, dhcpd, dnsd and httpd
@@ -242,11 +238,15 @@ int main(void) {
     add_alarm_in_us(MS(300), link_cable_watchdog, NULL, true);
     add_alarm_in_us(MS(17), remote_control, NULL, true);
 
+#ifdef LED_PIN
     LED_OFF;
+#endif
 
     while (true) {
+#ifdef LED_PIN
         // print status
         if (is_printing) LED_ON; else LED_OFF;
+#endif
         // process remote control
         static uint8_t keys;
         if (next_key) {
