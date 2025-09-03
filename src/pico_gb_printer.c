@@ -218,11 +218,8 @@ int main(void) {
     speed_240_MHz = set_sys_clock_khz(240000, false);
 
     // For toggle_led
-#ifdef LED_PIN
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
+    LED_INIT;
     LED_ON;
-#endif
 
     // reset file and block allocation
     reset_data_blocks();
@@ -250,9 +247,7 @@ int main(void) {
     add_alarm_in_us(MS(300), link_cable_watchdog, NULL, true);
     add_alarm_in_us(MS(17), remote_control, NULL, true);
 
-#ifdef LED_PIN
     LED_OFF;
-#endif
 
     while (true) {
 #ifdef LED_PIN
