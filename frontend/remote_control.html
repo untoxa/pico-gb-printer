@@ -105,6 +105,11 @@
       background-color: #b25;
       color: #eab;
       font-size: calc(0.5 * var(--unit));
+      padding: 0;
+    }
+
+    .ab span {
+      translate: 0 calc(-0.03 * var(--unit));
     }
 
     .remote-button.ab:not(:disabled):hover {
@@ -185,8 +190,8 @@
     <button title="Down" class="remote-button dpad" id="ddown"></button>
     <button title="Select" class="remote-button startselect" id="select">Select</button>
     <button title="Start" class="remote-button startselect" id="start">Start</button>
-    <button title="B" class="remote-button ab" id="btnb">B</button>
-    <button title="A" class="remote-button ab" id="btna">A</button>
+    <button title="B" class="remote-button ab" id="btnb"><span>B</span></button>
+    <button title="A" class="remote-button ab" id="btna"><span>A</span></button>
     <button tabindex="-1" class="remote-button dpad" id="dcenter"></button>
   </div>
 </main>
