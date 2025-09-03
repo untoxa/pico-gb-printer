@@ -29,7 +29,11 @@ export default defineConfig({
       configureServer(server) {
         server.middlewares.use(async (req, res, next) => {
           const targetUrl = 'http://192.168.7.1';
-          if (['/download', '/status.json'].includes(req.url)) {
+          if (
+            req.url === '/download' ||
+            req.url === '/status.json' ||
+            req.url.startsWith('/click')
+          ) {
             try {
               const url = `${targetUrl}${req.url}`;
               const targetResponse = await $fetch.raw(url, { method: 'GET', responseType: 'arrayBuffer', ignoreResponseError: true });
