@@ -19,14 +19,20 @@
   <meta name="theme-color" content="#ece6e6">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    :root {
-      --unit: 12vmin;
-    }
 
     body {
       margin: 0;
     }
 
+    :root {
+      --unit: 12vw;
+    }
+
+    @media (min-aspect-ratio: 16/11) {
+      :root {
+        --unit: 18vh;
+      }
+    }
 
     #header {
       position: absolute;
@@ -43,6 +49,12 @@
       justify-content: center;
       align-items: center;
     }
+
+    /*@media (min-aspect-ratio: 16/11) {*/
+    /*  .wrapper {*/
+    /*    margin: calc(0.8 * var(--unit)) 0;*/
+    /*  }*/
+    /*}*/
 
     .remote-buttons {
       position: relative;
