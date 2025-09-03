@@ -91,6 +91,7 @@ int64_t remote_control(alarm_id_t id, void *user_data) {
 uint8_t keyboard = 0;
 const uint8_t keyboard_pins[32] = {
     [PIN_A]       = J_A,
+    [PIN_A_ALT]   = J_A,
     [PIN_B]       = J_B,
     [PIN_START]   = J_START,
     [PIN_SELECT]  = J_SELECT,
