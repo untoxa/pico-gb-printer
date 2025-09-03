@@ -65,6 +65,12 @@
       z-index: 2;
     }
 
+    .remote-button:disabled {
+      background: #b7b7b7;
+      color: #999999;
+      opacity: 0.8;
+    }
+
     .remote-button:focus-visible {
       opacity: 0.7;
       z-index: 1;
@@ -78,10 +84,18 @@
       border-radius: 8px;
     }
 
+    .remote-button.dpad:not(:disabled):hover {
+      background-color: #2b2b2b;
+    }
+
     .startselect {
       width: var(--unit);
       height: calc(0.6 * var(--unit));
       font-size: calc(0.2 * var(--unit));
+    }
+
+    .remote-button.startselect:not(:disabled):hover {
+      background-color: #cdcdcd;
     }
 
     .ab {
@@ -91,6 +105,10 @@
       background-color: #b25;
       color: #eab;
       font-size: calc(0.5 * var(--unit));
+    }
+
+    .remote-button.ab:not(:disabled):hover {
+      background-color: #df6a92;
     }
 
     #dup {
@@ -127,6 +145,10 @@
       border-radius: 0;
     }
 
+    #dcenter:not(:disabled):hover {
+      background: #000;
+    }
+
     #select {
       top: calc(3 * var(--unit));
       left: calc(3 * var(--unit));
@@ -161,11 +183,11 @@
     <button title="Left" class="remote-button dpad" id="dleft"></button>
     <button title="Right" class="remote-button dpad" id="dright"></button>
     <button title="Down" class="remote-button dpad" id="ddown"></button>
-    <button disabled class="remote-button dpad" id="dcenter"></button>
     <button title="Select" class="remote-button startselect" id="select">Select</button>
     <button title="Start" class="remote-button startselect" id="start">Start</button>
     <button title="B" class="remote-button ab" id="btnb">B</button>
     <button title="A" class="remote-button ab" id="btna">A</button>
+    <button tabindex="-1" class="remote-button dpad" id="dcenter"></button>
   </div>
 </main>
 <script type="module" src="./src/index.ts"></script>
