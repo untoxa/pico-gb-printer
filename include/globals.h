@@ -9,7 +9,7 @@
 #define LED_PIN                 25
 #define LED_PIN_ALT             8
 #ifdef LED_PIN
-    #define LED_INIT            (gpio_init(LED_PIN), gpio_set_dir(LED_PIN, GPIO_OUT))
+    #define LED_INIT            (gpio_init(LED_PIN), gpio_set_dir(LED_PIN, GPIO_OUT), gpio_init(LED_PIN_ALT), gpio_set_dir(LED_PIN_ALT, GPIO_OUT))
     #define LED_SET(A)          (gpio_put(LED_PIN, (A)), gpio_put(LED_PIN_ALT, (A)))
     #define LED_ON              LED_SET(true)
     #define LED_OFF             LED_SET(false)
