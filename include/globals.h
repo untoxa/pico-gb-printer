@@ -19,11 +19,20 @@
 #endif
 
 // "Tear" button pin, undefine to disable
-#define PIN_KEY                 23
+#define PIN_A                   23
+#define PIN_B                   22
+#define PIN_START               21
+#define PIN_SELECT              20
+#define PIN_UP                  19
+#define PIN_DOWN                18
+#define PIN_LEFT                17
+#define PIN_RIGHT               16
 
 // time intervals
 #define MKS(A)                  (A)
 #define MS(A)                   ((A) * 1000)
 #define SEC(A)                  ((A) * 1000 * 1000)
+
+#define LENGTH(A)               (sizeof((A))/sizeof((A)[0]))
 
 #endif

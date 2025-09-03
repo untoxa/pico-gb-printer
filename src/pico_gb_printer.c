@@ -87,13 +87,22 @@ int64_t remote_control(alarm_id_t id, void *user_data) {
     return MS(17);
 }
 
-// key button
-#ifdef PIN_KEY
-static void key_callback(uint gpio, uint32_t events) {
-    keys_push(J_A);
-    keys_push(J_NONE);
+// remote control keyboard
+uint8_t keyboard = 0;
+const uint8_t keyboard_pins[32] = {
+    [PIN_A]       = J_A,
+    [PIN_B]       = J_B,
+    [PIN_START]   = J_START,
+    [PIN_SELECT]  = J_SELECT,
+    [PIN_UP]      = J_UP,
+    [PIN_DOWN]    = J_DOWN,
+    [PIN_LEFT]    = J_LEFT,
+    [PIN_RIGHT]   = J_RIGHT
+};
+static void keyboard_callback(uint gpio, uint32_t events) {
+    if (events == GPIO_IRQ_EDGE_RISE) keyboard |= keyboard_pins[(gpio & 0x1fu)]; else keyboard &= ~keyboard_pins[(gpio & 0x1fu)];
+    keys_push(keyboard);
 }
-#endif
 
 // Webserver dynamic handling
 #define ROOT_PAGE   "/index.html"
@@ -217,12 +226,14 @@ int main(void) {
     // reset file and block allocation
     reset_data_blocks();
 
-#ifdef PIN_KEY
-    // set up key
-    gpio_init(PIN_KEY);
-    gpio_set_dir(PIN_KEY, GPIO_IN);
-    gpio_set_irq_enabled_with_callback(PIN_KEY, GPIO_IRQ_EDGE_FALL, true, &key_callback);
-#endif
+    // set up keyboard
+    for (uint8_t i = 0; i != LENGTH(keyboard_pins); ++i) {
+        if (keyboard_pins[i]) {
+            gpio_init(i);
+            gpio_set_dir(i, GPIO_IN);
+            gpio_set_irq_enabled_with_callback(i, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &keyboard_callback);
+        }
+    }
 
     // Initialize tinyusb, lwip, dhcpd, dnsd and httpd
     init_lwip();
