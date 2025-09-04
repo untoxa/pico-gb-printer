@@ -15,22 +15,15 @@ Special thanks to Raphael-Boichot, please check this repo: https://github.com/Ra
 
 You will need a Raspberry Pi, 1/2 of the game boy link cable and a four-channel 5v to 3.3v level shifter. Connect parts as shown:
 
-<p align="center">
-  <img src="https://github.com/untoxa/pico-gb-printer/blob/main/schematics.png?raw=true"/>
-</p>
+![Schematic using a Raspberry Pi Pico](./schematics.png)
 
 This is the example of the ready-to-use device:
-
-<p align="center">
-  <img src="https://github.com/untoxa/pico-gb-printer/blob/main/device.jpg?raw=true"/>
-</p>
+![Example of a ready-to-use device](./device.jpg)
 
 As finding which is SIN and SOUT is sometimes tricky as signals are crossed within the serial cable, you can also make your own PCB with a Pi Zero and a GBC/GBA serial socket [following the guide here](https://github.com/Raphael-Boichot/Collection-of-PCB-for-Game-Boy-Printer-Emulators). Just [route the LED to GPIO 8](https://github.com/Raphael-Boichot/pico-gb-printer/blob/c10a31e7458818ecd8ce3af9a09c53344a659cd4/include/globals.h#L8C33-L8C35) and the [Pushbutton to GPIO9](https://github.com/Raphael-Boichot/pico-gb-printer/blob/c10a31e7458818ecd8ce3af9a09c53344a659cd4/include/globals.h#L21) to make it shine and cut paper !
 
-<p align="center">
-  <img src="https://github.com/Raphael-Boichot/pico-gb-printer/blob/main/PCB.png?raw=true"/>
-  <img src="https://github.com/Raphael-Boichot/pico-gb-printer/blob/main/Pi_Zero_shield.jpg?raw=true"/>
-</p>
+![Simple PCP](./PCB.png)
+![assembled PCB](./Pi_Zero_shield.jpg)
 
 ## Build dependencies
 
