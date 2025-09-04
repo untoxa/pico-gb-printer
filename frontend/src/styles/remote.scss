@@ -46,7 +46,6 @@ body[data-remote="controller"] .remote-wrapper {
   }
 }
 
-
 .remote-buttons {
   position: relative;
   width: calc(7.5 * var(--unit));
@@ -57,18 +56,19 @@ body[data-remote="controller"] .remote-wrapper {
   position: absolute;
   font-weight: bold;
   z-index: var(--z-index-remote-button); /*2*/
-}
+  transition: background-color 100ms linear;
 
-.remote-button:disabled {
-  background: #b7b7b7;
-  color: #999999;
-  opacity: 0.8;
-}
+  &:disabled {
+    background: #b7b7b7;
+    color: #999999;
+    opacity: 0.8;
+  }
 
-.remote-button:focus-visible {
-  opacity: 0.7;
-  z-index: var(--z-index-remote-button-visible); /*1*/
-  outline: calc(0.08 * var(--unit)) solid #fff;
+  &:focus-visible {
+    opacity: 0.7;
+    z-index: var(--z-index-remote-button-visible); /*1*/
+    outline: calc(0.08 * var(--unit)) solid #fff;
+  }
 }
 
 .dpad {
@@ -100,15 +100,16 @@ body[data-remote="controller"] .remote-wrapper {
   color: #eab;
   font-size: calc(0.5 * var(--unit));
   padding: 0;
+
+  span {
+    translate: 0 calc(-0.03 * var(--unit));
+  }
+
+  &:not(:disabled):hover {
+    background-color: #df6a92;
+  }
 }
 
-.ab span {
-  translate: 0 calc(-0.03 * var(--unit));
-}
-
-.remote-button.ab:not(:disabled):hover {
-  background-color: #df6a92;
-}
 
 #dup {
   top: 0;
@@ -166,4 +167,30 @@ body[data-remote="controller"] .remote-wrapper {
 #btna {
   top: calc(1.5 * var(--unit));
   left: calc(6.5 * var(--unit));
+}
+
+#btnshutter {
+  width: calc(1.5 * var(--unit));
+  height: calc(1.5 * var(--unit));
+  font-size: var(--unit);
+}
+
+.remote-shutter-wrapper {
+  position: fixed;
+  right: calc(-2.1 * var(--unit));
+  bottom: calc(3 * var(--unit));
+  transition: right 150ms ease-in-out;
+
+  svg {
+    width: 65%;
+    height: 65%;
+  }
+}
+
+body[data-remote="shutter"] .remote-shutter-wrapper {
+  right: calc(0.5 * var(--unit));
+}
+
+.remote-shutterbutton {
+
 }

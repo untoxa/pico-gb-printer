@@ -20,15 +20,11 @@ import './style.scss';
       break;
     }
 
-    case '/remote_control.html': {
-      await initRemoteControl();
-      break;
-    }
-
     default: {
       store = initLiveView(store);
       await initSettings(store);
       await initGallery(store);
+      await initRemoteControl();
     }
   }
 

@@ -9,6 +9,7 @@ const buttonSelect = document.getElementById('select') as HTMLButtonElement;
 const buttonStart = document.getElementById('start') as HTMLButtonElement;
 const buttonBtnb = document.getElementById('btnb') as HTMLButtonElement;
 const buttonBtna = document.getElementById('btna') as HTMLButtonElement;
+const buttonSingleShutter = document.getElementById('btnshutter') as HTMLButtonElement;
 
 const buttons = [
   buttonDup,
@@ -42,4 +43,5 @@ export const initRemoteControl = async () => {
   buttonStart.addEventListener('click', () => { sendClick(0x80); })
   buttonBtnb.addEventListener('click', () => { sendClick(0x20); })
   buttonBtna.addEventListener('click', () => { sendClick(0x10); })
+  buttonSingleShutter.addEventListener('click', () => { sendClick(0x10); })
 }

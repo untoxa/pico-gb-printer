@@ -6,7 +6,7 @@ import {
   LOCALSTORAGE_EXPOSURE_MODE_KEY,
   Direction,
   ExposureMode,
-  SortOrder,
+  SortOrder, LOCALSTORAGE_REMOTE_CONTROL_KEY, RemoteControl,
 } from '../../consts.ts';
 import { updateGallery } from '../gallery';
 import { DbAccess } from '../storage/database.ts';
@@ -19,6 +19,7 @@ const scaleSelect = document.getElementById('download_size') as HTMLSelectElemen
 const fpsSelect = document.getElementById('download_fps') as HTMLSelectElement;
 const gifDirection = document.getElementById('gif_direction') as HTMLSelectElement;
 const exposureMode = document.getElementById('exposure_mode') as HTMLSelectElement;
+const remoteControl = document.getElementById('remote_control') as HTMLSelectElement;
 const settingsBtn = document.getElementById('open_settings') as HTMLButtonElement;
 
 export const getSortOrder = (): SortOrder => {
@@ -37,6 +38,9 @@ const updateSettings = () => {
   fpsSelect.value = localStorage.getItem(LOCALSTORAGE_FPS_KEY) || '12';
   gifDirection.value = localStorage.getItem(LOCALSTORAGE_GIF_DIR_KEY) || Direction.FORWARD;
   exposureMode.value = localStorage.getItem(LOCALSTORAGE_EXPOSURE_MODE_KEY) || ExposureMode.PRINTED;
+  remoteControl.value = localStorage.getItem(LOCALSTORAGE_REMOTE_CONTROL_KEY) || RemoteControl.NONE;
+
+  document.body.dataset.remote = remoteControl.value;
 }
 
 export const initSettings = (store: DbAccess) => {
@@ -73,6 +77,11 @@ export const initSettings = (store: DbAccess) => {
     updateGallery(items, store, true);
   });
 
+  remoteControl.addEventListener('change', () => {
+    const rc = remoteControl.value || RemoteControl.NONE;
+    document.body.dataset.remote = rc;
+    localStorage.setItem(LOCALSTORAGE_REMOTE_CONTROL_KEY, rc);
+  });
 
   settingsBtn.addEventListener('click', () => {
     document.body.classList.add('fixed');
