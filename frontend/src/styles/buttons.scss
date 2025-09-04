@@ -1,0 +1,42 @@
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: center;
+  gap: 4px;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-buttons); /*1*/
+  padding: 8px 2px;
+  background: #ffffffe0;
+}
+
+button,
+a.button {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+  border: none;
+  background: #b7b7b7;
+  height: 32px;
+  font-size: 16px;
+  line-height: 14px;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.buttons button,
+.buttons a.button {
+  height: 51px;
+  width: 51px;
+  padding: 1px;
+  gap: 2px;
+}
+
+button span.title,
+a.button span.title {
+  font-size: 11px;
+}

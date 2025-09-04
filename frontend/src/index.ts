@@ -7,7 +7,7 @@ import { startPolling } from './functions/pollLoop.ts';
 import { webappConnect } from './functions/remote/webappConnect.ts';
 
 import 'reset-css/reset.css';
-import './style.css';
+import './style.scss';
 
 (async () => {
   let store = await initDb();

@@ -1,0 +1,169 @@
+/******************/
+/* REMOTE CONTROL */
+/******************/
+:root {
+  --unit: 12vw;
+}
+
+@media (min-width: 600px) {
+  :root {
+    --unit: 6vh;
+  }
+}
+
+.remote-wrapper {
+  --height: calc(4 * var(--unit));
+  position: fixed;
+  right: 0;
+  bottom: calc(-1 * var(--height));
+  background-color: #ddd;
+  width: 100vw;
+  height: var(--height);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: bottom 150ms ease-in-out;
+}
+
+body[data-remote="controller"] {
+  margin-bottom: calc(4.3 * var(--unit));
+}
+
+body[data-remote="controller"] .remote-wrapper {
+  bottom: 0;
+}
+
+@media (min-aspect-ratio: 10/8) and (min-width: 600px) {
+  body[data-remote="controller"] .remote-wrapper {
+    width: calc(8.5 * var(--unit));
+    bottom: calc(0.15 * var(--unit));
+    border-bottom-left-radius: calc(0.3 * var(--unit));
+    border-top-left-radius: calc(0.3 * var(--unit));
+  }
+
+  :root {
+    --unit: 6vw;
+  }
+}
+
+
+.remote-buttons {
+  position: relative;
+  width: calc(7.5 * var(--unit));
+  height: calc(3.6 * var(--unit));
+}
+
+.remote-button {
+  position: absolute;
+  font-weight: bold;
+  z-index: var(--z-index-remote-button); /*2*/
+}
+
+.remote-button:disabled {
+  background: #b7b7b7;
+  color: #999999;
+  opacity: 0.8;
+}
+
+.remote-button:focus-visible {
+  opacity: 0.7;
+  z-index: var(--z-index-remote-button-visible); /*1*/
+  outline: calc(0.08 * var(--unit)) solid #fff;
+}
+
+.dpad {
+  width: calc(1px + var(--unit));
+  height: calc(1px + var(--unit));
+  background-color: #000;
+  border-radius: 8px;
+}
+
+.remote-button.dpad:not(:disabled):hover {
+  background-color: #2b2b2b;
+}
+
+.startselect {
+  width: var(--unit);
+  height: calc(0.6 * var(--unit));
+  font-size: calc(0.2 * var(--unit));
+}
+
+.remote-button.startselect:not(:disabled):hover {
+  background-color: #cdcdcd;
+}
+
+.ab {
+  width: var(--unit);
+  height: var(--unit);
+  border-radius: 50%;
+  background-color: #b25;
+  color: #eab;
+  font-size: calc(0.5 * var(--unit));
+  padding: 0;
+}
+
+.ab span {
+  translate: 0 calc(-0.03 * var(--unit));
+}
+
+.remote-button.ab:not(:disabled):hover {
+  background-color: #df6a92;
+}
+
+#dup {
+  top: 0;
+  left: var(--unit);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+#dleft {
+  top: var(--unit);
+  left: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+#dright {
+  top: var(--unit);
+  left: calc(2 * var(--unit));
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+#ddown {
+  top: calc(2 * var(--unit));
+  left: var(--unit);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+#dcenter {
+  top: calc(1 * var(--unit));
+  left: calc(1 * var(--unit));
+  border-radius: 0;
+}
+
+#dcenter:not(:disabled):hover {
+  background: #000;
+}
+
+#select {
+  top: calc(3 * var(--unit));
+  left: calc(3 * var(--unit));
+}
+
+#start {
+  top: calc(3 * var(--unit));
+  left: calc(4.1 * var(--unit));
+}
+
+#btnb {
+  top: calc(2 * var(--unit));
+  left: calc(5.5 * var(--unit));
+}
+
+#btna {
+  top: calc(1.5 * var(--unit));
+  left: calc(6.5 * var(--unit));
+}

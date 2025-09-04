@@ -1,0 +1,48 @@
+.toast-target {
+  padding: 40px;
+  position: fixed;
+  z-index: var(--z-index-toast); /*4*/
+  bottom: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.toast {
+  color: #ff9898;
+  background: #770000;
+  padding: 16px;
+  text-align: left;
+  border-radius: 8px;
+  border: 2px solid currentColor;
+  font-size: 16px;
+  line-height: 18px;
+  max-width: 300px;
+  cursor: pointer;
+}
+
+#progress {
+  width: 200px;
+  height: 20px;
+  position: fixed;
+  background: #ffffff;
+  top: 30vh;
+  left: calc(50vw - 100px);
+  z-index: var(--z-index-progress); /*3*/
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid #999999;
+  display: none;
+}
+
+#progress_backdrop.visible ~ #progress {
+  display: block;
+}
+
+.progress-inner {
+  width: 0;
+  height: 100%;
+  background: #333333;
+}

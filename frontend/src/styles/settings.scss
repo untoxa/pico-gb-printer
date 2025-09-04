@@ -1,0 +1,100 @@
+
+#settings {
+  position: fixed;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  left: -300px;
+  z-index: var(--z-index-settings); /*3*/
+  background: #fff;
+  padding: 48px 0 0 0;
+  max-width: 300px;
+  width: 100%;
+  height: 100vh;
+  border-right: 2px solid #eeeeee;
+  transition: left 300ms ease-in-out;
+}
+
+#settings.visible {
+  left: 0;
+}
+
+.backdrop {
+  z-index: var(--z-index-backdrop); /*2*/
+  position: fixed;
+  top: 0;
+  left: -100vw;
+  width: 100vw;
+  height: 100vh;
+  background: #333333;
+  opacity: 0;
+  transition: opacity 300ms ease-in-out, left 0ms linear 300ms;
+}
+
+.backdrop.visible {
+  opacity: 30%;
+  left: 0;
+  transition: opacity 300ms ease-in-out, left 0ms linear 0ms;
+}
+
+#settings_close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  width: 48px;
+  height: 48px;
+}
+
+#settings_close:hover {
+  color: #999999;
+}
+
+.settings-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding: 16px;
+  flex-grow: 2;
+}
+
+.select label {
+  font-size: 14px;
+  text-align: left;
+  padding-bottom: 4px;
+}
+
+.select .box {
+  border-radius: 4px;
+  background: #b7b7b7;
+}
+
+.select * {
+  display: block;
+  width: 100%;
+}
+
+.setting-select {
+  border: none;
+  display: block;
+  height: 32px;
+  background: none;
+  font-size: 16px;
+  line-height: 14px;
+  padding: 0 8px;
+}
+
+a.button:not(:disabled):hover,
+button:not(:disabled, .backdrop):hover {
+  cursor: pointer;
+  background: #a0a0a0;
+}
+.about-link {
+  font-size: 12px;
+  display: block;
+  width: 100%;
+  text-align: right;
+  padding: 16px;
+}
