@@ -24,6 +24,7 @@ export const LOCALSTORAGE_FPS_KEY = 'pico-printer-save-fps';
 export const LOCALSTORAGE_GIF_DIR_KEY = 'pico-printer-gif-direction';
 export const LOCALSTORAGE_EXPOSURE_MODE_KEY = 'pico-printer-exposure-mode';
 export const LOCALSTORAGE_REMOTE_CONTROL_KEY = 'pico-printer-remote-control';
+export const LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY = 'pico-printer-hide-remote-control';
 export const LOCALSTORAGE_LIVE_VIEW_KEY = 'pico-printer-live-view';
 
 export enum SortOrder {
@@ -50,4 +51,9 @@ export enum RemoteControl {
   CONTROLLER = 'controller',
   SHUTTER = 'shutter',
   MACROS = 'macros',
+}
+
+export enum HideRemoteControl {
+  TRUE = 'true',
+  FALSE = 'false',
 }
