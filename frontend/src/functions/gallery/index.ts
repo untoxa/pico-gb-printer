@@ -10,6 +10,8 @@ import {
 import { addBlobToGallery, addImageDataToGallery } from './addImageDataToGallery.ts';
 import { initButtons } from './buttons.ts';
 
+import './gallery.scss';
+
 const handleImageDatas = async (imageDatas: ImageData[], timestamp: number,) => {
   for(const imageData of imageDatas) {
     await addImageDataToGallery(imageData, timestamp);
@@ -45,7 +47,7 @@ const handleDownloadData = async (dlData: DownloadData, store: DbAccess) => {
 }
 
 export const updateGallery = async (allImages: DownloadData[], store: DbAccess, forceAll: boolean): Promise<void> => {
-  const gallery = document.getElementById('gallery') as HTMLDivElement;
+  const gallery = document.querySelector('.gallery') as HTMLDivElement;
 
   if (forceAll) {
     gallery.innerHTML = '';

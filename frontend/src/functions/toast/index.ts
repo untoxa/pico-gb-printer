@@ -1,4 +1,6 @@
-const toastTarget = document.querySelector('.toast-target') as HTMLDivElement;
+import './toast.scss';
+
+const toastTarget = document.querySelector('.toast__target') as HTMLDivElement;
 
 export const showToast = (message: string) => {
   const toast = document.createElement('div');

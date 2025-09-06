@@ -4,22 +4,105 @@ import {
   LOCALSTORAGE_FPS_KEY,
   LOCALSTORAGE_SCALE_KEY,
   LOCALSTORAGE_EXPOSURE_MODE_KEY,
+  LOCALSTORAGE_REMOTE_CONTROL_KEY,
   Direction,
   ExposureMode,
   SortOrder,
+  RemoteControl,
 } from '../../consts.ts';
+import { closeIcon, settingsIcon } from '../icons';
 import { updateGallery } from '../gallery';
 import { DbAccess } from '../storage/database.ts';
+import { select } from './select.ts';
+import './settings.scss';
 
-const settingsMenu = document.getElementById('settings') as HTMLDivElement;
-const settingsBackdrop = document.getElementById('settings_backdrop') as HTMLButtonElement;
-const settingsCloseBtn = document.getElementById('settings_close') as HTMLButtonElement;
-const sortOrderSelect = document.getElementById('sort_order') as HTMLSelectElement;
-const scaleSelect = document.getElementById('download_size') as HTMLSelectElement;
-const fpsSelect = document.getElementById('download_fps') as HTMLSelectElement;
-const gifDirection = document.getElementById('gif_direction') as HTMLSelectElement;
-const exposureMode = document.getElementById('exposure_mode') as HTMLSelectElement;
-const settingsBtn = document.getElementById('open_settings') as HTMLButtonElement;
+const createDom = (): { container: HTMLDivElement, backdrop: HTMLButtonElement } => {
+  const container = document.querySelector('.settings') as HTMLDivElement;
+
+  container.innerHTML = `
+<div class="box">
+  <button class="settings__close">${closeIcon()}</button>
+</div>
+<div class="settings__options">
+  ${select({
+    fieldId: 'sort_order',
+    label: 'Sort Order',
+    options: [
+      { value: SortOrder.ASCENDING, label: 'Ascending'},
+      { value: SortOrder.DESCENDING, label: 'Descending'},
+    ],
+  })}
+  
+  ${select({
+    fieldId: 'download_size',
+    label: 'Download size',
+    options: [
+      { value: '1', label: 'Scale: 1x' },
+      { value: '2', label: 'Scale: 2x' },
+      { value: '4', label: 'Scale: 4x' },
+      { value: '8', label: 'Scale: 8x' },
+    ],
+  })}
+
+  ${select({
+    fieldId: 'download_fps',
+    label: 'Animation speed',
+    options: [
+      { value: '1', label: '1 fps' },
+      { value: '2', label: '2 fps' },
+      { value: '4', label: '4 fps' },
+      { value: '8', label: '8 fps' },
+      { value: '12', label: '12 fps' },
+      { value: '18', label: '18 fps' },
+      { value: '24', label: '24 fps' },
+    ],
+  })}
+
+  ${select({
+    fieldId: 'gif_direction',
+    label: 'Animation direction',
+    options: [
+      { value: Direction.FORWARD, label: 'Forward' },
+      { value: Direction.REVERSE, label: 'Reverse' },
+      { value: Direction.YOYO, label: 'YoYo' },
+    ],
+  })}
+
+  ${select({
+    fieldId: 'exposure_mode',
+    label: 'Exposure mode',
+    options: [
+      { value: ExposureMode.LIGHT, label: 'Light' },
+      { value: ExposureMode.MEDIUM, label: 'Medium' },
+      { value: ExposureMode.DARK, label: 'Dark' },
+      { value: ExposureMode.BLACK, label: 'Black' },
+      { value: ExposureMode.PRINTED, label: 'As printed' },
+    ],
+  })}
+
+  ${select({
+    fieldId: 'remote_control',
+    label: 'Remote Control',
+    options: [
+      { value: RemoteControl.NONE, label: 'No Remote' },
+      { value: RemoteControl.CONTROLLER, label: 'Full Controller' },
+      { value: RemoteControl.SHUTTER, label: 'Only Shutter' },
+      // { value: RemoteControl.MACROS, label: 'Macros' },
+    ],
+  })}
+</div>
+<a href="https://github.com/untoxa/pico-gb-printer/" class="settings__about-link" target="_blank">this project on GitHub</a>
+`;
+
+  const backdrop = document.createElement('button');
+  backdrop.classList.add('backdrop');
+  (container.parentNode as HTMLElement).insertBefore(backdrop, container.nextSibling);
+
+  return {
+    container,
+    backdrop
+  };
+}
 
 export const getSortOrder = (): SortOrder => {
   switch (localStorage.getItem(LOCALSTORAGE_SORTORDER_KEY)) {
@@ -31,15 +114,32 @@ export const getSortOrder = (): SortOrder => {
   }
 }
 
-const updateSettings = () => {
-  sortOrderSelect.value = getSortOrder();
-  scaleSelect.value = localStorage.getItem(LOCALSTORAGE_SCALE_KEY) || '1';
-  fpsSelect.value = localStorage.getItem(LOCALSTORAGE_FPS_KEY) || '12';
-  gifDirection.value = localStorage.getItem(LOCALSTORAGE_GIF_DIR_KEY) || Direction.FORWARD;
-  exposureMode.value = localStorage.getItem(LOCALSTORAGE_EXPOSURE_MODE_KEY) || ExposureMode.PRINTED;
-}
-
 export const initSettings = (store: DbAccess) => {
+  const { container, backdrop } = createDom();
+
+  const sortOrderSelect = container.querySelector('#sort_order') as HTMLSelectElement;
+  const scaleSelect = container.querySelector('#download_size') as HTMLSelectElement;
+  const fpsSelect = container.querySelector('#download_fps') as HTMLSelectElement;
+  const gifDirection = container.querySelector('#gif_direction') as HTMLSelectElement;
+  const exposureMode = container.querySelector('#exposure_mode') as HTMLSelectElement;
+  const remoteControl = container.querySelector('#remote_control') as HTMLSelectElement;
+
+  const settingsBtn = document.querySelector('#open_settings') as HTMLButtonElement;
+  const settingsCloseBtn = container.querySelector('.settings__close') as HTMLButtonElement;
+
+  (settingsBtn.querySelector('.icon') as HTMLSpanElement).innerHTML = settingsIcon();
+
+  const updateSettings = () => {
+    sortOrderSelect.value = getSortOrder();
+    scaleSelect.value = localStorage.getItem(LOCALSTORAGE_SCALE_KEY) || '1';
+    fpsSelect.value = localStorage.getItem(LOCALSTORAGE_FPS_KEY) || '12';
+    gifDirection.value = localStorage.getItem(LOCALSTORAGE_GIF_DIR_KEY) || Direction.FORWARD;
+    exposureMode.value = localStorage.getItem(LOCALSTORAGE_EXPOSURE_MODE_KEY) || ExposureMode.PRINTED;
+    remoteControl.value = localStorage.getItem(LOCALSTORAGE_REMOTE_CONTROL_KEY) || RemoteControl.CONTROLLER;
+
+    document.body.dataset.remote = remoteControl.value;
+  }
+
   updateSettings();
 
   sortOrderSelect.addEventListener('change', async () => {
@@ -73,22 +173,22 @@ export const initSettings = (store: DbAccess) => {
     updateGallery(items, store, true);
   });
 
+  remoteControl.addEventListener('change', () => {
+    const rc = remoteControl.value || RemoteControl.CONTROLLER;
+    document.body.dataset.remote = rc;
+    localStorage.setItem(LOCALSTORAGE_REMOTE_CONTROL_KEY, rc);
+  });
 
   settingsBtn.addEventListener('click', () => {
     document.body.classList.add('fixed');
-    settingsMenu.classList.add('visible');
-    settingsBackdrop.classList.add('visible');
+    container.classList.add('visible');
   });
 
-  settingsBackdrop.addEventListener('click', () => {
+  const close = () => {
     document.body.classList.remove('fixed');
-    settingsMenu.classList.remove('visible');
-    settingsBackdrop.classList.remove('visible');
-  });
+    container.classList.remove('visible');
+  };
 
-  settingsCloseBtn.addEventListener('click', () => {
-    document.body.classList.remove('fixed');
-    settingsMenu.classList.remove('visible');
-    settingsBackdrop.classList.remove('visible');
-  });
+  backdrop.addEventListener('click', close);
+  settingsCloseBtn.addEventListener('click', close);
 }

@@ -1,4 +1,6 @@
-const gallery = document.getElementById("gallery") as HTMLDivElement;
+import { MARKER } from './addImageDataToGallery.ts';
+
+const gallery = document.querySelector('.gallery') as HTMLDivElement;
 
 export const sortBySelectionOrder = (maxIndex: string) => (a: HTMLDivElement, b: HTMLDivElement) => {
   const orderA = parseInt(a.dataset.order || maxIndex, 10);
@@ -16,8 +18,8 @@ export const sortBySelectionOrder = (maxIndex: string) => (a: HTMLDivElement, b:
 };
 
 export const updateSelectionOrder = (lastSelectedNode?: HTMLDivElement) => {
-  const unSelectedItems = [...gallery.querySelectorAll('.gallery-image:not(.marked-for-action)')] as HTMLDivElement[];
-  let selectedItems = [...gallery.querySelectorAll('.gallery-image.marked-for-action')] as HTMLDivElement[];
+  const unSelectedItems = [...gallery.querySelectorAll(`.gallery-image:not(.${MARKER})`)] as HTMLDivElement[];
+  let selectedItems = [...gallery.querySelectorAll(`.${MARKER}`)] as HTMLDivElement[];
 
   for (const unSelectedItem of unSelectedItems) {
     unSelectedItem.dataset.order = '';

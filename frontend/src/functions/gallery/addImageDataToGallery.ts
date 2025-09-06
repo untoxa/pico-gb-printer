@@ -3,8 +3,11 @@ import { downloadImage } from '../saveImage.ts';
 import { getSortOrder } from '../settings';
 import { updateButtons } from './buttons.ts';
 import { updateSelectionOrder } from './selectionOrder.ts';
+import './gallery-item.scss';
 
-const gallery = document.getElementById("gallery") as HTMLDivElement;
+export const MARKER = 'gallery-item--marked-for-action';
+
+const gallery = document.querySelector('.gallery') as HTMLDivElement;
 
 const addImage = (image: HTMLDivElement): void => {
   if (getSortOrder() === SortOrder.ASCENDING && gallery.firstElementChild) {
@@ -16,7 +19,7 @@ const addImage = (image: HTMLDivElement): void => {
 
 const createGalleryItem = (imgSrc: string, timestamp: number, isFinal: boolean) => {
   const imageContainer = document.createElement('div');
-  imageContainer.classList.add('gallery-image');
+  imageContainer.classList.add('gallery-item');
   imageContainer.dataset.timestamp = timestamp.toString(10);
 
   if (isFinal) {
@@ -27,18 +30,20 @@ const createGalleryItem = (imgSrc: string, timestamp: number, isFinal: boolean) 
   img.src = imgSrc;
 
   const label = document.createElement('label');
+  label.classList.add('gallery-item__label');
   label.appendChild(img);
 
   imageContainer.appendChild(label);
 
   const input = document.createElement('input');
-  input.setAttribute("type", "checkbox");
+  input.classList.add('gallery-item__input');
+  input.setAttribute('type', 'checkbox');
 
-  input.addEventListener("change", function() {
+  input.addEventListener('change', function() {
     if (input.checked) {
-      imageContainer.classList.add('marked-for-action');
+      imageContainer.classList.add(MARKER);
     } else {
-      imageContainer.classList.remove('marked-for-action');
+      imageContainer.classList.remove(MARKER);
     }
 
     updateButtons();
@@ -47,9 +52,10 @@ const createGalleryItem = (imgSrc: string, timestamp: number, isFinal: boolean) 
 
   label.appendChild(input);
 
-  const btn = document.createElement("button");
-  btn.innerHTML = "<span>Save</span>";
-  btn.addEventListener("click", function () {
+  const btn = document.createElement('button');
+  btn.classList.add('gallery-item__button');
+  btn.innerHTML = '<span>Save</span>';
+  btn.addEventListener('click', function () {
     downloadImage(img, isFinal);
   });
   imageContainer.appendChild(btn);

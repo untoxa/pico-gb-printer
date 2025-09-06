@@ -1,0 +1,48 @@
+* { box-sizing: border-box; }
+button { font-family: inherit; }
+a { color: inherit; }
+svg { fill: currentColor; }
+
+
+// values should use steps of 2 because of automatic backdrop zIndex calculation
+:root {
+  --z-index-buttons: 2;
+  --z-index-liveview: 4;
+  --z-index-progress: 6;
+  --z-index-remote: 8;
+  --z-index-settings: 10;
+  --z-index-toast: 12;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  text-align: center;
+  margin: 0 0 16px 0;
+  min-width: 250px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body.fixed {
+  overflow: hidden;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #dddddde0; }
+::-webkit-scrollbar-thumb { background: #888888e0; }
+::-webkit-scrollbar-thumb:hover { background: #aaaaaae0; }
+
+.header {
+  margin: 0;
+  padding: 8px;
+  position: relative;
+}
+
+h1 {
+  font-weight: bold;
+  font-size: 28px;
+  line-height: 34px;
+  position: relative;
+  margin: 0;
+  padding: 0 28px;
+}

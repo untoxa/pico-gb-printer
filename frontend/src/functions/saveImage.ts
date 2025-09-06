@@ -3,18 +3,18 @@ import { getScaledCanvas } from './canvas/getScaledcanvas.ts';
 import { getScaledGif } from './canvas/getScaledGif.ts';
 
 const today = (date: Date, delim: string): string  => {
-  return ((date.getDate() < 10)?"0":"") + date.getDate() + delim + (((date.getMonth()+1) < 10)?"0":"") + (date.getMonth()+1) + delim + date.getFullYear();
+  return ((date.getDate() < 10) ? '0': '') + date.getDate() + delim + (((date.getMonth()+1) < 10) ? '0' : '') + (date.getMonth()+1) + delim + date.getFullYear();
 };
 
 const timeNow = (date: Date, delim: string): string  => {
-  return ((date.getHours() < 10)?"0":"") + date.getHours() + delim + ((date.getMinutes() < 10)?"0":"") + date.getMinutes() + delim + ((date.getSeconds() < 10)?"0":"") + date.getSeconds();
+  return ((date.getHours() < 10) ? '0' : '') + date.getHours() + delim + ((date.getMinutes() < 10) ? '0' : '') + date.getMinutes() + delim + ((date.getSeconds() < 10) ? '0' : '') + date.getSeconds();
 };
 
 const save = (url: string, fileName: string) => {
   const a = document.createElement('a');
   a.href = url;
   a.download = fileName;
-  a.style.display = "none";
+  a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -23,7 +23,7 @@ const save = (url: string, fileName: string) => {
 export const  downloadImage = async (image: HTMLImageElement, directFile: boolean) => {
   const scale = parseInt(localStorage.getItem(LOCALSTORAGE_SCALE_KEY) || '1', 10);
   const datetime = new Date();
-  const fileName = `image_${today(datetime, "-")}_${timeNow(datetime, "-")}_${scale}x`;
+  const fileName = `image_${today(datetime, '-')}_${timeNow(datetime, '-')}_${scale}x`;
 
   if (directFile) {
     const scaledGif = await getScaledGif(image.src);

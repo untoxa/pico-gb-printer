@@ -1,0 +1,27 @@
+@use '../../styles/extendable/button';
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: center;
+  gap: 4px;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-buttons); /*1*/
+  padding: 8px 2px;
+  background: #ffffffe0;
+
+  &__button {
+    @extend %button-default;
+
+    height: 51px;
+    width: 51px;
+    padding: 1px;
+    gap: 2px;
+
+    .title {
+      font-size: 11px;
+    }
+  }
+}
