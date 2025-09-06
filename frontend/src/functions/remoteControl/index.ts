@@ -51,9 +51,11 @@ export const initRemoteControl = async () => {
 
   container.addEventListener('click', (ev) => {
     const button = ev.target as HTMLButtonElement;
-    const value = button.dataset.value || '0x00';
-    sendClick(parseInt(value, 16));
-    console.log({ button, value });
+    const value = button.dataset.value;
+
+    if (value) {
+      sendClick(parseInt(value, 16));
+    }
   });
 
   document.body.dataset.hideremote = localStorage.getItem(LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY) || HideRemoteControl.TRUE;
