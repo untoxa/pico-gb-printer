@@ -36,8 +36,6 @@ export const initRemoteControl = async () => {
   const container = createDom();
   const buttons = [...container.querySelectorAll('[data-value]')] as HTMLButtonElement[];
 
-  console.log(buttons);
-
   const sendClick = async (value: number) => {
     console.log(value);
     buttons.forEach((button) => { button.disabled = true; });
