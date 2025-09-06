@@ -1,6 +1,6 @@
 // Api URLs
-export const DOWNLOAD = "/download";
-export const STATUS_FILE = "/status.json"
+export const DOWNLOAD = '/download';
+export const STATUS_FILE = '/status.json'
 
 // Printer Commands
 export const COMMAND_INIT      = 0x01;

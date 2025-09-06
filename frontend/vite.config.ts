@@ -11,7 +11,7 @@ const input = fs.readdirSync(__dirname)
     const filePath = path.join(__dirname, file);
     const stats = fs.statSync(filePath);
 
-    if (!stats.isDirectory() && path.extname(file) === ".html") {
+    if (!stats.isDirectory() && path.extname(file) === '.html') {
       return [...acc, path.resolve(filePath)];
     }
 

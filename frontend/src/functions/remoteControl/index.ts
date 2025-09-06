@@ -1,5 +1,5 @@
 import { ofetch } from 'ofetch';
-import { HideRemoteControl, LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY } from "../../consts.ts";
+import { HideRemoteControl, LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY } from '../../consts.ts';
 import { cameraIcon } from '../icons';
 import './remote.scss';
 

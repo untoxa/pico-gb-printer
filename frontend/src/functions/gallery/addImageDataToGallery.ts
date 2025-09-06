@@ -37,9 +37,9 @@ const createGalleryItem = (imgSrc: string, timestamp: number, isFinal: boolean) 
 
   const input = document.createElement('input');
   input.classList.add('gallery-item__input');
-  input.setAttribute("type", "checkbox");
+  input.setAttribute('type', 'checkbox');
 
-  input.addEventListener("change", function() {
+  input.addEventListener('change', function() {
     if (input.checked) {
       imageContainer.classList.add(MARKER);
     } else {
@@ -52,10 +52,10 @@ const createGalleryItem = (imgSrc: string, timestamp: number, isFinal: boolean) 
 
   label.appendChild(input);
 
-  const btn = document.createElement("button");
+  const btn = document.createElement('button');
   btn.classList.add('gallery-item__button');
-  btn.innerHTML = "<span>Save</span>";
-  btn.addEventListener("click", function () {
+  btn.innerHTML = '<span>Save</span>';
+  btn.addEventListener('click', function () {
     downloadImage(img, isFinal);
   });
   imageContainer.appendChild(btn);
