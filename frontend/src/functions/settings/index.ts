@@ -182,18 +182,13 @@ export const initSettings = (store: DbAccess) => {
   settingsBtn.addEventListener('click', () => {
     document.body.classList.add('fixed');
     container.classList.add('visible');
-    backdrop.classList.add('visible');
   });
 
-  backdrop.addEventListener('click', () => {
+  const close = () => {
     document.body.classList.remove('fixed');
     container.classList.remove('visible');
-    backdrop.classList.remove('visible');
-  });
+  };
 
-  settingsCloseBtn.addEventListener('click', () => {
-    document.body.classList.remove('fixed');
-    container.classList.remove('visible');
-    backdrop.classList.remove('visible');
-  });
+  backdrop.addEventListener('click', close);
+  settingsCloseBtn.addEventListener('click', close);
 }

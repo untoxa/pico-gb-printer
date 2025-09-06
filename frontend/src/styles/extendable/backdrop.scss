@@ -1,4 +1,4 @@
-%backdrop {
+.backdrop {
   z-index: var(--z-index-backdrop);
   position: fixed;
   top: 0;
@@ -11,7 +11,7 @@
   transition: opacity 300ms ease-in-out, left 0ms linear 300ms;
 }
 
-%backdrop.visible {
+%backdrop-visible {
   opacity: 30%;
   left: 0;
   transition: opacity 300ms ease-in-out, left 0ms linear 0ms;

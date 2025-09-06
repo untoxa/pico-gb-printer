@@ -19,10 +19,10 @@
 
   &.visible {
     left: 0;
-  }
 
-  & ~ .backdrop {
-    @extend %backdrop;
+    + .backdrop {
+      @extend %backdrop-visible;
+    }
   }
 
   &__close {

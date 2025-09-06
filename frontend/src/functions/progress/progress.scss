@@ -1,4 +1,6 @@
-#progress {
+@use '../../styles/extendable/backdrop';
+
+.progress {
   width: 200px;
   height: 20px;
   position: fixed;
@@ -10,14 +12,18 @@
   overflow: hidden;
   border: 2px solid #999999;
   display: none;
-}
 
-#progress_backdrop.visible ~ #progress {
-  display: block;
-}
+  &__inner {
+    width: 0;
+    height: 100%;
+    background: #333333;
+  }
 
-.progress-inner {
-  width: 0;
-  height: 100%;
-  background: #333333;
+  &--visible {
+    display: block;
+
+    + .backdrop {
+      @extend %backdrop-visible;
+    }
+  }
 }

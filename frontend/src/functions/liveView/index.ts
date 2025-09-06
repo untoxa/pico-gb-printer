@@ -65,13 +65,11 @@ export const initLiveView = (store: DbAccess): DbAccess => {
     resetCanvasContent();
     localStorage.setItem(LOCALSTORAGE_LIVE_VIEW_KEY, '1');
     container.classList.add('visible');
-    backdrop.classList.add('visible');
   };
 
   const close = () => {
     localStorage.setItem(LOCALSTORAGE_LIVE_VIEW_KEY, '0');
     container.classList.remove('visible');
-    backdrop.classList.remove('visible');
     currentLiveViewData = null;
     liveViewCaptureButton.disabled = true;
     liveViewRecordButton.disabled = true;
@@ -179,7 +177,7 @@ export const initLiveView = (store: DbAccess): DbAccess => {
   const wrappedStore: DbAccess = {
     ...store,
     add: async (dlData: DownloadData): Promise<void> => {
-      if (!backdrop.classList.contains('visible')) {
+      if (!container.classList.contains('visible')) {
         return store.add(dlData);
       } else {
         await liveViewData(dlData)
