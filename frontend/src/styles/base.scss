@@ -4,14 +4,13 @@ a { color: inherit; }
 svg { fill: currentColor; }
 
 :root {
-  --z-index-remote-button-visible: 1;
-  --z-index-remote-button: 2;
-  --z-index-buttons: 3;
-  --z-index-backdrop: 4;
-  --z-index-settings: 5;
-  --z-index-progress: 5;
-  --z-index-liveview: 5;
-  --z-index-toast: 6;
+  --z-index-buttons: 1;
+  --z-index-backdrop: 2;
+  --z-index-settings: 3;
+  --z-index-progress: 3;
+  --z-index-liveview: 3;
+  --z-index-toast: 4;
+  --z-index-remote: 5;
 }
 
 body {
