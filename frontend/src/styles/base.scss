@@ -3,14 +3,15 @@ button { font-family: inherit; }
 a { color: inherit; }
 svg { fill: currentColor; }
 
+
+// values should use steps of 2 because of automatic backdrop zIndex calculation
 :root {
-  --z-index-buttons: 1;
-  --z-index-backdrop: 2;
-  --z-index-settings: 3;
-  --z-index-progress: 3;
-  --z-index-liveview: 3;
-  --z-index-remote: 4;
-  --z-index-toast: 5;
+  --z-index-buttons: 2;
+  --z-index-liveview: 4;
+  --z-index-progress: 6;
+  --z-index-remote: 8;
+  --z-index-settings: 10;
+  --z-index-toast: 12;
 }
 
 body {

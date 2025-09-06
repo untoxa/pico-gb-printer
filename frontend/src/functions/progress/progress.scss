@@ -7,7 +7,7 @@
   background: #ffffff;
   top: 30vh;
   left: calc(50vw - 100px);
-  z-index: var(--z-index-progress); /*3*/
+  z-index: var(--z-index-progress);
   border-radius: 6px;
   overflow: hidden;
   border: 2px solid #999999;
@@ -24,6 +24,7 @@
 
     + .backdrop {
       @extend %backdrop-visible;
+      z-index: calc(var(--z-index-progress) - 1);
     }
   }
 }

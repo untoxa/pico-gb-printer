@@ -38,7 +38,6 @@ export const initRemoteControl = async () => {
   const buttons = [...container.querySelectorAll('[data-value]')] as HTMLButtonElement[];
 
   const sendClick = async (value: number) => {
-    console.log(value);
     buttons.forEach((button) => { button.disabled = true; });
     try {
       const response = await ofetch(`/click?btn=${value.toString(10)}`, { timeout: 250 });

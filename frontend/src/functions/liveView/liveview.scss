@@ -9,7 +9,7 @@
   left: 50%;
   transform: translateX(-50%);
   margin: 0 auto;
-  z-index: var(--z-index-liveview); /*3*/
+  z-index: var(--z-index-liveview);
   border-radius: 6px;
   overflow: hidden;
   border: 2px solid #999999;
@@ -22,6 +22,7 @@
 
     + .backdrop {
       @extend %backdrop-visible;
+      z-index: calc(var(--z-index-liveview) - 1);
     }
   }
 
