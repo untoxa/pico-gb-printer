@@ -1,3 +1,4 @@
+@use '../../styles/extendable/button';
 
 .live-view {
   padding: 48px 8px 8px 8px;
@@ -17,14 +18,11 @@
 
   &.visible {
     display: flex;
-
-    & ~ .backdrop {
-      display: block;
-    }
   }
 
-
   &__close {
+    @extend %button-close;
+
     position: absolute;
     top: 0;
     right: 0;
@@ -49,14 +47,13 @@
     svg {
       display: block;
     }
-
   }
 
   &__button {
+    @extend %button-default;
+
     flex: auto 1 1;
-    display: flex;
     flex-direction: row;
-    gap: 8px;
     font-size: 14px;
 
     &--record {

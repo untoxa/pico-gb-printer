@@ -4,13 +4,16 @@ import {
   LOCALSTORAGE_FPS_KEY,
   LOCALSTORAGE_SCALE_KEY,
   LOCALSTORAGE_EXPOSURE_MODE_KEY,
+  LOCALSTORAGE_REMOTE_CONTROL_KEY,
   Direction,
   ExposureMode,
-  SortOrder, LOCALSTORAGE_REMOTE_CONTROL_KEY, RemoteControl,
+  SortOrder,
+  RemoteControl,
 } from '../../consts.ts';
 import { closeIcon, settingsIcon } from '../icons';
 import { updateGallery } from '../gallery';
 import { DbAccess } from '../storage/database.ts';
+import { select } from './select.ts';
 import './settings.scss';
 
 const createDom = (): { container: HTMLDivElement, backdrop: HTMLButtonElement } => {
@@ -18,78 +21,77 @@ const createDom = (): { container: HTMLDivElement, backdrop: HTMLButtonElement }
 
   container.innerHTML = `
 <div class="box">
-  <button id="settings_close">${closeIcon()}</button>
+  <button class="settings__close">${closeIcon()}</button>
 </div>
-<div class="settings-options">
-  <div class="select">
-    <label for="sort_order">Sort Order</label>
-    <div class="box">
-      <select id="sort_order" class="setting-select">
-        <option value="asc">Ascending</option>
-        <option value="desc">Descending</option>
-      </select>
-    </div>
-  </div>
-  <div class="select">
-    <label for="download_size">Download size</label>
-    <div class="box">
-      <select id="download_size" class="setting-select">
-        <option value="1">Scale: 1x</option>
-        <option value="2">Scale: 2x</option>
-        <option value="4">Scale: 4x</option>
-        <option value="8">Scale: 8x</option>
-      </select>
-    </div>
-  </div>
-  <div class="select">
-    <label for="download_fps">Animation speed</label>
-    <div class="box">
-      <select id="download_fps" class="setting-select">
-        <option value="1">1 fps</option>
-        <option value="2">2 fps</option>
-        <option value="4">4 fps</option>
-        <option value="8">8 fps</option>
-        <option value="12">12 fps</option>
-        <option value="18">18 fps</option>
-        <option value="24">24 fps</option>
-      </select>
-    </div>
-  </div>
-  <div class="select">
-    <label for="gif_direction">Animation direction</label>
-    <div class="box">
-      <select id="gif_direction" class="setting-select">
-        <option value="fwd">Forward</option>
-        <option value="rev">Reverse</option>
-        <option value="yoyo">YoYo</option>
-      </select>
-    </div>
-  </div>
-  <div class="select">
-    <label for="exposure_mode">Exposure mode</label>
-    <div class="box">
-      <select id="exposure_mode" class="setting-select">
-        <option value="light">Light</option>
-        <option value="medium">Medium</option>
-        <option value="dark">Dark</option>
-        <option value="black">Black</option>
-        <option value="printed">As printed</option>
-      </select>
-    </div>
-  </div>
-  <div class="select">
-    <label for="remote_control">Remote Control</label>
-    <div class="box">
-      <select id="remote_control" class="setting-select">
-        <option value="none">No Remote</option>
-        <option value="controller">Full Controller</option>
-        <option value="shutter">Only Shutter</option>
-        <!-- <option value="macros">Macros</option> -->
-      </select>
-    </div>
-  </div>
+<div class="settings__options">
+  ${select({
+    fieldId: 'sort_order',
+    label: 'Sort Order',
+    options: [
+      { value: SortOrder.ASCENDING, label: 'Ascending'},
+      { value: SortOrder.DESCENDING, label: 'Descending'},
+    ],
+  })}
+  
+  ${select({
+    fieldId: 'download_size',
+    label: 'Download size',
+    options: [
+      { value: '1', label: 'Scale: 1x' },
+      { value: '2', label: 'Scale: 2x' },
+      { value: '4', label: 'Scale: 4x' },
+      { value: '8', label: 'Scale: 8x' },
+    ],
+  })}
+
+  ${select({
+    fieldId: 'download_fps',
+    label: 'Animation speed',
+    options: [
+      { value: '1', label: '1 fps' },
+      { value: '2', label: '2 fps' },
+      { value: '4', label: '4 fps' },
+      { value: '8', label: '8 fps' },
+      { value: '12', label: '12 fps' },
+      { value: '18', label: '18 fps' },
+      { value: '24', label: '24 fps' },
+    ],
+  })}
+
+  ${select({
+    fieldId: 'gif_direction',
+    label: 'Animation direction',
+    options: [
+      { value: Direction.FORWARD, label: 'Forward' },
+      { value: Direction.REVERSE, label: 'Reverse' },
+      { value: Direction.YOYO, label: 'YoYo' },
+    ],
+  })}
+
+  ${select({
+    fieldId: 'exposure_mode',
+    label: 'Exposure mode',
+    options: [
+      { value: ExposureMode.LIGHT, label: 'Light' },
+      { value: ExposureMode.MEDIUM, label: 'Medium' },
+      { value: ExposureMode.DARK, label: 'Dark' },
+      { value: ExposureMode.BLACK, label: 'Black' },
+      { value: ExposureMode.PRINTED, label: 'As printed' },
+    ],
+  })}
+
+  ${select({
+    fieldId: 'remote_control',
+    label: 'Remote Control',
+    options: [
+      { value: RemoteControl.NONE, label: 'No Remote' },
+      { value: RemoteControl.CONTROLLER, label: 'Full Controller' },
+      { value: RemoteControl.SHUTTER, label: 'Only Shutter' },
+      // { value: RemoteControl.MACROS, label: 'Macros' },
+    ],
+  })}
 </div>
-<a href="https://github.com/untoxa/pico-gb-printer/" class="about-link" target="_blank">this project on GitHub</a>
+<a href="https://github.com/untoxa/pico-gb-printer/" class="settings__about-link" target="_blank">this project on GitHub</a>
 `;
 
   const backdrop = document.createElement('button');
@@ -115,14 +117,15 @@ export const getSortOrder = (): SortOrder => {
 export const initSettings = (store: DbAccess) => {
   const { container, backdrop } = createDom();
 
-  const settingsCloseBtn = container.querySelector('#settings_close') as HTMLButtonElement;
   const sortOrderSelect = container.querySelector('#sort_order') as HTMLSelectElement;
   const scaleSelect = container.querySelector('#download_size') as HTMLSelectElement;
   const fpsSelect = container.querySelector('#download_fps') as HTMLSelectElement;
   const gifDirection = container.querySelector('#gif_direction') as HTMLSelectElement;
   const exposureMode = container.querySelector('#exposure_mode') as HTMLSelectElement;
   const remoteControl = container.querySelector('#remote_control') as HTMLSelectElement;
+
   const settingsBtn = document.querySelector('#open_settings') as HTMLButtonElement;
+  const settingsCloseBtn = container.querySelector('.settings__close') as HTMLButtonElement;
 
   (settingsBtn.querySelector('.icon') as HTMLSpanElement).innerHTML = settingsIcon();
 
