@@ -10,6 +10,8 @@ import {
 import { addBlobToGallery, addImageDataToGallery } from './addImageDataToGallery.ts';
 import { initButtons } from './buttons.ts';
 
+import './gallery.scss';
+
 const handleImageDatas = async (imageDatas: ImageData[], timestamp: number,) => {
   for(const imageData of imageDatas) {
     await addImageDataToGallery(imageData, timestamp);

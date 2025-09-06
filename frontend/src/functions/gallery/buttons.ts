@@ -5,6 +5,7 @@ import { showToast } from '../settings/toast.ts';
 import { DataType, DbAccess } from '../storage/database.ts';
 import { sortBySelectionOrder, updateSelectionOrder } from './selectionOrder.ts';
 import { animateIcon, averageIcon, deleteIcon, rgbIcon, selectAllIcon } from '../icons';
+import './buttons.scss';
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
 const deleteSelectedBtn = document.getElementById("delete_selected_btn") as HTMLButtonElement;
