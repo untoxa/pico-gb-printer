@@ -1,6 +1,6 @@
 import { MARKER } from './addImageDataToGallery.ts';
 
-const gallery = document.getElementById("gallery") as HTMLDivElement;
+const gallery = document.querySelector('.gallery') as HTMLDivElement;
 
 export const sortBySelectionOrder = (maxIndex: string) => (a: HTMLDivElement, b: HTMLDivElement) => {
   const orderA = parseInt(a.dataset.order || maxIndex, 10);

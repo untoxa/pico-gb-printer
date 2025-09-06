@@ -47,7 +47,7 @@ const handleDownloadData = async (dlData: DownloadData, store: DbAccess) => {
 }
 
 export const updateGallery = async (allImages: DownloadData[], store: DbAccess, forceAll: boolean): Promise<void> => {
-  const gallery = document.getElementById('gallery') as HTMLDivElement;
+  const gallery = document.querySelector('.gallery') as HTMLDivElement;
 
   if (forceAll) {
     gallery.innerHTML = '';

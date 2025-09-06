@@ -1,19 +1,19 @@
 import chunk from 'chunk';
 import { Direction, LOCALSTORAGE_FPS_KEY, LOCALSTORAGE_GIF_DIR_KEY } from '../../consts.ts';
 import { imageDatasToBlob } from '../canvas/imageDatasToBlob.ts';
-import { showToast } from '../settings/toast.ts';
+import { showToast } from '../toast';
 import { DataType, DbAccess } from '../storage/database.ts';
 import { sortBySelectionOrder, updateSelectionOrder } from './selectionOrder.ts';
 import { animateIcon, averageIcon, deleteIcon, rgbIcon, selectAllIcon } from '../icons';
 import { MARKER } from './addImageDataToGallery.ts';
 import './buttons.scss';
 
-const gallery = document.getElementById("gallery") as HTMLDivElement;
-const deleteSelectedBtn = document.getElementById("delete_selected_btn") as HTMLButtonElement;
-const selectAllBtn = document.getElementById("select_all_btn") as HTMLButtonElement;
-const averageSelectedBtn = document.getElementById("average_selected_btn") as HTMLButtonElement;
-const gifSelectedBtn = document.getElementById("gif_selected_btn") as HTMLButtonElement;
-const rgbSelectedBtn = document.getElementById("rgb_selected_btn") as HTMLButtonElement;
+const gallery = document.querySelector('.gallery') as HTMLDivElement;
+const deleteSelectedBtn = document.getElementById('delete_selected_btn') as HTMLButtonElement;
+const selectAllBtn = document.getElementById('select_all_btn') as HTMLButtonElement;
+const averageSelectedBtn = document.getElementById('average_selected_btn') as HTMLButtonElement;
+const gifSelectedBtn = document.getElementById('gif_selected_btn') as HTMLButtonElement;
+const rgbSelectedBtn = document.getElementById('rgb_selected_btn') as HTMLButtonElement;
 
 export const updateButtons = () => {
   const numSelectedItems = document.querySelectorAll(`.${MARKER}`).length;

@@ -9,8 +9,8 @@ svg { fill: currentColor; }
   --z-index-settings: 3;
   --z-index-progress: 3;
   --z-index-liveview: 3;
-  --z-index-toast: 4;
-  --z-index-remote: 5;
+  --z-index-remote: 4;
+  --z-index-toast: 5;
 }
 
 body {
@@ -31,7 +31,7 @@ body.fixed {
 ::-webkit-scrollbar-thumb { background: #888888e0; }
 ::-webkit-scrollbar-thumb:hover { background: #aaaaaae0; }
 
-header {
+.header {
   margin: 0;
   padding: 8px;
   position: relative;

@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { defineConfig } from 'vite';
 import { $fetch } from 'ofetch';
-import {StatusResponse} from "./src/functions/pollLoop";
+import {StatusResponse} from './src/functions/pollLoop';
 
 const targetUrl = 'http://192.168.7.1';
 

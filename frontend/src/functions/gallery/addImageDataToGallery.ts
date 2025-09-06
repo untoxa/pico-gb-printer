@@ -7,7 +7,7 @@ import './gallery-item.scss';
 
 export const MARKER = 'gallery-item--marked-for-action';
 
-const gallery = document.getElementById("gallery") as HTMLDivElement;
+const gallery = document.querySelector('.gallery') as HTMLDivElement;
 
 const addImage = (image: HTMLDivElement): void => {
   if (getSortOrder() === SortOrder.ASCENDING && gallery.firstElementChild) {

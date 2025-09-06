@@ -1,6 +1,6 @@
 import chunk from 'chunk';
 import { GifWriter } from 'omggif';
-import { showToast } from '../settings/toast.ts';
+import { showToast } from '../toast';
 import { progressDone, progressStart, progressUpdate } from '../progress';
 
 export interface GifFrameData {
