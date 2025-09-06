@@ -1,21 +1,33 @@
 @use '../../styles/extendable/button';
 
-.remote-control {
+:root {
   --unit: 55px;
   --height: calc(4.8 * var(--unit));
-  position: relative;
-  z-index: var(--z-index-remote);
 
   @media (max-width: 440px) {
     --unit: 11.9vw;
   }
+}
+
+body[data-remote="controller"] {
+  margin-bottom: calc(1.1 * var(--height));
+}
+
+body[data-remote="controller"][data-hideremote="true"] {
+  margin-bottom: calc(1.1 * var(--unit));
+}
+
+.remote-control {
+  position: relative;
+  z-index: var(--z-index-remote);
 
   /*****************************/
   /* REMOTE CONTROL-CONTROLLER */
   /*****************************/
   &__controller-wrapper {
     position: fixed;
-    right: calc(0.2 * var(--unit));
+    right: 50%;
+    transform: translateX(50%);
     bottom: calc(-1 * var(--height));
     background-color: #ddd;
     width: calc(8 * var(--unit));
