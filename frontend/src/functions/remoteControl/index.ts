@@ -22,7 +22,7 @@ const buttons = [
   buttonStart,
   buttonBtnb,
   buttonBtna,
-]
+];
 
 const sendClick = async (value: number) => {
   buttons.forEach((button) => { button.disabled = true; });
