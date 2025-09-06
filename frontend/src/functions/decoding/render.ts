@@ -6,7 +6,7 @@ import {
 } from '../../consts.ts';
 
 export const resizeCanvas = (canvas: HTMLCanvasElement, new_w: number, new_h: number) => {
-  const ctx = canvas.getContext("2d", { willReadFrequently: true }) as CanvasRenderingContext2D;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
   let temp = ctx.getImageData(0, 0, canvas.width, canvas.height)
   canvas.width = new_w;
   canvas.height = new_h;
@@ -62,7 +62,7 @@ export const render = (
   resizeCanvas(canvas, (image_tile_width * 8), ((canvas.height >> 3) << 3) + ((Math.max(0, image_end - image_start) / (TILE_SIZE * image_tile_width)) >> 0) * 8)
 
   if (canvas.width * canvas.height !== 0) {
-    const ctx = canvas.getContext("2d", { willReadFrequently: true }) as CanvasRenderingContext2D;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const writeData = imageData.data;
     for (let i = image_start; i < image_end; ) {

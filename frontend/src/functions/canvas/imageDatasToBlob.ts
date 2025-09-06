@@ -1,19 +1,15 @@
 import chunk from 'chunk';
 import { GifWriter } from 'omggif';
-import { delay } from '../delay.ts';
-import { showToast } from '../settings/toast.ts';
+import { showToast } from '../toast';
+import { progressDone, progressStart, progressUpdate } from '../progress';
 
 export interface GifFrameData {
   palette: number[],
   pixels: number[],
 }
 
-const progressBackdrop = document.getElementById('progress_backdrop') as HTMLDivElement;
-const progressInner = document.querySelector('.progress-inner') as HTMLDivElement;
-
 export const imageDatasToBlob = async (frames: ImageData[], fps: number): Promise<Blob> => {
-  progressBackdrop.classList.add('visible');
-  await delay(1);
+  progressStart();
 
   const buf: number[] = [];
   const gifWriter: GifWriter = new GifWriter(buf, frames[0].width, frames[0].height, { loop: 0xffff });
@@ -48,9 +44,8 @@ export const imageDatasToBlob = async (frames: ImageData[], fps: number): Promis
     ].slice(0, 256);
 
     if (palette.length <= 256) {
-      progressInner.style.width = `${Math.floor(frameCount / frames.length * 100)}%`;
+      await progressUpdate(frameCount / frames.length);
       frameCount += 1;
-      await delay(1);
       gifWriter.addFrame(0, 0, frame.width, frame.height, pixels, {
         delay: Math.round(100 / fps),
         palette: p,
@@ -71,7 +66,6 @@ export const imageDatasToBlob = async (frames: ImageData[], fps: number): Promis
     { type: 'image/gif' },
   );
 
-  progressBackdrop.classList.remove('visible');
-  progressInner.style.width = '0';
+  progressDone();
   return file;
 }

@@ -1,8 +1,9 @@
 import { ofetch } from 'ofetch';
 import { BASIC_POLL_DELAY, DOWNLOAD, MAX_POLL_DELAY, STATUS_FILE } from '../consts';
 import { DataType, DbAccess, DownloadDataRaw } from './storage/database.ts';
+import '../styles/indicator.scss';
 
-interface StatusResponse {
+export interface StatusResponse {
   options: {
     debug: 'on' | 'off'
   },

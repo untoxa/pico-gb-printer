@@ -1,0 +1,30 @@
+@use '../../styles/extendable/backdrop';
+
+.progress {
+  width: 200px;
+  height: 20px;
+  position: fixed;
+  background: #ffffff;
+  top: 30vh;
+  left: calc(50vw - 100px);
+  z-index: var(--z-index-progress);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid #999999;
+  display: none;
+
+  &__inner {
+    width: 0;
+    height: 100%;
+    background: #333333;
+  }
+
+  &--visible {
+    display: block;
+
+    + .backdrop {
+      @extend %backdrop-visible;
+      z-index: calc(var(--z-index-progress) - 1);
+    }
+  }
+}

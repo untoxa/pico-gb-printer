@@ -1,21 +1,23 @@
 import chunk from 'chunk';
 import { Direction, LOCALSTORAGE_FPS_KEY, LOCALSTORAGE_GIF_DIR_KEY } from '../../consts.ts';
 import { imageDatasToBlob } from '../canvas/imageDatasToBlob.ts';
-import { showToast } from '../settings/toast.ts';
+import { showToast } from '../toast';
 import { DataType, DbAccess } from '../storage/database.ts';
 import { sortBySelectionOrder, updateSelectionOrder } from './selectionOrder.ts';
+import { animateIcon, averageIcon, deleteIcon, rgbIcon, selectAllIcon } from '../icons';
+import { MARKER } from './addImageDataToGallery.ts';
+import './buttons.scss';
 
-const gallery = document.getElementById("gallery") as HTMLDivElement;
-const deleteSelectedBtn = document.getElementById("delete_selected_btn") as HTMLButtonElement;
-const selectAllBtn = document.getElementById("select_all_btn") as HTMLButtonElement;
-const averageSelectedBtn = document.getElementById("average_selected_btn") as HTMLButtonElement;
-const gifSelectedBtn = document.getElementById("gif_selected_btn") as HTMLButtonElement;
-const rgbSelectedBtn = document.getElementById("rgb_selected_btn") as HTMLButtonElement;
-
+const gallery = document.querySelector('.gallery') as HTMLDivElement;
+const deleteSelectedBtn = document.getElementById('delete_selected_btn') as HTMLButtonElement;
+const selectAllBtn = document.getElementById('select_all_btn') as HTMLButtonElement;
+const averageSelectedBtn = document.getElementById('average_selected_btn') as HTMLButtonElement;
+const gifSelectedBtn = document.getElementById('gif_selected_btn') as HTMLButtonElement;
+const rgbSelectedBtn = document.getElementById('rgb_selected_btn') as HTMLButtonElement;
 
 export const updateButtons = () => {
-  const numSelectedItems = document.querySelectorAll('.marked-for-action').length;
-  const numSelectedItemsFinal = document.querySelectorAll('.marked-for-action.final').length;
+  const numSelectedItems = document.querySelectorAll(`.${MARKER}`).length;
+  const numSelectedItemsFinal = document.querySelectorAll(`.${MARKER}.final`).length;
 
   deleteSelectedBtn.disabled = numSelectedItems < 1;
   averageSelectedBtn.disabled = numSelectedItems < 2 || numSelectedItemsFinal !== 0;
@@ -29,9 +31,9 @@ interface Dimensions {
 }
 
 const unselectAll = () => {
-  const markedItems = [...gallery.querySelectorAll('.marked-for-action')] as HTMLLabelElement[];
+  const markedItems = [...gallery.querySelectorAll(`.${MARKER}`)] as HTMLLabelElement[];
   for (const item of markedItems) {
-    item.classList.remove('marked-for-action');
+    item.classList.remove(MARKER);
     const checkbox = item.querySelector('input[type=checkbox]') as HTMLInputElement;
     checkbox.checked = false;
   }
@@ -42,7 +44,7 @@ const unselectAll = () => {
 const selectAll = () => {
   const markedItems = [...gallery.children] as HTMLLabelElement[];
   for (const item of markedItems) {
-    item.classList.add('marked-for-action');
+    item.classList.add(MARKER);
     const checkbox = item.querySelector('input[type=checkbox]') as HTMLInputElement;
     checkbox.checked = true;
   }
@@ -70,9 +72,15 @@ const getCommonSize = (images: HTMLImageElement[]): Dimensions | null => {
 }
 
 export const initButtons = (store: DbAccess) => {
+  (deleteSelectedBtn.querySelector('.icon') as HTMLSpanElement).innerHTML = deleteIcon();
+  (selectAllBtn.querySelector('.icon') as HTMLSpanElement).innerHTML = selectAllIcon();
+  (averageSelectedBtn.querySelector('.icon') as HTMLSpanElement).innerHTML = averageIcon();
+  (gifSelectedBtn.querySelector('.icon') as HTMLSpanElement).innerHTML = animateIcon();
+  (rgbSelectedBtn.querySelector('.icon') as HTMLSpanElement).innerHTML = rgbIcon();
+
   selectAllBtn.addEventListener('click', () => {
     const items = gallery.children;
-    const markedItems = gallery.querySelectorAll('.marked-for-action');
+    const markedItems = gallery.querySelectorAll(`.${MARKER}`);
 
     const unselect = markedItems.length === items.length;
 
@@ -87,7 +95,7 @@ export const initButtons = (store: DbAccess) => {
   });
 
   deleteSelectedBtn.addEventListener('click', () => {
-    const items = [...gallery.querySelectorAll('.marked-for-action')] as HTMLLabelElement[];
+    const items = [...gallery.querySelectorAll(`.${MARKER}`)] as HTMLLabelElement[];
     for (let i = items.length - 1; i >= 0; i--) {
       const item = items[i] as HTMLLabelElement;
       const imageTime = item.dataset.timestamp;
@@ -100,7 +108,7 @@ export const initButtons = (store: DbAccess) => {
   });
 
   averageSelectedBtn.addEventListener('click', () => {
-    const items = [...gallery.querySelectorAll('.marked-for-action img')] as HTMLImageElement[];
+    const items = [...gallery.querySelectorAll(`.${MARKER} img`)] as HTMLImageElement[];
 
     if (items.length < 2) {
       return;
@@ -154,7 +162,7 @@ export const initButtons = (store: DbAccess) => {
   });
 
   gifSelectedBtn.addEventListener('click', async () => {
-    const items = [...gallery.querySelectorAll('.marked-for-action')] as HTMLDivElement[];
+    const items = [...gallery.querySelectorAll(`.${MARKER}`)] as HTMLDivElement[];
     const fps = parseInt(localStorage.getItem(LOCALSTORAGE_FPS_KEY) || '12', 10);
     const dir = localStorage.getItem(LOCALSTORAGE_GIF_DIR_KEY) as Direction || Direction.FORWARD;
 
@@ -213,7 +221,7 @@ export const initButtons = (store: DbAccess) => {
   });
 
   rgbSelectedBtn.addEventListener('click', async () => {
-    const items = [...gallery.querySelectorAll('.marked-for-action')] as HTMLDivElement[];
+    const items = [...gallery.querySelectorAll(`.${MARKER}`)] as HTMLDivElement[];
 
     if (items.length !== 3) {
       return;

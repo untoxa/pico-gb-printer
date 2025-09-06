@@ -63,7 +63,7 @@ const deserializeBlob = (rawString: string): Blob => {
 };
 
 export const initDb = async (): Promise<DbAccess> => {
-  const dbName = "pico_printer";
+  const dbName = 'pico_printer';
 
   return new Promise((resolve) => {
     const request = indexedDB.open(dbName, 3);
@@ -229,9 +229,9 @@ export const initDb = async (): Promise<DbAccess> => {
 
       if (oldVersion < 3) {
         // Access the existing "downloads" store
-        if (db.objectStoreNames.contains("downloads")) {
+        if (db.objectStoreNames.contains('downloads')) {
           const transaction = (event.target as IDBOpenDBRequest)?.transaction;
-          const store = transaction?.objectStore("downloads");
+          const store = transaction?.objectStore('downloads');
 
           if (store) {
             // Open a cursor to iterate through all records
@@ -256,8 +256,8 @@ export const initDb = async (): Promise<DbAccess> => {
             };
           }
         } else {
-          const objectStore = request.result.createObjectStore("downloads", { keyPath: "timestamp" });
-          objectStore.createIndex("timestamp", "timestamp", { unique: false });
+          const objectStore = request.result.createObjectStore('downloads', { keyPath: 'timestamp' });
+          objectStore.createIndex('timestamp', 'timestamp', { unique: false });
         }
       }
     };

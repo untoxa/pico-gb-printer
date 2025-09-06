@@ -21,7 +21,7 @@ export const downloadDataToImageData = async (downloadData: DownloadDataRaw): Pr
   const dlData = downloadData as DownloadDataRaw;
 
   const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext("2d", { willReadFrequently: true }) as CanvasRenderingContext2D;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
 
   const resData = dlData.data;
   const data_size = resData.byteLength;

@@ -1,6 +1,6 @@
 // Api URLs
-export const DOWNLOAD = "/download";
-export const STATUS_FILE = "/status.json"
+export const DOWNLOAD = '/download';
+export const STATUS_FILE = '/status.json'
 
 // Printer Commands
 export const COMMAND_INIT      = 0x01;
@@ -23,6 +23,8 @@ export const LOCALSTORAGE_SCALE_KEY = 'pico-printer-save-scale';
 export const LOCALSTORAGE_FPS_KEY = 'pico-printer-save-fps';
 export const LOCALSTORAGE_GIF_DIR_KEY = 'pico-printer-gif-direction';
 export const LOCALSTORAGE_EXPOSURE_MODE_KEY = 'pico-printer-exposure-mode';
+export const LOCALSTORAGE_REMOTE_CONTROL_KEY = 'pico-printer-remote-control';
+export const LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY = 'pico-printer-hide-remote-control';
 export const LOCALSTORAGE_LIVE_VIEW_KEY = 'pico-printer-live-view';
 
 export enum SortOrder {
@@ -42,4 +44,16 @@ export enum ExposureMode {
   DARK = 'dark',
   BLACK = 'black',
   PRINTED = 'printed',
+}
+
+export enum RemoteControl {
+  NONE = 'none',
+  CONTROLLER = 'controller',
+  SHUTTER = 'shutter',
+  MACROS = 'macros',
+}
+
+export enum HideRemoteControl {
+  TRUE = 'true',
+  FALSE = 'false',
 }

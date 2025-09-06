@@ -1,0 +1,27 @@
+.settings-select {
+  * {
+    display: block;
+    width: 100%;
+  }
+
+  &__label {
+    font-size: 14px;
+    text-align: left;
+    padding-bottom: 4px;
+  }
+
+  &__box {
+    border-radius: 4px;
+    background: #b7b7b7;
+  }
+
+  &__select {
+    border: none;
+    display: block;
+    height: 32px;
+    background: none;
+    font-size: 16px;
+    line-height: 14px;
+    padding: 0 8px;
+  }
+}
