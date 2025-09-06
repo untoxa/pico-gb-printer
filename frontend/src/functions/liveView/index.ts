@@ -77,7 +77,6 @@ export const initLiveView = (store: DbAccess): DbAccess => {
 
   const capture = () => {
     if (currentLiveViewData) {
-      console.log(currentLiveViewData);
       store.add(currentLiveViewData);
       currentLiveViewData = null;
       liveViewCaptureButton.disabled = true;
