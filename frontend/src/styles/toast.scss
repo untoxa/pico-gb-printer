@@ -22,27 +22,3 @@
   max-width: 300px;
   cursor: pointer;
 }
-
-#progress {
-  width: 200px;
-  height: 20px;
-  position: fixed;
-  background: #ffffff;
-  top: 30vh;
-  left: calc(50vw - 100px);
-  z-index: var(--z-index-progress); /*3*/
-  border-radius: 6px;
-  overflow: hidden;
-  border: 2px solid #999999;
-  display: none;
-}
-
-#progress_backdrop.visible ~ #progress {
-  display: block;
-}
-
-.progress-inner {
-  width: 0;
-  height: 100%;
-  background: #333333;
-}
