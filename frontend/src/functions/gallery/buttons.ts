@@ -4,6 +4,7 @@ import { imageDatasToBlob } from '../canvas/imageDatasToBlob.ts';
 import { showToast } from '../settings/toast.ts';
 import { DataType, DbAccess } from '../storage/database.ts';
 import { sortBySelectionOrder, updateSelectionOrder } from './selectionOrder.ts';
+import { animateIcon, averageIcon, deleteIcon, rgbIcon, selectAllIcon } from '../icons';
 
 const gallery = document.getElementById("gallery") as HTMLDivElement;
 const deleteSelectedBtn = document.getElementById("delete_selected_btn") as HTMLButtonElement;
@@ -11,7 +12,6 @@ const selectAllBtn = document.getElementById("select_all_btn") as HTMLButtonElem
 const averageSelectedBtn = document.getElementById("average_selected_btn") as HTMLButtonElement;
 const gifSelectedBtn = document.getElementById("gif_selected_btn") as HTMLButtonElement;
 const rgbSelectedBtn = document.getElementById("rgb_selected_btn") as HTMLButtonElement;
-
 
 export const updateButtons = () => {
   const numSelectedItems = document.querySelectorAll('.marked-for-action').length;
@@ -70,6 +70,12 @@ const getCommonSize = (images: HTMLImageElement[]): Dimensions | null => {
 }
 
 export const initButtons = (store: DbAccess) => {
+  (deleteSelectedBtn.querySelector('.icon') as HTMLSpanElement).innerHTML = deleteIcon();
+  (selectAllBtn.querySelector('.icon') as HTMLSpanElement).innerHTML = selectAllIcon();
+  (averageSelectedBtn.querySelector('.icon') as HTMLSpanElement).innerHTML = averageIcon();
+  (gifSelectedBtn.querySelector('.icon') as HTMLSpanElement).innerHTML = animateIcon();
+  (rgbSelectedBtn.querySelector('.icon') as HTMLSpanElement).innerHTML = rgbIcon();
+
   selectAllBtn.addEventListener('click', () => {
     const items = gallery.children;
     const markedItems = gallery.querySelectorAll('.marked-for-action');

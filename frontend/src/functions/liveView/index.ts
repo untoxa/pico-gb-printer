@@ -2,6 +2,7 @@ import {DataType, type DbAccess, DownloadData, DownloadDataRaw} from '../storage
 import { Direction, LOCALSTORAGE_FPS_KEY, LOCALSTORAGE_GIF_DIR_KEY, LOCALSTORAGE_LIVE_VIEW_KEY } from '../../consts.ts';
 import { downloadDataToImageData } from '../decoding/downloadDataToImageData.ts';
 import { imageDatasToBlob } from '../canvas/imageDatasToBlob.ts';
+import { cameraIcon } from '../icons';
 
 const liveViewButton = document.getElementById('live_view_btn') as HTMLButtonElement;
 const liveViewCloseButton = document.getElementById('live_view_close') as HTMLButtonElement;
@@ -139,6 +140,9 @@ export const initLiveView = (store: DbAccess): DbAccess => {
   }
 
   liveViewButton.addEventListener('click', open);
+
+  (liveViewButton.querySelector('.icon') as HTMLSpanElement).innerHTML = cameraIcon();
+
   liveViewCloseButton.addEventListener('click', close);
   liveViewBackdrop.addEventListener('click', close);
   liveViewCaptureButton.addEventListener('click', capture);

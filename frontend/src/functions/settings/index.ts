@@ -8,6 +8,7 @@ import {
   ExposureMode,
   SortOrder, LOCALSTORAGE_REMOTE_CONTROL_KEY, RemoteControl,
 } from '../../consts.ts';
+import { closeIcon, settingsIcon } from '../icons';
 import { updateGallery } from '../gallery';
 import { DbAccess } from '../storage/database.ts';
 import './settings.scss';
@@ -17,7 +18,7 @@ const createDom = (): { container: HTMLDivElement, backdrop: HTMLButtonElement }
 
   container.innerHTML = `
 <div class="box">
-  <button id="settings_close"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></button>
+  <button id="settings_close">${closeIcon()}</button>
 </div>
 <div class="settings-options">
   <div class="select">
@@ -122,6 +123,8 @@ export const initSettings = (store: DbAccess) => {
   const exposureMode = container.querySelector('#exposure_mode') as HTMLSelectElement;
   const remoteControl = container.querySelector('#remote_control') as HTMLSelectElement;
   const settingsBtn = document.querySelector('#open_settings') as HTMLButtonElement;
+
+  (settingsBtn.querySelector('.icon') as HTMLSpanElement).innerHTML = settingsIcon();
 
   const updateSettings = () => {
     sortOrderSelect.value = getSortOrder();
