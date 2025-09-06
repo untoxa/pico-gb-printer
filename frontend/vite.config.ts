@@ -2,6 +2,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { defineConfig } from 'vite';
 import { $fetch } from 'ofetch';
+import {StatusResponse} from "./src/functions/pollLoop";
+
+const targetUrl = 'http://192.168.7.1';
 
 const input = fs.readdirSync(__dirname)
   .reduce((acc: string[], file) => {
@@ -26,9 +29,20 @@ export default defineConfig({
   plugins: [
     {
       name: 'custom-fetch-proxy',
-      configureServer(server) {
+      configureServer: async (server) => {
+        console.log(`Starting proxy to ${targetUrl}`);
+        let initialResponse: StatusResponse | null = null;
+        try {
+          initialResponse = await $fetch<StatusResponse>(`${targetUrl}/status.json`, { timeout: 1000 });
+        } catch {}
+
+        if (initialResponse?.result !== 'ok') {
+          console.warn(`Device at ${targetUrl} is not reachable`);
+        } else {
+          console.error(`Device at ${targetUrl} reports`, initialResponse?.status);
+        }
+
         server.middlewares.use(async (req, res, next) => {
-          const targetUrl = 'http://192.168.7.1';
           if (
             req.url === '/download' ||
             req.url === '/status.json' ||
