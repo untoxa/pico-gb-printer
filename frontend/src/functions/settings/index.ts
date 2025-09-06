@@ -38,7 +38,7 @@ const updateSettings = () => {
   fpsSelect.value = localStorage.getItem(LOCALSTORAGE_FPS_KEY) || '12';
   gifDirection.value = localStorage.getItem(LOCALSTORAGE_GIF_DIR_KEY) || Direction.FORWARD;
   exposureMode.value = localStorage.getItem(LOCALSTORAGE_EXPOSURE_MODE_KEY) || ExposureMode.PRINTED;
-  remoteControl.value = localStorage.getItem(LOCALSTORAGE_REMOTE_CONTROL_KEY) || RemoteControl.NONE;
+  remoteControl.value = localStorage.getItem(LOCALSTORAGE_REMOTE_CONTROL_KEY) || RemoteControl.CONTROLLER;
 
   document.body.dataset.remote = remoteControl.value;
 }
@@ -78,7 +78,7 @@ export const initSettings = (store: DbAccess) => {
   });
 
   remoteControl.addEventListener('change', () => {
-    const rc = remoteControl.value || RemoteControl.NONE;
+    const rc = remoteControl.value || RemoteControl.CONTROLLER;
     document.body.dataset.remote = rc;
     localStorage.setItem(LOCALSTORAGE_REMOTE_CONTROL_KEY, rc);
   });

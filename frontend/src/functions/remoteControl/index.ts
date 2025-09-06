@@ -57,7 +57,7 @@ export const initRemoteControl = async () => {
     console.log({ button, value });
   });
 
-  document.body.dataset.hideremote = localStorage.getItem(LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY) || HideRemoteControl.FALSE;
+  document.body.dataset.hideremote = localStorage.getItem(LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY) || HideRemoteControl.TRUE;
 
   const drawerButton = container.querySelector('.remote-control__drawer') as HTMLButtonElement;
   drawerButton.addEventListener('click', () => {
