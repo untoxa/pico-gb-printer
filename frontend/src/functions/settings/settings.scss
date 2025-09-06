@@ -1,5 +1,5 @@
 
-#settings {
+.settings {
   position: fixed;
   top: 0;
   display: flex;
@@ -16,7 +16,7 @@
   transition: left 300ms ease-in-out;
 }
 
-#settings.visible {
+.settings.visible {
   left: 0;
 }
 
