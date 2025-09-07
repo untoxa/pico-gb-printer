@@ -9,6 +9,11 @@
   text-decoration: none;
   padding: 0;
 
+  // Make all events always go to the button
+  > * {
+    pointer-events: none;
+  }
+
   &:not(:disabled):hover {
     cursor: pointer;
   }
