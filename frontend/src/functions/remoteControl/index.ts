@@ -1,6 +1,7 @@
 import { ofetch } from 'ofetch';
 import { HideRemoteControl, LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY } from '../../consts.ts';
 import { cameraIcon } from '../icons';
+import { buttonLabels, ButtonValues } from './buttonValues.ts';
 import './remote.scss';
 
 const createDom = (): { container: HTMLDivElement } => {
@@ -10,21 +11,21 @@ const createDom = (): { container: HTMLDivElement } => {
       <button class="remote-control__drawer" title="Show/Hide Remote Controller">== Remote ==</button>
       <div class="remote-control__controller">
         <div class="remote-control__dpad">
-          <button title="Up" class="remote-control__dpad-button" data-value="0x04"></button>
-          <button title="Left" class="remote-control__dpad-button" data-value="0x02"></button>
-          <button title="Right" class="remote-control__dpad-button" data-value="0x01"></button>
-          <button title="Down" class="remote-control__dpad-button" data-value="0x08"></button>
+          <button title="${buttonLabels[ButtonValues.DPAD_UP]}" class="remote-control__dpad-button" data-value="${ButtonValues.DPAD_UP}"></button>
+          <button title="${buttonLabels[ButtonValues.DPAD_LEFT]}" class="remote-control__dpad-button" data-value="${ButtonValues.DPAD_LEFT}"></button>
+          <button title="${buttonLabels[ButtonValues.DPAD_RIGHT]}" class="remote-control__dpad-button" data-value="${ButtonValues.DPAD_RIGHT}"></button>
+          <button title="${buttonLabels[ButtonValues.DPAD_DOWN]}" class="remote-control__dpad-button" data-value="${ButtonValues.DPAD_DOWN}"></button>
         </div>
         <div class="remote-control__ssab">
-          <button title="Select" class="remote-control__ssab-button" data-value="0x40">Select</button>
-          <button title="Start" class="remote-control__ssab-button" data-value="0x80">Start</button>
-          <button title="B" class="remote-control__ssab-button" data-value="0x20">B</button>
-          <button title="A" class="remote-control__ssab-button" data-value="0x10">A</button>
+          <button title="${buttonLabels[ButtonValues.SELECT]}" class="remote-control__ssab-button" data-value="${ButtonValues.SELECT}">${buttonLabels[ButtonValues.SELECT]}</button>
+          <button title="${buttonLabels[ButtonValues.START]}" class="remote-control__ssab-button" data-value="${ButtonValues.START}">${buttonLabels[ButtonValues.START]}</button>
+          <button title="${buttonLabels[ButtonValues.B]}" class="remote-control__ssab-button" data-value="${ButtonValues.B}">${buttonLabels[ButtonValues.B]}</button>
+          <button title="${buttonLabels[ButtonValues.A]}" class="remote-control__ssab-button" data-value="${ButtonValues.A}">${buttonLabels[ButtonValues.A]}</button>
         </div>
       </div>
     </div>
     <div class="remote-control__shutter-wrapper">
-      <button title="Shutter" class="remote-control__shutter-button" data-value="0x10">
+      <button title="Shutter" class="remote-control__shutter-button" data-value="${ButtonValues.A}">
         ${cameraIcon()}
       </button>
     </div>
