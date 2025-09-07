@@ -10,11 +10,11 @@
 }
 
 body[data-remote="controller"] {
-  margin-bottom: calc(1.1 * var(--height));
+  margin-bottom: calc(50px + var(--height));
 }
 
 body[data-remote="controller"][data-hideremote="true"] {
-  margin-bottom: calc(1.1 * var(--unit));
+  margin-bottom: calc(50px + var(--unit));
 }
 
 .remote-control {
@@ -46,7 +46,7 @@ body[data-remote="controller"][data-hideremote="true"] {
     }
 
     body[data-remote="controller"][data-hideremote="true"] & {
-      bottom: calc(-0.85 * var(--height));
+      bottom: calc(44px + calc(-1 * var(--height)));
     }
   }
 
