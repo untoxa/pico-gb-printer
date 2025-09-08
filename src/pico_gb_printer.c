@@ -140,8 +140,7 @@ static const char *cgi_reset_usb_boot(int iIndex, int iNumParams, char *pcParam[
 static const char *cgi_click(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
     for (uint32_t i = 0; i != iNumParams; ++i) {
         if (strcmp(pcParam[i], "btn") == 0) {
-            keys_push(atoi(pcValue[i]));
-            keys_push(J_NONE);
+            keys_click(atoi(pcValue[i]));
             break;
         }
     }
