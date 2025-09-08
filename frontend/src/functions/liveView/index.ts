@@ -1,23 +1,23 @@
-import {DataType, type DbAccess, DownloadData, DownloadDataRaw} from '../storage/database.ts';
+import { DataType, type DbAccess, DownloadData, DownloadDataRaw } from '../storage/database.ts';
 import { Direction, LOCALSTORAGE_FPS_KEY, LOCALSTORAGE_GIF_DIR_KEY, LOCALSTORAGE_LIVE_VIEW_KEY } from '../../consts.ts';
 import { downloadDataToImageData } from '../decoding/downloadDataToImageData.ts';
 import { imageDatasToBlob } from '../canvas/imageDatasToBlob.ts';
-import { cameraIcon } from '../icons';
+import { cameraIcon, closeIcon, recordIcon, stopIcon } from '../icons';
 import './liveview.scss';
 
 const createDom = (): { container: HTMLDivElement, backdrop: HTMLButtonElement } => {
   const container = document.querySelector('.live-view') as HTMLDivElement;
 
   container.innerHTML = `
-<button class="live-view__close"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></button>
+<button class="live-view__close">${closeIcon()}</button>
 <div class="live-view__buttons">
   <button title="Record" class="live-view__button live-view__button--record" disabled>
-    <span class="record"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><circle fill="#d22" cx="12" cy="12" r="8"/></svg></span>
-    <span class="pause"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px"><rect width="16" height="16" x="4" y="4"/></svg></span>
+    <span class="record">${recordIcon()}</span>
+    <span class="pause">${stopIcon()}</span>
     <span class="record">Record</span>
     <span class="pause">Save <span class="framecount"></span></span>
   </button>
-  <button title="Capture" class="live-view__button live-view__button--capture" disabled><span><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-260q75 0 127.5-52.5T660-440q0-75-52.5-127.5T480-620q-75 0-127.5 52.5T300-440q0 75 52.5 127.5T480-260Zm0-80q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM160-120q-33 0-56.5-23.5T80-200v-480q0-33 23.5-56.5T160-760h126l74-80h240l74 80h126q33 0 56.5 23.5T880-680v480q0 33-23.5 56.5T800-120H160Z"/></svg></span><span>Capture</span></button>
+  <button title="Capture" class="live-view__button live-view__button--capture" disabled><span>${cameraIcon()}</span><span>Capture</span></button>
 </div>
 `;
 
