@@ -12,7 +12,7 @@ const createDom = (): { container: HTMLDivElement, backdrop: HTMLButtonElement }
 <button class="live-view__close">${closeIcon()}</button>
 <div class="live-view__buttons">
   <button title="Record" class="live-view__button live-view__button--record" disabled>
-    <span class="record">${recordIcon()}</span>
+    <span class="record record-icon">${recordIcon()}</span>
     <span class="pause">${stopIcon()}</span>
     <span class="record">Record</span>
     <span class="pause">Save <span class="framecount"></span></span>
