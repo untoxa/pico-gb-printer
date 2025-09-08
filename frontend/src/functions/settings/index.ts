@@ -16,6 +16,10 @@ import { DbAccess } from '../storage/database.ts';
 import { select } from './select.ts';
 import './settings.scss';
 
+export interface Settings {
+  updateRemoteControlSetting: (value: RemoteControl) => void;
+}
+
 const createDom = (): { container: HTMLDivElement, backdrop: HTMLButtonElement } => {
   const container = document.querySelector('.settings') as HTMLDivElement;
 
@@ -114,7 +118,7 @@ export const getSortOrder = (): SortOrder => {
   }
 }
 
-export const initSettings = (store: DbAccess) => {
+export const initSettings = (store: DbAccess): Settings => {
   const { container, backdrop } = createDom();
 
   const sortOrderSelect = container.querySelector('#sort_order') as HTMLSelectElement;
@@ -191,4 +195,14 @@ export const initSettings = (store: DbAccess) => {
 
   backdrop.addEventListener('click', close);
   settingsCloseBtn.addEventListener('click', close);
+
+  const updateRemoteControlSetting = (value: RemoteControl) => {
+    remoteControl.value = value;
+    document.body.dataset.remote = value;
+    localStorage.setItem(LOCALSTORAGE_REMOTE_CONTROL_KEY, value);
+  }
+
+  return {
+    updateRemoteControlSetting,
+  }
 }

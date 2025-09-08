@@ -22,9 +22,9 @@ import './style.scss';
 
     default: {
       store = initLiveView(store);
-      await initSettings(store);
+      const { updateRemoteControlSetting } = await initSettings(store);
       await initGallery(store);
-      await initRemoteControl();
+      await initRemoteControl(updateRemoteControlSetting);
     }
   }
 

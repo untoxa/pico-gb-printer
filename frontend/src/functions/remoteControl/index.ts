@@ -3,7 +3,7 @@ import { cameraIcon, recordIcon } from '../icons';
 import { timeNow, today } from '../helpers';
 import { macroStore, RemoteMacroStep } from './macroStore.ts';
 import { initMacros, updateMacroList } from './macros.ts';
-import { HideRemoteControl, LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY } from '../../consts.ts';
+import { HideRemoteControl, LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY, RemoteControl } from '../../consts.ts';
 import { buttonLabels, ButtonValues } from './buttonValues.ts';
 import './remote.scss';
 
@@ -38,7 +38,7 @@ const createDom = (): { container: HTMLDivElement } => {
 }
 
 
-export const initRemoteControl = async () => {
+export const initRemoteControl = async (updateSetting: (value: RemoteControl) => void) => {
   const { container } = createDom();
   const buttons = [...container.querySelectorAll('[data-value]')] as HTMLButtonElement[];
   const recordButton = container.querySelector('.remote-control__dpad-button--macro') as HTMLButtonElement
@@ -78,14 +78,17 @@ export const initRemoteControl = async () => {
         if (isRecording) {
           button.classList.remove('remote-control__dpad-button--recording');
 
-          const datetime = new Date();
+          if (macroSteps.length) {
+            const datetime = new Date();
+            macroStore.addNew('', {
+              title: `${today(datetime, '.')} ${timeNow(datetime, ':')}`,
+              steps: macroSteps,
+            });
 
-          macroStore.addNew('', {
-            title: `${today(datetime, '.')} ${timeNow(datetime, ':')}`,
-            steps: macroSteps,
-          });
+            updateSetting(RemoteControl.MACROS);
+            updateMacroList();
+          }
 
-          updateMacroList();
         } else {
           button.classList.add('remote-control__dpad-button--recording');
           macroSteps = [];
@@ -106,5 +109,5 @@ export const initRemoteControl = async () => {
     localStorage.setItem(LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY, document.body.dataset.hideremote)
   });
 
-  initMacros();
+  initMacros(updateSetting);
 }
