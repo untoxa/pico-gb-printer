@@ -1,4 +1,4 @@
-import { ofetch } from 'ofetch';
+import { sendClick } from '../helpers';
 import { cameraIcon, recordIcon } from '../icons';
 import { timeNow, today } from '../helpers';
 import { macroStore, RemoteMacroStep } from './macroStore.ts';
@@ -44,25 +44,16 @@ export const initRemoteControl = async (updateSetting: (value: RemoteControl) =>
   const recordButton = container.querySelector('.remote-control__dpad-button--macro') as HTMLButtonElement
   let macroSteps: RemoteMacroStep[] = [];
   let macroTime: number = 0;
-
-  const sendClick = async (value: number) => {
-    buttons.forEach((button) => { button.disabled = true; });
-    try {
-      const response = await ofetch(`/click?btn=${value.toString(10)}`, { timeout: 250 });
-      if (response.result !== 'ok') { console.error(response); }
-    } catch {
-      console.error('timed out');
-    }
-    buttons.forEach((button) => { button.disabled = false; });
-  }
-
   container.addEventListener('click', (ev) => {
     const button = ev.target as HTMLButtonElement;
     const value = button.dataset.value as (ButtonValues | undefined);
     const isRecording = recordButton.classList.contains('remote-control__dpad-button--recording');
 
     if (value) {
+      buttons.forEach((button) => { button.disabled = true; });
       sendClick(parseInt(value, 16));
+      buttons.forEach((button) => { button.disabled = false; });
+
       // const delay = Math.round((Date.now() - macroTime) / MIN_STEP_DELAY) * MIN_STEP_DELAY;
       const delay = Date.now() - macroTime;
       if (isRecording) {

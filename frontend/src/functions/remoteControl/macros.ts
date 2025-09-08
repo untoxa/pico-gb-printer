@@ -1,4 +1,4 @@
-import { ofetch } from 'ofetch';
+import { sendClick } from '../helpers';
 import { macroStore, RemoteMacro, RemoteMacroStep } from './macroStore.ts';
 import { progressDone, progressStart, progressUpdate } from '../progress';
 import { delay as wait } from '../delay.ts';
@@ -35,15 +35,6 @@ const createDom = (): { container: HTMLDivElement } => {
     </div>
 `;
   return { container };
-}
-
-const sendClick = async (value: number) => {
-  try {
-    const response = await ofetch(`/click?btn=${value.toString(10)}`, { timeout: 250 });
-    if (response.result !== 'ok') { console.error(response); }
-  } catch {
-    console.error('timed out');
-  }
 }
 
 const stepsToText = (steps: RemoteMacroStep[]): string => {
