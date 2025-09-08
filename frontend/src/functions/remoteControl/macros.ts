@@ -3,7 +3,7 @@ import { macroStore, RemoteMacro, RemoteMacroStep } from './macroStore.ts';
 import { progressDone, progressStart, progressUpdate } from '../progress';
 import { delay as wait } from '../delay.ts';
 import { HideRemoteControl, LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY, MIN_STEP_DELAY, RemoteControl } from '../../consts.ts';
-import { addIcon, deleteIcon, editIcon, flipIcon, playIcon } from '../icons';
+import { addIcon, deleteIcon, editIcon, gamePadIcon, playIcon } from '../icons';
 import { buttonLabels, ButtonValues, getButtonValue } from './buttonValues.ts';
 import './macros.scss';
 
@@ -112,7 +112,7 @@ export const updateMacroList = () => {
   macroList.innerHTML = `
     <li class="remote-control-macros__list-entry" data-id=".">
       <span class="remote-control-macros__buttons">
-        <button title="Switch to Controller" class="remote-control-macros__button" data-action="flip">${flipIcon()}</button>
+        <button title="Switch to Controller" class="remote-control-macros__button" data-action="flip">${gamePadIcon()}</button>
         <button title="Add new macro" class="remote-control-macros__button" data-action="add">${addIcon()}</button>
       </span>
     </li>
