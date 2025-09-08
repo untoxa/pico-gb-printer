@@ -14,7 +14,8 @@
 #define	J_SELECT    0x40
 #define	J_START     0x80
 
-void keys_push(uint8_t keys);
+bool keys_push(uint8_t keys);
+bool keys_click(uint8_t keys);
 bool keys_pop(uint8_t *keys);
 
 void remote_send(uint8_t keys);

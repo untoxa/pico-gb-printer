@@ -109,6 +109,7 @@ static void keyboard_callback(uint gpio, uint32_t events) {
 #define ROOT_PAGE   "/index.html"
 #define IMAGE_FILE  "/image.bin"
 #define STATUS_FILE "/status.json"
+#define RESULT_FILE "/result.json"
 #define LIST_FILE   "/list.json"
 
 static const char *cgi_options(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
@@ -137,15 +138,16 @@ static const char *cgi_reset_usb_boot(int iIndex, int iNumParams, char *pcParam[
     return ROOT_PAGE;
 }
 
+bool last_click_status = true;
 static const char *cgi_click(int iIndex, int iNumParams, char *pcParam[], char *pcValue[]) {
+    last_click_status = false;
     for (uint32_t i = 0; i != iNumParams; ++i) {
         if (strcmp(pcParam[i], "btn") == 0) {
-            keys_push(atoi(pcValue[i]));
-            keys_push(J_NONE);
+            last_click_status = keys_click(atoi(pcValue[i]));
             break;
         }
     }
-    return STATUS_FILE;
+    return RESULT_FILE;
 }
 
 static const tCGI cgi_handlers[] = {
@@ -158,8 +160,9 @@ static const tCGI cgi_handlers[] = {
 };
 
 int fs_open_custom(struct fs_file *file, const char *name) {
-    static const char *on_off[]     = {"off", "on"};
+    static const char *on_off[]     = {"off",   "on"  };
     static const char *true_false[] = {"false", "true"};
+    static const char *ok_fail[]    = {"fail",  "ok"  };
     if (!strcmp(name, IMAGE_FILE)) {
         datafile_t * datafile = pop_last_file();
         if (!datafile) return 0;
@@ -195,6 +198,14 @@ int fs_open_custom(struct fs_file *file, const char *name) {
                                on_off[debug_enable],
                                last_file_len, picture_count,
                                true_false[speed_240_MHz]);
+        file->index = file->len;
+        return 1;
+    } else if (!strcmp(name, RESULT_FILE)) {
+        memset(file, 0, sizeof(struct fs_file));
+        file->data  = file_buffer;
+        file->len   = snprintf(file_buffer, sizeof(file_buffer),
+                               "{\"result\":%s}",
+                               ok_fail[last_click_status]);
         file->index = file->len;
         return 1;
     } else if (!strcmp(name, LIST_FILE)) {
