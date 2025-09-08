@@ -1,0 +1,142 @@
+@use '../../styles/extendable/button';
+
+:root {
+  --macros-height: calc(7 * var(--unit));
+}
+
+body[data-remote="macros"] {
+  margin-bottom: calc(50px + var(--macros-height));
+}
+
+body[data-remote="macros"][data-hideremote="true"] {
+  margin-bottom: calc(50px + var(--unit));
+}
+
+.remote-control-macros {
+  position: relative;
+  z-index: var(--z-index-remote);
+
+  &__wrapper {
+    position: fixed;
+    right: 50%;
+    transform: translateX(50%);
+    bottom: calc(-1 * var(--macros-height));
+    background-color: #ddd;
+    width: calc(8 * var(--unit));
+    height: var(--macros-height);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow: hidden;
+    align-items: center;
+    transition: bottom 150ms ease-in-out;
+    border-top-right-radius: calc(0.3 * var(--unit));
+    border-top-left-radius: calc(0.3 * var(--unit));
+
+    body[data-remote="macros"] & {
+      bottom: 0;
+    }
+
+    body[data-remote="macros"][data-hideremote="true"] & {
+      bottom: calc(44px + calc(-1 * var(--macros-height)));
+    }
+  }
+
+  &__drawer {
+    @extend %button-reset;
+
+    width: 100%;
+    height: calc(0.8 * var(--unit));
+    background-color: #888;
+    color: #bbb;
+  }
+
+  &__list {
+    flex: 1;
+    width: 100%;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    backface-visibility: hidden;
+    padding-top: 6px;
+  }
+
+  &__list-entry {
+    margin: 0 20px;
+    display: flex;
+    gap: 12px;
+    flex-direction: row;
+    justify-content: space-between;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #aaa;
+  }
+
+  &__title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    height: 40px;
+    line-height: 40px;
+    text-align: left;
+  }
+
+  &__buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  &__button {
+    @extend %button-default;
+
+    width: 40px;
+    height: 40px;
+  }
+
+  &__form--visible + &__list {
+    display: none;
+  }
+
+  &__form {
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    padding: 0 20px;
+
+    &--visible {
+      display: flex;
+    }
+  }
+
+  &__field {
+    width: 100%;
+    font-size: 16px;
+    padding: 8px 12px;
+
+    &--title {}
+
+    &--steps {
+      resize: none;
+      height: 180px;
+    }
+  }
+
+  &__form-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  &__form-button {
+    flex: 1;
+    @extend %button-default;
+
+    &--save {}
+    &--cancel {}
+  }
+}
+
+

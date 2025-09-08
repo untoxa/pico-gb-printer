@@ -1,4 +1,5 @@
 import { ofetch } from 'ofetch';
+import { initMacros } from './macros.ts';
 import { HideRemoteControl, LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY } from '../../consts.ts';
 import { cameraIcon } from '../icons';
 import { buttonLabels, ButtonValues } from './buttonValues.ts';
@@ -69,4 +70,6 @@ export const initRemoteControl = async () => {
     }
     localStorage.setItem(LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY, document.body.dataset.hideremote)
   });
+
+  initMacros();
 }

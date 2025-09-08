@@ -26,6 +26,7 @@ export const LOCALSTORAGE_EXPOSURE_MODE_KEY = 'pico-printer-exposure-mode';
 export const LOCALSTORAGE_REMOTE_CONTROL_KEY = 'pico-printer-remote-control';
 export const LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY = 'pico-printer-hide-remote-control';
 export const LOCALSTORAGE_LIVE_VIEW_KEY = 'pico-printer-live-view';
+export const LOCALSTORAGE_MACROS_KEY = 'pico-printer-macros';
 
 export enum SortOrder {
   ASCENDING = 'asc',

@@ -87,7 +87,7 @@ const createDom = (): { container: HTMLDivElement, backdrop: HTMLButtonElement }
       { value: RemoteControl.NONE, label: 'No Remote' },
       { value: RemoteControl.CONTROLLER, label: 'Full Controller' },
       { value: RemoteControl.SHUTTER, label: 'Only Shutter' },
-      // { value: RemoteControl.MACROS, label: 'Macros' },
+      { value: RemoteControl.MACROS, label: 'Macros' },
     ],
   })}
 </div>
