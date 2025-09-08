@@ -9,18 +9,30 @@
 #include "linkcable.h"
 #include "linkcable.pio.h"
 
-static uint8_t keybuffer[0x10];
+#define KEYBUFFER_SIZE (1u << 5)
+#define KEYBUFFER_MASK (KEYBUFFER_SIZE - 1)
+
+static uint8_t keybuffer[KEYBUFFER_SIZE];
 static volatile uint8_t head = 0, tail = 0;
 
-void keys_push(uint8_t keys) {
+bool keys_push(uint8_t keys) {
     uint8_t h;
-    if ((h = ((head + 1) & 0x0f)) == tail) return;
+    if ((h = ((head + 1) & KEYBUFFER_MASK)) == tail) return false;
     keybuffer[head = h] = keys;
+    return true;
+}
+
+bool keys_click(uint8_t keys) {
+    if (((head + 1) & KEYBUFFER_MASK) == tail) return false;
+    if (((head + 2) & KEYBUFFER_MASK) == tail) return false;
+    keybuffer[head = ((head + 1) & KEYBUFFER_MASK)] = keys;
+    keybuffer[head = ((head + 1) & KEYBUFFER_MASK)] = 0x00;
+    return true;
 }
 
 bool keys_pop(uint8_t *keys) {
     if (head == tail) return false;
-    tail = (tail + 1) & 0x0f;
+    tail = (tail + 1) & KEYBUFFER_MASK;
     *keys = keybuffer[tail];
     return true;
 }
