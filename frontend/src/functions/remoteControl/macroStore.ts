@@ -14,31 +14,24 @@ export interface RemoteMacro {
   steps: RemoteMacroStep[],
 }
 
-class MacroStore {
-  constructor() {
-    if (this.getMacros().length === 0) {
-      this.addNew('');
-    }
-  }
+export type MacroDefaults = Partial<Omit<RemoteMacro, 'id'>>;
 
+class MacroStore {
   getMacros(): RemoteMacro[] {
     return JSON.parse(localStorage.getItem(LOCALSTORAGE_MACROS_KEY) || '[]');
   }
 
   saveMacros(macros: RemoteMacro[]): void {
-    if (macros.length === 0) {
-      macros.push(this.newMacro());
-    }
-
     localStorage.setItem(LOCALSTORAGE_MACROS_KEY, JSON.stringify(macros));
   }
 
-  newMacro(): RemoteMacro {
+  newMacro(defaults: MacroDefaults = {}): RemoteMacro {
     return {
       id: Math.random().toString(16).split('.')[1],
       title: 'New Macro',
       repeats: 1,
       steps: [],
+      ...defaults,
     }
   }
 
@@ -48,16 +41,20 @@ class MacroStore {
     ))
   }
 
-  addNew(addBeforeId: string): void {
+  addNew(addBeforeId: string, defaults: MacroDefaults = {}): string {
     const macros = this.getMacros();
     const insertIndex = macros.findIndex(({ id }) => id === addBeforeId);
+    const newMacro = this.newMacro(defaults);
 
+    this.newMacro(defaults)
     if (insertIndex !== -1) {
-      macros.splice(insertIndex, 0, this.newMacro())
+      macros.splice(insertIndex, 0, newMacro)
       this.saveMacros(macros);
     } else {
-      this.saveMacros([this.newMacro(), ...macros]);
+      this.saveMacros([newMacro, ...macros]);
     }
+
+    return newMacro.id;
   }
 
   delete(deleteId: string): void {

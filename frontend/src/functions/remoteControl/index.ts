@@ -1,7 +1,9 @@
 import { ofetch } from 'ofetch';
-import { initMacros } from './macros.ts';
+import { cameraIcon, recordIcon } from '../icons';
+import { timeNow, today } from '../helpers';
+import { macroStore, RemoteMacroStep } from './macroStore.ts';
+import { initMacros, updateMacroList } from './macros.ts';
 import { HideRemoteControl, LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY } from '../../consts.ts';
-import { cameraIcon } from '../icons';
 import { buttonLabels, ButtonValues } from './buttonValues.ts';
 import './remote.scss';
 
@@ -16,6 +18,7 @@ const createDom = (): { container: HTMLDivElement } => {
           <button title="${buttonLabels[ButtonValues.DPAD_LEFT]}" class="remote-control__dpad-button" data-value="${ButtonValues.DPAD_LEFT}"></button>
           <button title="${buttonLabels[ButtonValues.DPAD_RIGHT]}" class="remote-control__dpad-button" data-value="${ButtonValues.DPAD_RIGHT}"></button>
           <button title="${buttonLabels[ButtonValues.DPAD_DOWN]}" class="remote-control__dpad-button" data-value="${ButtonValues.DPAD_DOWN}"></button>
+          <button title="Record Macro" class="remote-control__dpad-button remote-control__dpad-button--macro">${recordIcon()}</button>
         </div>
         <div class="remote-control__ssab">
           <button title="${buttonLabels[ButtonValues.SELECT]}" class="remote-control__ssab-button" data-value="${ButtonValues.SELECT}">${buttonLabels[ButtonValues.SELECT]}</button>
@@ -38,6 +41,9 @@ const createDom = (): { container: HTMLDivElement } => {
 export const initRemoteControl = async () => {
   const { container } = createDom();
   const buttons = [...container.querySelectorAll('[data-value]')] as HTMLButtonElement[];
+  const recordButton = container.querySelector('.remote-control__dpad-button--macro') as HTMLButtonElement
+  let macroSteps: RemoteMacroStep[] = [];
+  let macroTime: number = 0;
 
   const sendClick = async (value: number) => {
     buttons.forEach((button) => { button.disabled = true; });
@@ -52,10 +58,39 @@ export const initRemoteControl = async () => {
 
   container.addEventListener('click', (ev) => {
     const button = ev.target as HTMLButtonElement;
-    const value = button.dataset.value;
+    const value = button.dataset.value as (ButtonValues | undefined);
+    const isRecording = recordButton.classList.contains('remote-control__dpad-button--recording');
 
     if (value) {
       sendClick(parseInt(value, 16));
+      // const delay = Math.round((Date.now() - macroTime) / MIN_STEP_DELAY) * MIN_STEP_DELAY;
+      const delay = Date.now() - macroTime;
+      if (isRecording) {
+        macroSteps.push({
+          comment: '', // buttonLabels[value],
+          delay,
+          key: value,
+        });
+
+        macroTime = Date.now();
+      }
+    } else if (button.classList.contains('remote-control__dpad-button--macro')) {
+        if (isRecording) {
+          button.classList.remove('remote-control__dpad-button--recording');
+
+          const datetime = new Date();
+
+          macroStore.addNew('', {
+            title: `${today(datetime, '.')} ${timeNow(datetime, ':')}`,
+            steps: macroSteps,
+          });
+
+          updateMacroList();
+        } else {
+          button.classList.add('remote-control__dpad-button--recording');
+          macroSteps = [];
+          macroTime = Date.now();
+        }
     }
   });
 

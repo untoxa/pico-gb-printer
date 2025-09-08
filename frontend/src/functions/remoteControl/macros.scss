@@ -69,7 +69,10 @@ body[data-remote="macros"][data-hideremote="true"] {
     flex-direction: row;
     justify-content: space-between;
     padding-bottom: 6px;
-    border-bottom: 1px solid #aaa;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid #aaa;
+    }
   }
 
   &__title {

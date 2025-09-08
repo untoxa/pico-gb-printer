@@ -17,6 +17,7 @@ export const TILE_WIDTH    = 8;
 
 export const MAX_POLL_DELAY = 1500;
 export const BASIC_POLL_DELAY  = 10;
+export const MIN_STEP_DELAY = 50;
 
 export const LOCALSTORAGE_SORTORDER_KEY = 'pico-printer-sort-order';
 export const LOCALSTORAGE_SCALE_KEY = 'pico-printer-save-scale';

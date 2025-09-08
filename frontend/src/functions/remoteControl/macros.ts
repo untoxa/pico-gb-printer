@@ -1,13 +1,11 @@
 import { macroStore, RemoteMacro, RemoteMacroStep } from './macroStore.ts';
 import { progressDone, progressStart, progressUpdate } from '../progress';
 import { delay as wait } from '../delay.ts';
-import { HideRemoteControl, LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY } from '../../consts.ts';
+import { HideRemoteControl, LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY, MIN_STEP_DELAY } from '../../consts.ts';
 import { addIcon, deleteIcon, editIcon, playIcon } from '../icons';
 import { buttonLabels, ButtonValues, getButtonValue } from './buttonValues.ts';
 import './macros.scss';
 import {ofetch} from "ofetch";
-
-const MIN_STEP_DELAY = 50;
 
 const escape = (str: string): string => {
   return str
@@ -99,10 +97,44 @@ const runMacro = async (macroId: string) => {
   progressDone();
 }
 
+let macroList: HTMLUListElement | null = null;
+
+export const updateMacroList = () => {
+  if (!macroList) { return; }
+
+  const macros = macroStore.getMacros();
+
+  if (macros.length) {
+    macroList.innerHTML = macros.map((macro: RemoteMacro) => (`
+        <li class="remote-control-macros__list-entry" data-id="${macro.id}" title="${escape(macro.title)}\n${stepsToText(macro.steps)}">
+          <span class="remote-control-macros__title">
+            ${escape(macro.title)}
+          </span>
+          <span class="remote-control-macros__buttons">
+            <button title="Run macro" class="remote-control-macros__button" data-action="play">${playIcon()}</button>
+            <button title="Edit macro" class="remote-control-macros__button" data-action="edit">${editIcon()}</button>
+            <button title="Delete macro" class="remote-control-macros__button" data-action="delete">${deleteIcon()}</button>
+            <button title="Add macro below" class="remote-control-macros__button" data-action="add">${addIcon()}</button>
+          </span>
+        </li>
+      `)).join('');
+  } else {
+    macroList.innerHTML = `
+        <li class="remote-control-macros__list-entry" data-id=".">
+          <span class="remote-control-macros__title"></span>
+          <span class="remote-control-macros__buttons">
+            <button title="Add macro below" class="remote-control-macros__button" data-action="add">${addIcon()}</button>
+          </span>
+        </li>
+      `;
+  }
+}
+
+
 export const initMacros = () => {
   const { container } = createDom();
 
-  const macroList = container.querySelector('.remote-control-macros__list') as HTMLUListElement;
+  macroList = container.querySelector('.remote-control-macros__list') as HTMLUListElement;
   const editForm = container.querySelector('.remote-control-macros__form') as HTMLDivElement;
   const editIdField = editForm.querySelector('.remote-control-macros__field--id') as HTMLInputElement;
   const editTitleField = editForm.querySelector('.remote-control-macros__field--title') as HTMLInputElement;
@@ -110,24 +142,6 @@ export const initMacros = () => {
   const editStepsField = editForm.querySelector('.remote-control-macros__field--steps') as HTMLTextAreaElement;
   const editStepsSave = editForm.querySelector('.remote-control-macros__form-button--save') as HTMLButtonElement;
   const editStepsCancel = editForm.querySelector('.remote-control-macros__form-button--cancel') as HTMLButtonElement;
-
-  const updateMacroList = () => {
-    const macros = macroStore.getMacros();
-
-    macroList.innerHTML = macros.map((macro: RemoteMacro) => (`
-      <li class="remote-control-macros__list-entry" data-id="${macro.id}" title="${escape(macro.title)}\n${stepsToText(macro.steps)}">
-        <span class="remote-control-macros__title">
-          ${escape(macro.title)}
-        </span>
-        <span class="remote-control-macros__buttons">
-          <button title="Edit macro" class="remote-control-macros__button" data-action="edit">${editIcon()}</button>
-          <button title="Add macro below" class="remote-control-macros__button" data-action="add">${addIcon()}</button>
-          <button title="Delete macro" class="remote-control-macros__button" data-action="delete">${deleteIcon()}</button>
-          <button title="Run macro" class="remote-control-macros__button" data-action="play">${playIcon()}</button>
-        </span>
-      </li>
-    `)).join('');
-  }
 
   const showEditMacro = (id: string) => {
     const macro = macroStore.getMacro(id);
@@ -187,7 +201,7 @@ export const initMacros = () => {
 
     switch (action) {
       case 'add': {
-        macroStore.addNew(macroId);
+        showEditMacro(macroStore.addNew(macroId));
         updateMacroList();
         break;
       }

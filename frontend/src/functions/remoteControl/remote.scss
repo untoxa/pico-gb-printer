@@ -1,5 +1,10 @@
 @use '../../styles/extendable/button';
 
+@keyframes recording {
+  0%, 100% { color: #ff1a1a; }
+  50% { color: #590000; }
+}
+
 :root {
   --unit: 55px;
   --height: calc(4.8 * var(--unit));
@@ -121,6 +126,22 @@ body[data-remote="controller"][data-hideremote="true"] {
       &:hover {
         background-color: #212121;
       }
+    }
+
+    &--macro {
+      clip-path: polygon(33% 33%, 67% 33%, 67% 67%, 33% 67%);
+      background-color: #000;
+      color: #871515;
+
+      svg { fill: currentColor; }
+
+      &:hover {
+        background-color: #202020;
+      }
+    }
+
+    &--recording {
+      animation: recording 1000ms infinite;
     }
   }
 
