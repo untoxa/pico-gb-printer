@@ -1,25 +1,12 @@
 @use '../../styles/extendable/button';
-
-@keyframes recording {
-  0%, 100% { color: #ff1a1a; }
-  50% { color: #590000; }
-}
-
-:root {
-  --unit: 55px;
-  --height: calc(4.8 * var(--unit));
-
-  @media (max-width: 440px) {
-    --unit: 11.9vw;
-  }
-}
+@use './shared';
 
 body[data-remote="controller"] {
-  margin-bottom: calc(50px + var(--height));
+  margin-bottom: calc(var(--drawer-body-extra-margin) + var(--height));
 }
 
 body[data-remote="controller"][data-hideremote="true"] {
-  margin-bottom: calc(50px + var(--unit));
+  @extend %body-wrapper-closed;
 }
 
 .remote-control {
@@ -29,39 +16,28 @@ body[data-remote="controller"][data-hideremote="true"] {
   /*****************************/
   /* REMOTE CONTROL-CONTROLLER */
   /*****************************/
-  &__controller-wrapper {
-    position: fixed;
-    right: 50%;
-    transform: translateX(50%);
+  &__wrapper {
+    @extend %wrapper;
+
     bottom: calc(-1 * var(--height));
-    background-color: #ddd;
-    width: calc(8 * var(--unit));
     height: var(--height);
-    display: flex;
-    flex-direction: column;
     gap: calc(0.5 * var(--unit));
-    overflow: hidden;
-    align-items: center;
-    transition: bottom 150ms ease-in-out;
-    border-top-right-radius: calc(0.3 * var(--unit));
-    border-top-left-radius: calc(0.3 * var(--unit));
 
     body[data-remote="controller"] & {
       bottom: 0;
     }
 
     body[data-remote="controller"][data-hideremote="true"] & {
-      bottom: calc(44px + calc(-1 * var(--height)));
+      bottom: calc(var(--drawer-height) + calc(-1 * var(--height)));
     }
   }
 
   &__drawer {
-    @extend %button-reset;
+    @extend %drawer;
+  }
 
-    width: 100%;
-    height: calc(0.8 * var(--unit));
-    background-color: #888;
-    color: #bbb;
+  &__meta-button {
+    @extend %meta-button;
   }
 
   &__controller {
@@ -132,8 +108,6 @@ body[data-remote="controller"][data-hideremote="true"] {
       clip-path: polygon(33% 33%, 67% 33%, 67% 67%, 33% 67%);
       background-color: #000;
       color: #871515;
-
-      svg { fill: currentColor; }
 
       &:hover {
         background-color: #202020;

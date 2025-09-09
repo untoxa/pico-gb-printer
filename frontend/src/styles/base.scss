@@ -21,6 +21,7 @@ body {
   min-width: 250px;
   overflow-y: auto;
   overflow-x: hidden;
+  transition: margin-bottom 150ms linear; // used for opening/closing bottom drawers
 }
 
 body.fixed {
@@ -45,4 +46,9 @@ h1 {
   position: relative;
   margin: 0;
   padding: 0 28px;
+}
+
+@keyframes recording {
+  0%, 100% { color: #ff1a1a; }
+  50% { color: #590000; }
 }

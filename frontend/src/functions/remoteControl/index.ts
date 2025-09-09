@@ -1,5 +1,5 @@
 import { sendClick } from '../helpers';
-import { cameraIcon, recordIcon } from '../icons';
+import { cameraIcon, listIcon, recordIcon } from '../icons';
 import { timeNow, today } from '../helpers';
 import { macroStore, RemoteMacroStep } from './macroStore.ts';
 import { initMacros, updateMacroList } from './macros.ts';
@@ -10,8 +10,9 @@ import './remote.scss';
 const createDom = (): { container: HTMLDivElement } => {
   const container = document.querySelector('.remote-control') as HTMLDivElement;
   container.innerHTML = `
-    <div class="remote-control__controller-wrapper">
+    <div class="remote-control__wrapper">
       <button class="remote-control__drawer" title="Show/Hide Remote Controller">== Remote ==</button>
+      <button title="Switch to Controller" class="remote-control__meta-button" data-action="flip">${listIcon()}</button>
       <div class="remote-control__controller">
         <div class="remote-control__dpad">
           <button title="${buttonLabels[ButtonValues.DPAD_UP]}" class="remote-control__dpad-button" data-value="${ButtonValues.DPAD_UP}"></button>
@@ -41,13 +42,33 @@ const createDom = (): { container: HTMLDivElement } => {
 export const initRemoteControl = async (updateSetting: (value: RemoteControl) => void) => {
   const { container } = createDom();
   const buttons = [...container.querySelectorAll('[data-value]')] as HTMLButtonElement[];
-  const recordButton = container.querySelector('.remote-control__dpad-button--macro') as HTMLButtonElement
+  const recordButton = container.querySelector('.remote-control__dpad-button--macro') as HTMLButtonElement;
+  const switchButton = container.querySelector('.remote-control__meta-button') as HTMLButtonElement;
   let macroSteps: RemoteMacroStep[] = [];
   let macroTime: number = 0;
+
+  const stopRecording = () => {
+    recordButton.classList.remove('remote-control__dpad-button--recording');
+
+    if (macroSteps.length) {
+      const datetime = new Date();
+      macroStore.addNew('', {
+        title: `${today(datetime, '.')} ${timeNow(datetime, ':')}`,
+        steps: macroSteps,
+      });
+
+      updateSetting(RemoteControl.MACROS);
+      updateMacroList();
+    }
+  };
+
+  const isRecording = () => (
+    recordButton.classList.contains('remote-control__dpad-button--recording')
+  );
+
   container.addEventListener('click', (ev) => {
     const button = ev.target as HTMLButtonElement;
     const value = button.dataset.value as (ButtonValues | undefined);
-    const isRecording = recordButton.classList.contains('remote-control__dpad-button--recording');
 
     if (value) {
       buttons.forEach((button) => { button.disabled = true; });
@@ -56,7 +77,7 @@ export const initRemoteControl = async (updateSetting: (value: RemoteControl) =>
 
       // const delay = Math.round((Date.now() - macroTime) / MIN_STEP_DELAY) * MIN_STEP_DELAY;
       const delay = Date.now() - macroTime;
-      if (isRecording) {
+      if (isRecording()) {
         macroSteps.push({
           comment: '', // buttonLabels[value],
           delay,
@@ -66,25 +87,21 @@ export const initRemoteControl = async (updateSetting: (value: RemoteControl) =>
         macroTime = Date.now();
       }
     } else if (button.classList.contains('remote-control__dpad-button--macro')) {
-        if (isRecording) {
-          button.classList.remove('remote-control__dpad-button--recording');
-
-          if (macroSteps.length) {
-            const datetime = new Date();
-            macroStore.addNew('', {
-              title: `${today(datetime, '.')} ${timeNow(datetime, ':')}`,
-              steps: macroSteps,
-            });
-
-            updateSetting(RemoteControl.MACROS);
-            updateMacroList();
-          }
-
+        if (isRecording()) {
+          stopRecording();
         } else {
           button.classList.add('remote-control__dpad-button--recording');
           macroSteps = [];
           macroTime = Date.now();
-        }
+      }
+    }
+  });
+
+  switchButton.addEventListener('click', () => {
+    if (isRecording()) {
+      stopRecording();
+    } else {
+      updateSetting(RemoteControl.MACROS);
     }
   });
 

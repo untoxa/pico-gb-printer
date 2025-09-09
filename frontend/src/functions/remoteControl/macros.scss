@@ -1,15 +1,12 @@
 @use '../../styles/extendable/button';
-
-:root {
-  --macros-height: calc(7 * var(--unit));
-}
+@use './shared';
 
 body[data-remote="macros"] {
-  margin-bottom: calc(50px + var(--macros-height));
+  margin-bottom: calc(var(--drawer-body-extra-margin) + var(--macros-height));
 }
 
 body[data-remote="macros"][data-hideremote="true"] {
-  margin-bottom: calc(50px + var(--unit));
+  @extend %body-wrapper-closed;
 }
 
 .remote-control-macros {
@@ -17,38 +14,35 @@ body[data-remote="macros"][data-hideremote="true"] {
   z-index: var(--z-index-remote);
 
   &__wrapper {
-    position: fixed;
-    right: 50%;
-    transform: translateX(50%);
+    @extend %wrapper;
+
+    --gap: 12px;
+    --side-space: 20px;
+
     bottom: calc(-1 * var(--macros-height));
-    background-color: #ddd;
-    width: calc(8 * var(--unit));
     height: var(--macros-height);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    overflow: hidden;
-    align-items: center;
-    transition: bottom 150ms ease-in-out;
-    border-top-right-radius: calc(0.3 * var(--unit));
-    border-top-left-radius: calc(0.3 * var(--unit));
+    gap: var(--gap);
+
+    @media (max-width: 440px) {
+      --gap: 6px;
+      --side-space: 10px;
+    }
 
     body[data-remote="macros"] & {
       bottom: 0;
     }
 
     body[data-remote="macros"][data-hideremote="true"] & {
-      bottom: calc(44px + calc(-1 * var(--macros-height)));
+      bottom: calc(var(--drawer-height) + calc(-1 * var(--macros-height)));
     }
   }
 
   &__drawer {
-    @extend %button-reset;
+    @extend %drawer;
+  }
 
-    width: 100%;
-    height: calc(0.8 * var(--unit));
-    background-color: #888;
-    color: #bbb;
+  &__meta-button {
+    @extend %meta-button;
   }
 
   &__list {
@@ -63,7 +57,7 @@ body[data-remote="macros"][data-hideremote="true"] {
   }
 
   &__list-entry {
-    margin: 0 20px;
+    margin: 0 var(--side-space);
     display: flex;
     gap: 12px;
     flex-direction: row;
@@ -86,9 +80,11 @@ body[data-remote="macros"][data-hideremote="true"] {
   }
 
   &__buttons {
+    flex: 1;
     display: flex;
     flex-direction: row;
     gap: 8px;
+    justify-content: flex-end;
   }
 
   &__button {
@@ -105,9 +101,10 @@ body[data-remote="macros"][data-hideremote="true"] {
   &__form {
     display: none;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--gap);
     width: 100%;
-    padding: 0 20px;
+    max-height: calc(var(--macros-height) - var(--drawer-height) - calc(2 * var(--gap)));
+    padding: 0 var(--side-space);
 
     &--visible {
       display: flex;
@@ -118,6 +115,11 @@ body[data-remote="macros"][data-hideremote="true"] {
     width: 100%;
     font-size: 16px;
     padding: 8px 12px;
+
+    @media (max-width: 440px) {
+      font-size: 14px;
+      padding: 4px 6px;
+    }
 
     &--title {}
 

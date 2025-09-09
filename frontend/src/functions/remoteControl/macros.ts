@@ -1,4 +1,4 @@
-import { sendClick } from '../helpers';
+import { escape, sendClick } from '../helpers';
 import { macroStore, RemoteMacro, RemoteMacroStep } from './macroStore.ts';
 import { progressDone, progressStart, progressUpdate } from '../progress';
 import { delay as wait } from '../delay.ts';
@@ -7,20 +7,12 @@ import { addIcon, deleteIcon, editIcon, gamePadIcon, playIcon } from '../icons';
 import { buttonLabels, ButtonValues, getButtonValue } from './buttonValues.ts';
 import './macros.scss';
 
-const escape = (str: string): string => {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
 const createDom = (): { container: HTMLDivElement } => {
   const container = document.querySelector('.remote-control-macros') as HTMLDivElement;
   container.innerHTML = `
     <div class="remote-control-macros__wrapper">
       <button class="remote-control-macros__drawer" title="Show/Hide Macro Window">== Macros ==</button>
+      <button title="Switch to Controller" class="remote-control-macros__meta-button" data-action="flip">${gamePadIcon()}</button>
       <div class="remote-control-macros__form">
         <input class="remote-control-macros__field remote-control-macros__field--id" type="hidden"/>
         <input class="remote-control-macros__field remote-control-macros__field--title" type="text"/>
@@ -38,23 +30,30 @@ const createDom = (): { container: HTMLDivElement } => {
 }
 
 const stepsToText = (steps: RemoteMacroStep[]): string => {
-  return steps.map(({ key, delay, comment }) => (
-    `${delay.toString(10)} ${buttonLabels[key]} ${comment.split('\n').filter(Boolean).join(' ')}`.trim()
-  )).join('\n');
+  return steps.map((step) => {
+    return [
+      `${step.delay.toString(10)}ms`.split('000ms').join('s'),
+      buttonLabels[step.key],
+      step.comment ? `#${step.comment}` : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+  }).join('\n');
 }
+
+const lineRegex = /^(?<delay>\d+)(?<unit>ms|s)\s+(?<key>\w+)(?:\s+#(?<comment>.*))?$/;
 
 const textToSteps = (text: string): RemoteMacroStep[] => {
   const commands = text.split('\n');
-  const steps: (RemoteMacroStep | null)[] = commands.map((command: string): RemoteMacroStep | null => {
-    const [timeRaw, commandRaw, ...commentRaw] = command.split(' ');
+  const steps: (RemoteMacroStep | null)[] = commands.map((line: string): RemoteMacroStep | null => {
+    const match = line.trim().match(lineRegex);
+    if (!match || !match.groups) return null;
 
-    const delay = Math.max(MIN_STEP_DELAY, parseInt(timeRaw, 10) || 0);
-    const key = getButtonValue(commandRaw || '');
-    const comment = (commentRaw || []).filter(Boolean).join(' ')
+    const rawDelay = parseInt(match.groups.delay, 10);
+    const delay = Math.max(MIN_STEP_DELAY, match.groups.unit === 's' ? rawDelay * 1000 : rawDelay);
 
-    if (key === ButtonValues.NONE && delay === 0) {
-      return null;
-    }
+    const key = getButtonValue(match.groups.key || '');
+    const comment = match.groups.comment || '';
 
     if (key) {
       return { delay, key, comment };
@@ -68,7 +67,7 @@ const textToSteps = (text: string): RemoteMacroStep[] => {
 
 const runMacro = async (macroId: string) => {
   const macro = macroStore.getMacro(macroId);
-  if (!macro) { return; }
+  if (!macro || !macro.steps.length) { return; }
 
   const { steps, repeats } = macro;
 
@@ -79,10 +78,15 @@ const runMacro = async (macroId: string) => {
 
   for (let step of fullSteps) {
     const { delay, key } = step;
+
     progressUpdate(count / fullSteps.length);
     count += 1;
+
     await wait(delay);
-    sendClick(parseInt(key, 16));
+
+    if (key !== ButtonValues.NONE) {
+      sendClick(parseInt(key, 16));
+    }
   }
 
   progressDone();
@@ -95,29 +99,32 @@ export const updateMacroList = () => {
 
   const macros = macroStore.getMacros();
 
-  macroList.innerHTML = macros.map((macro: RemoteMacro) => (`
-      <li class="remote-control-macros__list-entry" data-id="${macro.id}" title="${escape(macro.title)}\n${stepsToText(macro.steps)}">
+  if (macros.length) {
+    macroList.innerHTML = macros.map((macro: RemoteMacro) => (`
+        <li class="remote-control-macros__list-entry" title="${escape(macro.title)}\n${stepsToText(macro.steps)}">
+          <span class="remote-control-macros__title">
+            ${escape(macro.title)}
+          </span>
+          <span class="remote-control-macros__buttons">
+            <button title="Edit macro" class="remote-control-macros__button" data-id="${macro.id}" data-action="edit">${editIcon()}</button>
+            <button title="Delete macro" class="remote-control-macros__button" data-id="${macro.id}" data-action="delete">${deleteIcon()}</button>
+            <button title="Add macro" class="remote-control-macros__button" data-id="${macro.id}" data-action="add">${addIcon()}</button>
+            <button title="Run macro" class="remote-control-macros__button" data-id="${macro.id}" data-action="play">${playIcon()}</button>
+          </span>
+        </li>`
+      )
+    ).join('');
+  } else {
+    macroList.innerHTML = `
+      <li class="remote-control-macros__list-entry">
         <span class="remote-control-macros__title">
-          ${escape(macro.title)}
+          No macros
         </span>
         <span class="remote-control-macros__buttons">
-          <button title="Edit macro" class="remote-control-macros__button" data-action="edit">${editIcon()}</button>
-          <button title="Add macro" class="remote-control-macros__button" data-action="add">${addIcon()}</button>
-          <button title="Delete macro" class="remote-control-macros__button" data-action="delete">${deleteIcon()}</button>
-          <button title="Run macro" class="remote-control-macros__button" data-action="play">${playIcon()}</button>
+          <button title="Add new macro" class="remote-control-macros__button" data-action="add">${addIcon()}</button>
         </span>
-      </li>
-    `)).join('');
-
-  macroList.innerHTML = `
-    <li class="remote-control-macros__list-entry" data-id=".">
-      <span class="remote-control-macros__buttons">
-        <button title="Switch to Controller" class="remote-control-macros__button" data-action="flip">${gamePadIcon()}</button>
-        <button title="Add new macro" class="remote-control-macros__button" data-action="add">${addIcon()}</button>
-      </span>
-    </li>
-    ${macroList.innerHTML}
-    `
+      </li>`;
+  }
 }
 
 
@@ -125,6 +132,7 @@ export const initMacros = (updateSetting: (value: RemoteControl) => void) => {
   const { container } = createDom();
 
   macroList = container.querySelector('.remote-control-macros__list') as HTMLUListElement;
+  const flipButton = container.querySelector('.remote-control-macros__meta-button[data-action="flip"]') as HTMLDivElement;
   const editForm = container.querySelector('.remote-control-macros__form') as HTMLDivElement;
   const editIdField = editForm.querySelector('.remote-control-macros__field--id') as HTMLInputElement;
   const editTitleField = editForm.querySelector('.remote-control-macros__field--title') as HTMLInputElement;
@@ -152,7 +160,18 @@ export const initMacros = (updateSetting: (value: RemoteControl) => void) => {
     updateMacroList();
   };
 
-  editStepsCancel.addEventListener('click', hideEditMacro);
+  editStepsCancel.addEventListener('click', () => {
+    if (
+      editTitleField.value == 'New Macro' &&
+      editRepeatField.value == '1' &&
+      editStepsField.value == ''
+    ) {
+      macroStore.delete(editIdField.value);
+      updateMacroList();
+    }
+
+    hideEditMacro();
+  });
 
   editStepsSave.addEventListener('click', () => {
     const macroUpdate: RemoteMacro = {
@@ -173,21 +192,17 @@ export const initMacros = (updateSetting: (value: RemoteControl) => void) => {
     } else {
       document.body.dataset.hideremote = HideRemoteControl.TRUE;
     }
+
     localStorage.setItem(LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY, document.body.dataset.hideremote)
   });
 
-  updateMacroList();
-
-  macroList.addEventListener('mousedown', (ev) => {
+  const handleClick = (ev: MouseEvent) => {
     const button = ev.target as HTMLButtonElement;
-    const macroNode = (button.parentNode?.parentNode as HTMLLIElement | undefined) || null;
-
-    if (!macroNode) { return; }
 
     const action = button.dataset.action;
-    const macroId = macroNode.dataset.id;
+    const macroId= button.dataset.id || '';
 
-    if (!macroId) { return; }
+    if (!action) { return; }
 
     switch (action) {
       case 'add': {
@@ -196,28 +211,39 @@ export const initMacros = (updateSetting: (value: RemoteControl) => void) => {
         break;
       }
 
-      case 'edit': {
-        showEditMacro(macroId);
-        break;
-      }
-
-      case 'delete': {
-        macroStore.delete(macroId);
-        updateMacroList();
-        break;
-      }
-
-      case 'play': {
-        runMacro(macroId);
-        break;
-      }
-
       case 'flip': {
         updateSetting(RemoteControl.CONTROLLER);
         break;
       }
 
+
+      case 'edit': {
+        if (macroId) {
+          showEditMacro(macroId);
+        }
+        break;
+      }
+
+      case 'delete': {
+        if (macroId) {
+          macroStore.delete(macroId);
+          updateMacroList();
+        }
+        break;
+      }
+
+      case 'play': {
+        if (macroId) {
+          runMacro(macroId);
+        }
+        break;
+      }
+
       default:
     }
-  });
+  };
+
+  macroList.addEventListener('mousedown', handleClick);
+  flipButton.addEventListener('mousedown', handleClick);
+  updateMacroList();
 }

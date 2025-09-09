@@ -19,3 +19,12 @@ export const sendClick = async (value: number) => {
     showToast(`There was a time out while sending 0x${value.toString(16)}`)
   }
 }
+
+export const escape = (str: string): string => {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
