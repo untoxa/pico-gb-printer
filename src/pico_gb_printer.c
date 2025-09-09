@@ -204,7 +204,7 @@ int fs_open_custom(struct fs_file *file, const char *name) {
         memset(file, 0, sizeof(struct fs_file));
         file->data  = file_buffer;
         file->len   = snprintf(file_buffer, sizeof(file_buffer),
-                               "{\"result\":%s}",
+                               "{\"result\":\"%s\"}",
                                ok_fail[last_click_status]);
         file->index = file->len;
         return 1;
