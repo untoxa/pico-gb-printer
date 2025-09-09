@@ -1,0 +1,147 @@
+@use '../../styles/extendable/button';
+@use './shared';
+
+body[data-remote="macros"] {
+  margin-bottom: calc(var(--drawer-body-extra-margin) + var(--macros-height));
+}
+
+body[data-remote="macros"][data-hideremote="true"] {
+  @extend %body-wrapper-closed;
+}
+
+.remote-control-macros {
+  position: relative;
+  z-index: var(--z-index-remote);
+
+  &__wrapper {
+    @extend %wrapper;
+
+    --gap: 12px;
+    --side-space: 20px;
+
+    bottom: calc(-1 * var(--macros-height));
+    height: var(--macros-height);
+    gap: var(--gap);
+
+    @media (max-width: 440px) {
+      --gap: 6px;
+      --side-space: 10px;
+    }
+
+    body[data-remote="macros"] & {
+      bottom: 0;
+    }
+
+    body[data-remote="macros"][data-hideremote="true"] & {
+      bottom: calc(var(--drawer-height) + calc(-1 * var(--macros-height)));
+    }
+  }
+
+  &__drawer {
+    @extend %drawer;
+  }
+
+  &__meta-button {
+    @extend %meta-button;
+  }
+
+  &__list {
+    flex: 1;
+    width: 100%;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    backface-visibility: hidden;
+    padding-top: 6px;
+  }
+
+  &__list-entry {
+    margin: 0 var(--side-space);
+    display: flex;
+    gap: 12px;
+    flex-direction: row;
+    justify-content: space-between;
+    padding-bottom: 6px;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid #aaa;
+    }
+  }
+
+  &__title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    height: 40px;
+    line-height: 40px;
+    text-align: left;
+  }
+
+  &__buttons {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  &__button {
+    @extend %button-default;
+
+    width: 40px;
+    height: 40px;
+  }
+
+  &__form--visible + &__list {
+    display: none;
+  }
+
+  &__form {
+    display: none;
+    flex-direction: column;
+    gap: var(--gap);
+    width: 100%;
+    max-height: calc(var(--macros-height) - var(--drawer-height) - calc(2 * var(--gap)));
+    padding: 0 var(--side-space);
+
+    &--visible {
+      display: flex;
+    }
+  }
+
+  &__field {
+    width: 100%;
+    font-size: 16px;
+    padding: 8px 12px;
+
+    @media (max-width: 440px) {
+      font-size: 14px;
+      padding: 4px 6px;
+    }
+
+    &--title {}
+
+    &--steps {
+      resize: none;
+      height: 180px;
+    }
+  }
+
+  &__form-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  &__form-button {
+    flex: 1;
+    @extend %button-default;
+
+    &--save {}
+    &--cancel {}
+  }
+}
+
+

@@ -1,0 +1,55 @@
+@use '../../styles/extendable/button';
+
+:root {
+  --unit: 55px;
+  --height: calc(4.8 * var(--unit));
+  --macros-height: calc(7 * var(--unit));
+  --drawer-height: calc(0.8 * var(--unit));
+  --drawer-body-extra-margin: calc(0.5 * var(--unit));
+  --drawer-border-radius: calc(0.3 * var(--unit));
+
+  @media (max-width: 440px) {
+    --unit: 11.9vw;
+  }
+}
+
+%body-wrapper-closed {
+  margin-bottom: calc(var(--drawer-height) + var(--drawer-body-extra-margin));
+}
+
+%wrapper {
+  position: fixed;
+  right: 50%;
+  transform: translateX(50%);
+  background-color: #ddd;
+  width: calc(8 * var(--unit));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  align-items: center;
+  transition: bottom 150ms ease-in-out;
+  border-top-right-radius: var(--drawer-border-radius);
+  border-top-left-radius: var(--drawer-border-radius);
+}
+
+%drawer {
+  @extend %button-reset;
+  width: 100%;
+  height: var(--drawer-height);
+  background-color: #888;
+  color: #bbb;
+}
+
+%meta-button {
+  @extend %button-default;
+  position: absolute;
+  top: calc(0.1 * var(--drawer-height));
+  right: calc(0.1 * var(--drawer-height));
+  width: calc(0.8 * var(--drawer-height));
+  height: calc(0.8 * var(--drawer-height));
+  border-top-right-radius: calc(0.9 * var(--drawer-border-radius));
+
+  body[data-hideremote="true"] & {
+    top: var(--drawer-height);
+  }
+}

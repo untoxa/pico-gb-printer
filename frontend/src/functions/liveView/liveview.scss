@@ -5,7 +5,7 @@
   padding: 48px 8px 8px 8px;
   position: fixed;
   background: #ffffff;
-  top: 22vh;
+  top: 17vh;
   left: 50%;
   transform: translateX(-50%);
   margin: 0 auto;
@@ -61,6 +61,10 @@
     flex: auto 1 1;
     flex-direction: row;
     font-size: 14px;
+
+    .record-icon svg {
+      fill: #d22;
+    }
 
     &--record {
       .record { display: block; }

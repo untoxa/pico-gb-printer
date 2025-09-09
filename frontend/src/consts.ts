@@ -17,6 +17,7 @@ export const TILE_WIDTH    = 8;
 
 export const MAX_POLL_DELAY = 1500;
 export const BASIC_POLL_DELAY  = 10;
+export const MIN_STEP_DELAY = 50;
 
 export const LOCALSTORAGE_SORTORDER_KEY = 'pico-printer-sort-order';
 export const LOCALSTORAGE_SCALE_KEY = 'pico-printer-save-scale';
@@ -26,6 +27,7 @@ export const LOCALSTORAGE_EXPOSURE_MODE_KEY = 'pico-printer-exposure-mode';
 export const LOCALSTORAGE_REMOTE_CONTROL_KEY = 'pico-printer-remote-control';
 export const LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY = 'pico-printer-hide-remote-control';
 export const LOCALSTORAGE_LIVE_VIEW_KEY = 'pico-printer-live-view';
+export const LOCALSTORAGE_MACROS_KEY = 'pico-printer-macros';
 
 export enum SortOrder {
   ASCENDING = 'asc',
