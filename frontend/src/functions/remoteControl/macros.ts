@@ -1,10 +1,11 @@
 import { escape, sendClick } from '../helpers';
-import { macroStore, RemoteMacro, RemoteMacroStep } from './macroStore.ts';
+import { stepsToText, textToSteps } from '../helpers/macros.ts';
+import { macroStore, RemoteMacro } from './macroStore.ts';
 import { progressDone, progressStart, progressUpdate } from '../progress';
 import { delay as wait } from '../delay.ts';
-import { HideRemoteControl, LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY, MIN_STEP_DELAY, RemoteControl } from '../../consts.ts';
+import { HideRemoteControl, LOCALSTORAGE_HIDE_REMOTE_CONTROL_KEY, RemoteControl } from '../../consts.ts';
 import { addIcon, deleteIcon, editIcon, gamePadIcon, playIcon } from '../icons';
-import { buttonLabels, ButtonValues, getButtonValue } from './buttonValues.ts';
+import { ButtonValues } from './buttonValues.ts';
 import './macros.scss';
 
 const createDom = (): { container: HTMLDivElement } => {
@@ -14,10 +15,19 @@ const createDom = (): { container: HTMLDivElement } => {
       <button class="remote-control-macros__drawer" title="Show/Hide Macro Window">== Macros ==</button>
       <button title="Switch to Controller" class="remote-control-macros__meta-button" data-action="flip">${gamePadIcon()}</button>
       <div class="remote-control-macros__form">
-        <input class="remote-control-macros__field remote-control-macros__field--id" type="hidden"/>
-        <input class="remote-control-macros__field remote-control-macros__field--title" type="text"/>
-        <input class="remote-control-macros__field remote-control-macros__field--repeat" type="number" min="1"/>
-        <textarea class="remote-control-macros__field remote-control-macros__field--steps"></textarea>
+        <input class="remote-control-macros__field-input remote-control-macros__field-input--id" type="hidden"/>
+        <label class="remote-control-macros__field-label" title="Macro Title">
+          <span class="remote-control-macros__field-label-text">Macro Title</span>
+          <input class="remote-control-macros__field-input remote-control-macros__field-input--title" type="text"/>
+        </label>
+        <label class="remote-control-macros__field-label" title="Repeats">
+          <span class="remote-control-macros__field-label-text">Repeats</span>
+          <input class="remote-control-macros__field-input remote-control-macros__field-input--repeat" type="number" min="1"/>
+        </label>
+        <label class="remote-control-macros__field-label remote-control-macros__field-label--steps" title="Steps">
+          <span class="remote-control-macros__field-label-text">Steps</span>    
+          <textarea class="remote-control-macros__field-input remote-control-macros__field-input--steps"></textarea>
+        </label>
         <div class="remote-control-macros__form-buttons">
           <button class="remote-control-macros__form-button remote-control-macros__form-button--cancel">Cancel</button>
           <button class="remote-control-macros__form-button remote-control-macros__form-button--save">Save</button>
@@ -29,42 +39,6 @@ const createDom = (): { container: HTMLDivElement } => {
   return { container };
 }
 
-const stepsToText = (steps: RemoteMacroStep[]): string => {
-  return steps.map((step) => {
-    return [
-      `${step.delay.toString(10)}ms`.split('000ms').join('s'),
-      buttonLabels[step.key],
-      step.comment ? `#${step.comment}` : '',
-    ]
-      .filter(Boolean)
-      .join(' ');
-  }).join('\n');
-}
-
-const lineRegex = /^(?<delay>\d+)(?<unit>ms|s)\s+(?<key>\w+)(?:\s+#(?<comment>.*))?$/;
-
-const textToSteps = (text: string): RemoteMacroStep[] => {
-  const commands = text.split('\n');
-  const steps: (RemoteMacroStep | null)[] = commands.map((line: string): RemoteMacroStep | null => {
-    const match = line.trim().match(lineRegex);
-    if (!match || !match.groups) return null;
-
-    const rawDelay = parseInt(match.groups.delay, 10);
-    const delay = Math.max(MIN_STEP_DELAY, match.groups.unit === 's' ? rawDelay * 1000 : rawDelay);
-
-    const key = getButtonValue(match.groups.key || '');
-    const comment = match.groups.comment || '';
-
-    if (key) {
-      return { delay, key, comment };
-    }
-
-    return null;
-  });
-
-  return steps.filter(Boolean) as RemoteMacroStep[];
-}
-
 const runMacro = async (macroId: string) => {
   const macro = macroStore.getMacro(macroId);
   if (!macro || !macro.steps.length) { return; }
@@ -73,19 +47,19 @@ const runMacro = async (macroId: string) => {
 
   const fullSteps = Array.from({ length: repeats }, () => steps).flat()
 
-  progressStart();
+  await progressStart();
   let count = 0;
 
   for (let step of fullSteps) {
     const { delay, key } = step;
 
-    progressUpdate(count / fullSteps.length);
+    await progressUpdate(count / fullSteps.length);
     count += 1;
 
     await wait(delay);
 
     if (key !== ButtonValues.NONE) {
-      sendClick(parseInt(key, 16));
+      await sendClick(parseInt(key, 16));
     }
   }
 
@@ -104,6 +78,9 @@ export const updateMacroList = () => {
         <li class="remote-control-macros__list-entry" title="${escape(macro.title)}\n${stepsToText(macro.steps)}">
           <span class="remote-control-macros__title">
             ${escape(macro.title)}
+          </span>
+          <span class="remote-control-macros__repeats">
+            ${macro.repeats}×
           </span>
           <span class="remote-control-macros__buttons">
             <button title="Edit macro" class="remote-control-macros__button" data-id="${macro.id}" data-action="edit">${editIcon()}</button>
@@ -134,10 +111,10 @@ export const initMacros = (updateSetting: (value: RemoteControl) => void) => {
   macroList = container.querySelector('.remote-control-macros__list') as HTMLUListElement;
   const flipButton = container.querySelector('.remote-control-macros__meta-button[data-action="flip"]') as HTMLDivElement;
   const editForm = container.querySelector('.remote-control-macros__form') as HTMLDivElement;
-  const editIdField = editForm.querySelector('.remote-control-macros__field--id') as HTMLInputElement;
-  const editTitleField = editForm.querySelector('.remote-control-macros__field--title') as HTMLInputElement;
-  const editRepeatField = editForm.querySelector('.remote-control-macros__field--repeat') as HTMLInputElement;
-  const editStepsField = editForm.querySelector('.remote-control-macros__field--steps') as HTMLTextAreaElement;
+  const editIdField = editForm.querySelector('.remote-control-macros__field-input--id') as HTMLInputElement;
+  const editTitleField = editForm.querySelector('.remote-control-macros__field-input--title') as HTMLInputElement;
+  const editRepeatField = editForm.querySelector('.remote-control-macros__field-input--repeat') as HTMLInputElement;
+  const editStepsField = editForm.querySelector('.remote-control-macros__field-input--steps') as HTMLTextAreaElement;
   const editStepsSave = editForm.querySelector('.remote-control-macros__form-button--save') as HTMLButtonElement;
   const editStepsCancel = editForm.querySelector('.remote-control-macros__form-button--cancel') as HTMLButtonElement;
 
@@ -174,11 +151,15 @@ export const initMacros = (updateSetting: (value: RemoteControl) => void) => {
   });
 
   editStepsSave.addEventListener('click', () => {
+    const { steps, valid } = textToSteps(editStepsField.value);
+
+    if (!valid) { return; }
+
     const macroUpdate: RemoteMacro = {
       id: editIdField.value,
-      title: editTitleField.value,
+      title: editTitleField.value.trim(),
       repeats: Math.max(1, parseInt(editRepeatField.value, 10) || 1),
-      steps: textToSteps(editStepsField.value),
+      steps,
     };
 
     macroStore.updateMacro(macroUpdate);
@@ -243,7 +224,25 @@ export const initMacros = (updateSetting: (value: RemoteControl) => void) => {
     }
   };
 
+  const validate = () => {
+    const titleValue = editTitleField.value.trim();
+    const titleValid = titleValue !== '' && escape(titleValue) === titleValue;
+    editTitleField.classList[titleValid ? 'remove' : 'add']('remote-control-macros__field-input--error')
+
+    const repeatsValue = parseInt(editRepeatField.value, 10);
+    const repeatsValid = !isNaN(repeatsValue) && repeatsValue > 0;
+    editRepeatField.classList[repeatsValid ? 'remove' : 'add']('remote-control-macros__field-input--error')
+
+    const { valid: stepsValid } = textToSteps(editStepsField.value);
+    editStepsField.classList[stepsValid ? 'remove' : 'add']('remote-control-macros__field-input--error')
+
+    editStepsSave.disabled = !titleValid || !repeatsValid || !stepsValid;
+  }
+
   macroList.addEventListener('mousedown', handleClick);
   flipButton.addEventListener('mousedown', handleClick);
+  editTitleField.addEventListener('input', validate);
+  editRepeatField.addEventListener('input', validate);
+  editStepsField.addEventListener('input', validate);
   updateMacroList();
 }
