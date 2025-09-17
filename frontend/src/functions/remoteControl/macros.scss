@@ -59,7 +59,7 @@ body[data-remote="macros"][data-hideremote="true"] {
   &__list-entry {
     margin: 0 var(--side-space);
     display: flex;
-    gap: 12px;
+    gap: 8px;
     flex-direction: row;
     justify-content: space-between;
     padding-bottom: 6px;
@@ -70,13 +70,21 @@ body[data-remote="macros"][data-hideremote="true"] {
   }
 
   &__title {
-    flex: 1;
+    flex: 1 1 auto;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     height: 40px;
     line-height: 40px;
     text-align: left;
+  }
+
+  &__repeats {
+    flex: 0 1 auto;
+    overflow: hidden;
+    font-size: 12px;
+    height: 40px;
+    line-height: 40px;
   }
 
   &__buttons {
@@ -111,21 +119,55 @@ body[data-remote="macros"][data-hideremote="true"] {
     }
   }
 
-  &__field {
+  &__field-label {
     width: 100%;
+    position: relative;
+
+    &--steps {
+      resize: none;
+      height: 180px;
+    }
+  }
+
+  &__field-label-text {
+    font-size: 13px;
+    background: linear-gradient(
+      180deg,
+      rgba(221, 221, 221, 1) 0%,
+      rgba(221, 221, 221, 1) 60%,
+      rgba(255, 255, 255, 1) 80%,
+      rgba(255, 255, 255, 1) 100%,
+    );
+    position: absolute;
+    left: 8px;
+    top: -8px;
+    padding: 0 4px;
+    color: #777;
+  }
+
+  &__field-input {
+    --field-border-color: #888;
+    --field-background-color: #fff;
+    --field-color: currentColor;
+    width: 100%;
+    height: 100%;
     font-size: 16px;
     padding: 8px 12px;
+
+    background-color: var(--field-background-color);
+    border: 1px solid var(--field-border-color);
+    outline-color: var(--field-border-color);
+    color: var(--field-color);
 
     @media (max-width: 440px) {
       font-size: 14px;
       padding: 4px 6px;
     }
 
-    &--title {}
-
-    &--steps {
-      resize: none;
-      height: 180px;
+    &--error {
+      --field-border-color: #c22;
+      --field-background-color: #fee;
+      --field-color: #600;
     }
   }
 
