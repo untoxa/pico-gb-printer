@@ -19,9 +19,9 @@ You will need a Raspberry Pi, 1/2 of the game boy link cable and a four-channel 
 This is the example of the ready-to-use device:  
 ![Example of a ready-to-use device](./device.jpg)
 
-As finding which is SIN and SOUT is sometimes tricky as signals are crossed within the serial cable, you can also make your own PCB with a Pi Zero and a GBC/GBA serial socket [following the guide here](https://github.com/Raphael-Boichot/Collection-of-PCB-for-Game-Boy-Printer-Emulators). Just [route the LED to GPIO 8](https://github.com/Raphael-Boichot/pico-gb-printer/blob/c10a31e7458818ecd8ce3af9a09c53344a659cd4/include/globals.h#L8C33-L8C35) and the [Pushbutton to GPIO9](https://github.com/Raphael-Boichot/pico-gb-printer/blob/c10a31e7458818ecd8ce3af9a09c53344a659cd4/include/globals.h#L21) to make it shine and cut paper !  
-![Simple PCP](./PCB.png)
+As finding which is SIN and SOUT is sometimes tricky as signals are crossed within the serial cable, you can also make your own PCB with a Pi Zero and a GBC/GBA serial socket [following the guide here](https://github.com/Raphael-Boichot/Collection-of-PCB-for-Game-Boy-Printer-Emulators). 
 ![assembled PCB](./Pi_Zero_shield.jpg)
+![assembled PCB](./Pi_Zero_shield_remote.jpg)
 
 ## Build dependencies
 
