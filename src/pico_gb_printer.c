@@ -239,6 +239,7 @@ int main(void) {
     for (uint8_t i = 0; i != LENGTH(keyboard_pins); ++i) {
         if (keyboard_pins[i]) {
             gpio_init(i);
+            gpio_pull_down(i);
             gpio_set_dir(i, GPIO_IN);
             gpio_set_irq_enabled_with_callback(i, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &keyboard_callback);
         }
