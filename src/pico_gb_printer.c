@@ -87,9 +87,9 @@ int64_t remote_control(alarm_id_t id, void *user_data) {
     return MS(17);
 }
 
-// remote control keyboard
-uint8_t keyboard = 0;
-const uint8_t keyboard_pins[32] = {
+// remote control joypad
+volatile uint8_t old_joypad = 0, joypad = 0;
+const uint8_t joypad_pins[32] = {
     [PIN_A]       = J_A,
     [PIN_A_ALT]   = J_A,
     [PIN_B]       = J_B,
@@ -101,8 +101,7 @@ const uint8_t keyboard_pins[32] = {
     [PIN_RIGHT]   = J_RIGHT
 };
 static void keyboard_callback(uint gpio, uint32_t events) {
-    if (events == GPIO_IRQ_EDGE_RISE) keyboard |= keyboard_pins[(gpio & 0x1fu)]; else keyboard &= ~keyboard_pins[(gpio & 0x1fu)];
-    keys_push(keyboard);
+    if (events == GPIO_IRQ_EDGE_RISE) joypad |= joypad_pins[(gpio & 0x1fu)]; else joypad &= ~joypad_pins[(gpio & 0x1fu)];
 }
 
 // Webserver dynamic handling
@@ -235,9 +234,9 @@ int main(void) {
     // reset file and block allocation
     reset_data_blocks();
 
-    // set up keyboard
-    for (uint8_t i = 0; i != LENGTH(keyboard_pins); ++i) {
-        if (keyboard_pins[i]) {
+    // set up joypad
+    for (uint8_t i = 0; i != LENGTH(joypad_pins); ++i) {
+        if (joypad_pins[i]) {
             gpio_init(i);
             gpio_pull_down(i);
             gpio_set_dir(i, GPIO_IN);
@@ -269,6 +268,9 @@ int main(void) {
         // process remote control
         static uint8_t keys;
         if (next_key) {
+            if (old_joypad != joypad) {
+                keys_push(old_joypad = joypad);
+            }
             if (!is_printing && keys_pop(&keys)) remote_send(keys);
             next_key = false;
         }
