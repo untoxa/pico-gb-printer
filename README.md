@@ -19,8 +19,12 @@ You will need a Raspberry Pi, 1/2 of the game boy link cable and a four-channel 
 This is the example of the ready-to-use device:  
 ![Example of a ready-to-use device](./device.jpg)
 
-As finding which is SIN and SOUT is sometimes tricky as signals are crossed within the serial cable, you can also make your own PCB with a Pi Zero and a GBC/GBA serial socket [following the guide here](https://github.com/Raphael-Boichot/Collection-of-PCB-for-Game-Boy-Printer-Emulators). 
+As finding which is SIN and SOUT is sometimes tricky as signals are crossed within the serial cable, you can also make your own PCB with a Pi Zero and a GBC/GBA serial socket [following the guide here](https://github.com/Raphael-Boichot/Collection-of-PCB-for-Game-Boy-Printer-Emulators). The PCBs come in two flavors: one simple and small with only one pushbutton for shutter or a larger version featuring a full remote control for Photo!
+
+### Simple PCB with a single pushbutton (small)
 ![assembled PCB](./Pi_Zero_shield.jpg)
+
+### Full remote control version (large)
 ![assembled PCB](./Pi_Zero_shield_remote.jpg)
 
 ## Build dependencies
