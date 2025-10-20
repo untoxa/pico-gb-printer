@@ -36,7 +36,7 @@ bitloop:
 .program linkcable_master
 
 .wrap_target
-    set x, 8
+    set x, 7
     pull block
     out null, 24
     set pindirs, 1
